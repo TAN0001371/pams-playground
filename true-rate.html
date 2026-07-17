@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kevin's True Hourly Rate</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; padding: 16px; max-width: 700px; margin: auto; }
+h1 { font-size: 22px; color: #1a1a2e; margin-bottom: 16px; }
+h2 { font-size: 15px; margin-bottom: 10px; color: #1a1a2e; }
+.card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.row { display: flex; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+.col { flex: 1; min-width: 110px; }
+label { display: block; font-size: 11px; color: #666; margin-bottom: 3px; }
+input { width: 100%; padding: 7px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+input:focus { outline: none; border-color: #e94560; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { padding: 6px 8px; border-bottom: 1px solid #eee; }
+th { font-size: 11px; color: #888; font-weight: normal; text-transform: uppercase; }
+.total { font-weight: bold; background: #f9f9f9; }
+.big-num { font-size: 30px; font-weight: bold; color: #1a1a2e; text-align: center; padding: 12px; }
+.result-box { background: #1a1a2e; border-radius: 10px; padding: 20px; text-align: center; margin-bottom: 14px; }
+.result-box .big { font-size: 38px; font-weight: bold; color: white; }
+.result-box .sub { font-size: 13px; color: #aaa; margin-top: 4px; }
+.result-box .detail { font-size: 12px; color: #666; margin-top: 8px; }
+.btn { padding: 10px 16px; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; display: inline-block; }
+.btn-secondary { background: #1a1a2e; color: white; }
+.btn-outline { background: none; border: 1px solid #ddd; color: #555; }
+.delete-btn { color: #dc3545; cursor: pointer; border: none; background: none; font-size: 14px; }
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.section-header h2 { margin: 0; }
+.subtotal-line { font-size: 13px; color: #888; margin-top: 4px; }
+.footer-link { text-align: center; padding: 16px; font-size: 13px; color: #888; }
+.footer-link a { color: #e94560; }
+</style>
+</head>
+<body>
+
+<h1>Kevin's True Hourly Rate</h1>
+<p style="font-size:13px;color:#888;margin-bottom:16px;">This combines your business costs, personal living costs, and retained profit into one number — your true minimum hourly rate.</p>
+
+<!-- ===== BUSINESS COSTS ===== -->
+<div class="card">
+  <div class="section-header">
+    <h2>🏢 Business Costs</h2>
+    <button class="btn btn-outline" onclick="addBiz()" style="font-size:11px;padding:4px 10px;">+ Add</button>
+  </div>
+  <table>
+    <thead><tr><th>Expense</th><th style="width:110px">$ per year</th><th style="width:30px"></th></tr></thead>
+    <tbody id="bizList"></tbody>
+    <tfoot><tr class="total"><td>Total business costs</td><td id="bizTotal">$0</td><td></td></tr></tfoot>
+  </table>
+</div>
+
+<!-- ===== PERSONAL COSTS ===== -->
+<div class="card">
+  <div class="section-header">
+    <h2>🏠 Personal Living Costs</h2>
+    <button class="btn btn-outline" onclick="addPersonal()" style="font-size:11px;padding:4px 10px;">+ Add</button>
+  </div>
+  <table>
+    <thead><tr><th>Expense</th><th style="width:110px">$ per year</th><th style="width:30px"></th></tr></thead>
+    <tbody id="personalList"></tbody>
+    <tfoot><tr class="total"><td>Total personal costs</td><td id="personalTotal">$0</td><td></td></tr></tfoot>
+  </table>
+  <div class="row" style="margin-top:10px;">
+    <div class="col">
+      <label>Partner contribution (if any)</label>
+      <input id="partnerContrib" type="number" value="0" oninput="calcRate()">
+      <span style="font-size:11px;color:#888;">Helps reduce what you need to earn</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TAX & PROFIT ===== -->
+<div class="card">
+  <h2>💰 Tax & Retained Profit</h2>
+  <div class="row">
+    <div class="col">
+      <label>Tax rate (rough %)</label>
+      <input id="taxRate" type="number" value="25" oninput="calcRate()">
+    </div>
+    <div class="col">
+      <label>Retained profit per year</label>
+      <input id="retainedProfit" type="number" value="5000" oninput="calcRate()">
+      <span style="font-size:11px;color:#888;">Money business keeps for growth, tools, buffer</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HOURS ===== -->
+<div class="card">
+  <h2>⏰ Hours You Want to Work</h2>
+  <div class="row">
+    <div class="col">
+      <label>Weeks per year</label>
+      <input id="weeks" type="number" value="44" oninput="calcRate()">
+    </div>
+    <div class="col">
+      <label>Hours per week (billable)</label>
+      <input id="hoursPerWeek" type="number" value="32" oninput="calcRate()">
+    </div>
+  </div>
+  <div style="font-size:13px;color:#888;margin-top:4px;">
+    <span id="totalHours">1,408</span> billable hours per year
+  </div>
+</div>
+
+<!-- ===== RESULT ===== -->
+<div class="result-box">
+  <div class="big" id="hourlyRate">$0</div>
+  <div class="sub">per hour — your true minimum</div>
+  <div class="detail" id="rateBreakdown"></div>
+</div>
+
+<div class="card" style="background:#fff8e1;">
+  <div style="font-size:13px;color:#856404;line-height:1.6;">
+    <strong>How this works:</strong><br>
+    <span id="howItWorks">
+      Business costs ($0/yr) + Personal costs ($0/yr) + Partner contribution ($0/yr) + Tax ($0/yr) + Retained profit ($0/yr) = Total need of $0/yr ÷ 0 billable hrs = $0/hr
+    </span>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Monthly Snapshot</h2>
+  <div class="row">
+    <div class="col" style="text-align:center;padding:10px;background:#f0f0f0;border-radius:8px;">
+      <div style="font-size:11px;color:#888;">Monthly biz costs</div>
+      <div style="font-size:18px;font-weight:bold;" id="monthlyBiz">$0</div>
+    </div>
+    <div class="col" style="text-align:center;padding:10px;background:#f0f0f0;border-radius:8px;">
+      <div style="font-size:11px;color:#888;">Monthly living costs</div>
+      <div style="font-size:18px;font-weight:bold;" id="monthlyPersonal">$0</div>
+    </div>
+    <div class="col" style="text-align:center;padding:10px;background:#1a1a2e;color:white;border-radius:8px;">
+      <div style="font-size:11px;color:#aaa;">Need to earn/month</div>
+      <div style="font-size:18px;font-weight:bold;" id="monthlyNeed">$0</div>
+    </div>
+  </div>
+</div>
+
+<div class="footer-link">
+  ⚡ See also: <a href="https://tan0001371.github.io/pams-playground/" target="_blank">Kevin's Quick Quote Tool</a>
+</div>
+
+<script>
+// ===== STATE =====
+let state = {
+  bizCosts: [
+    {name:'Insurance', cost:1600},
+    {name:'Vehicle', cost:12000},
+    {name:'Fuel', cost:9200},
+    {name:'Registration', cost:1000},
+    {name:'Repairs/maintenance', cost:3200},
+    {name:'Phone', cost:450},
+    {name:'Tools replacement', cost:8000},
+    {name:'Accountant', cost:500},
+    {name:'Bank fees', cost:150},
+    {name:'PPE', cost:1000},
+  ],
+  personalCosts: [
+    {name:'Rent/mortgage', cost:24000},
+    {name:'Groceries', cost:10000},
+    {name:'Utilities (power, water, gas)', cost:3600},
+    {name:'Car payment', cost:6000},
+    {name:'Health insurance', cost:3600},
+    {name:'Kids school/activities', cost:4000},
+    {name:'Phone/internet', cost:1500},
+  ],
+  partnerContrib: 0,
+  taxRate: 25,
+  retainedProfit: 5000,
+  weeks: 44,
+  hoursPerWeek: 32,
+};
+
+function loadState() {
+  try {
+    var s = localStorage.getItem('kevinTrueRate');
+    if (s) {
+      var d = JSON.parse(s);
+      state.bizCosts = d.bizCosts || state.bizCosts;
+      state.personalCosts = d.personalCosts || state.personalCosts;
+      state.partnerContrib = d.partnerContrib || 0;
+      state.taxRate = d.taxRate || 25;
+      state.retainedProfit = d.retainedProfit || 5000;
+      state.weeks = d.weeks || 44;
+      state.hoursPerWeek = d.hoursPerWeek || 32;
+    }
+  } catch(e) {}
+}
+
+function saveState() {
+  state.weeks = parseFloat(document.getElementById('weeks').value) || 44;
+  state.hoursPerWeek = parseFloat(document.getElementById('hoursPerWeek').value) || 32;
+  state.taxRate = parseFloat(document.getElementById('taxRate').value) || 25;
+  state.retainedProfit = parseFloat(document.getElementById('retainedProfit').value) || 0;
+  state.partnerContrib = parseFloat(document.getElementById('partnerContrib').value) || 0;
+  localStorage.setItem('kevinTrueRate', JSON.stringify(state));
+}
+
+// ===== BUSINESS COSTS =====
+function renderBiz() {
+  var body = document.getElementById('bizList');
+  body.innerHTML = state.bizCosts.map(function(c, i) {
+    return '<tr><td><input value="' + c.name + '" onchange="updateBiz(' + i + ',\'name\',this.value)" style="border:none;background:transparent;width:100%;font-size:13px;"></td>' +
+      '<td><input type="number" value="' + (c.cost||0) + '" onchange="updateBiz(' + i + ',\'cost\',parseFloat(this.value)||0)" style="width:100px"></td>' +
+      '<td><button class="delete-btn" onclick="removeBiz(' + i + ')">✕</button></td></tr>';
+  }).join('');
+  calcRate();
+}
+
+function addBiz() { state.bizCosts.push({name:'', cost:0}); renderBiz(); saveState(); }
+function removeBiz(i) { state.bizCosts.splice(i,1); renderBiz(); saveState(); }
+function updateBiz(i, f, v) { state.bizCosts[i][f] = v; calcRate(); saveState(); }
+
+// ===== PERSONAL COSTS =====
+function renderPersonal() {
+  var body = document.getElementById('personalList');
+  body.innerHTML = state.personalCosts.map(function(c, i) {
+    return '<tr><td><input value="' + c.name + '" onchange="updatePersonal(' + i + ',\'name\',this.value)" style="border:none;background:transparent;width:100%;font-size:13px;"></td>' +
+      '<td><input type="number" value="' + (c.cost||0) + '" onchange="updatePersonal(' + i + ',\'cost\',parseFloat(this.value)||0)" style="width:100px"></td>' +
+      '<td><button class="delete-btn" onclick="removePersonal(' + i + ')">✕</button></td></tr>';
+  }).join('');
+  calcRate();
+}
+
+function addPersonal() { state.personalCosts.push({name:'', cost:0}); renderPersonal(); saveState(); }
+function removePersonal(i) { state.personalCosts.splice(i,1); renderPersonal(); saveState(); }
+function updatePersonal(i, f, v) { state.personalCosts[i][f] = v; calcRate(); saveState(); }
+
+// ===== RATE CALC =====
+function calcRate() {
+  var bizTotal = state.bizCosts.reduce(function(s, c) { return s + (parseFloat(c.cost)||0); }, 0);
+  var personalTotal = state.personalCosts.reduce(function(s, c) { return s + (parseFloat(c.cost)||0); }, 0);
+  var partner = parseFloat(document.getElementById('partnerContrib').value) || 0;
+  var taxPct = parseFloat(document.getElementById('taxRate').value) || 0;
+  var retained = parseFloat(document.getElementById('retainedProfit').value) || 0;
+  var weeks = parseFloat(document.getElementById('weeks').value) || 44;
+  var hWeek = parseFloat(document.getElementById('hoursPerWeek').value) || 32;
+  
+  var billable = weeks * hWeek;
+  var personalAfterPartner = personalTotal - partner;
+  if (personalAfterPartner < 0) personalAfterPartner = 0;
+  var preTaxNeed = bizTotal + personalAfterPartner + retained;
+  var taxAmount = taxPct > 0 ? preTaxNeed * (taxPct / (100 - taxPct)) : 0;
+  var totalNeed = preTaxNeed + taxAmount;
+  var rate = billable > 0 ? totalNeed / billable : 0;
+  
+  document.getElementById('bizTotal').textContent = '$' + bizTotal.toFixed(0);
+  document.getElementById('personalTotal').textContent = '$' + personalTotal.toFixed(0);
+  document.getElementById('totalHours').textContent = billable.toLocaleString();
+  document.getElementById('hourlyRate').textContent = '$' + rate.toFixed(0) + '/hr';
+  
+  document.getElementById('rateBreakdown').textContent =
+    '$' + bizTotal.toFixed(0) + ' biz + $' + personalAfterPartner.toFixed(0) + ' living + $' + retained.toFixed(0) + ' profit + $' + taxAmount.toFixed(0) + ' tax = $' + totalNeed.toFixed(0) + ' total';
+  
+  document.getElementById('howItWorks').innerHTML =
+    'Business costs ($' + bizTotal.toFixed(0) + '/yr) + Personal costs ($' + personalTotal.toFixed(0) + '/yr)' +
+    (partner > 0 ? ' - Partner contrib ($' + partner.toFixed(0) + '/yr)' : '') +
+    ' + Tax ($' + taxAmount.toFixed(0) + '/yr) + Retained profit ($' + retained.toFixed(0) + '/yr)' +
+    ' = <strong>Total need of $' + totalNeed.toFixed(0) + '/yr</strong> ÷ ' + billable.toLocaleString() + ' billable hrs = <strong>$' + rate.toFixed(0) + '/hr</strong>';
+  
+  // Monthly
+  document.getElementById('monthlyBiz').textContent = '$' + (bizTotal / 12).toFixed(0);
+  document.getElementById('monthlyPersonal').textContent = '$' + (personalTotal / 12).toFixed(0);
+  document.getElementById('monthlyNeed').textContent = '$' + (totalNeed / 12).toFixed(0);
+  
+  saveState();
+}
+
+// ===== INIT =====
+loadState();
+document.getElementById('weeks').value = state.weeks;
+document.getElementById('hoursPerWeek').value = state.hoursPerWeek;
+document.getElementById('partnerContrib').value = state.partnerContrib;
+document.getElementById('taxRate').value = state.taxRate;
+document.getElementById('retainedProfit').value = state.retainedProfit;
+renderBiz();
+renderPersonal();
+calcRate();
+</script>
+</body>
+</html>
