@@ -149,36 +149,36 @@ th { font-size: 11px; color: #888; font-weight: normal; text-transform: uppercas
 // ===== STATE =====
 let state = {
   bizCosts: [
-    {name:'Insurance', cost:1600},
-    {name:'Vehicle', cost:12000},
-    {name:'Fuel', cost:9200},
-    {name:'Registration', cost:1000},
-    {name:'Repairs/maintenance', cost:3200},
-    {name:'Phone', cost:450},
-    {name:'Tools replacement', cost:8000},
-    {name:'Accountant', cost:500},
-    {name:'Bank fees', cost:150},
-    {name:'PPE', cost:1000},
+    {name:'Insurance', cost:1600, freq:'year'},
+    {name:'Vehicle', cost:12000, freq:'year'},
+    {name:'Fuel', cost:150, freq:'week'},
+    {name:'Registration', cost:1000, freq:'year'},
+    {name:'Repairs/maintenance', cost:3200, freq:'year'},
+    {name:'Phone', cost:450, freq:'year'},
+    {name:'Tools replacement', cost:8000, freq:'year'},
+    {name:'Accountant', cost:500, freq:'year'},
+    {name:'Bank fees', cost:150, freq:'year'},
+    {name:'PPE', cost:1000, freq:'year'},
   ],
   personalCosts: [
-    {name:'Rent/mortgage', cost:24000},
-    {name:'Groceries', cost:10000},
-    {name:'Superannuation (self-funded 11.5%)', cost:9200},
-    {name:'Utilities (power, water, gas)', cost:3600},
-    {name:'Clothing (family of 5)', cost:4000},
-    {name:'Health insurance', cost:3600},
-    {name:'Kids school/activities', cost:4000},
-    {name:'Holidays & travel', cost:3000},
-    {name:'Car payment (personal)', cost:6000},
-    {name:'Home & contents insurance', cost:2000},
-    {name:'Life & income protection insurance', cost:2000},
-    {name:'Medical/dental gap costs', cost:1500},
-    {name:'Entertainment & eating out', cost:3000},
-    {name:'Phone/internet', cost:1500},
-    {name:'Home maintenance', cost:2500},
-    {name:'Gifts, Christmas, birthdays', cost:2000},
-    {name:'Subscriptions (streaming etc)', cost:1200},
-    {name:'Council rates', cost:2500},
+    {name:'Rent/mortgage', cost:2000, freq:'month'},
+    {name:'Groceries', cost:200, freq:'week'},
+    {name:'Superannuation (self-funded 11.5%)', cost:9200, freq:'year'},
+    {name:'Utilities (power, water, gas)', cost:300, freq:'month'},
+    {name:'Clothing (family of 5)', cost:4000, freq:'year'},
+    {name:'Health insurance', cost:300, freq:'month'},
+    {name:'Kids school/activities', cost:4000, freq:'year'},
+    {name:'Holidays & travel', cost:3000, freq:'year'},
+    {name:'Car payment (personal)', cost:500, freq:'month'},
+    {name:'Home & contents insurance', cost:2000, freq:'year'},
+    {name:'Life & income protection insurance', cost:2000, freq:'year'},
+    {name:'Medical/dental gap costs', cost:1500, freq:'year'},
+    {name:'Entertainment & eating out', cost:60, freq:'week'},
+    {name:'Phone/internet', cost:125, freq:'month'},
+    {name:'Home maintenance', cost:2500, freq:'year'},
+    {name:'Gifts, Christmas, birthdays', cost:2000, freq:'year'},
+    {name:'Subscriptions (streaming etc)', cost:100, freq:'month'},
+    {name:'Council rates', cost:2500, freq:'year'},
   ],
   partnerContrib: 0,
   taxRate: 25,
@@ -213,17 +213,32 @@ function saveState() {
 }
 
 // ===== BUSINESS COSTS =====
+function freqDropdown(i, prefix, selected) {
+  var opts = ['week','fortnight','month','year'];
+  var labels = {week:'/wk',fortnight:'/fn',month:'/mo',year:'/yr'};
+  return '<select onchange="update' + prefix + '(' + i + ',\'freq\',this.value)" style="width:55px;font-size:11px;padding:4px;border:1px solid #ddd;border-radius:4px;">' +
+    opts.map(function(f) { return '<option value="' + f + '" ' + (selected===f?'selected':'') + '>' + labels[f] + '</option>'; }).join('') + '</select>';
+}
+
+function annualize(cost, freq) {
+  var m = {week:52, fortnight:26, month:12, year:1};
+  return cost * (m[freq] || 1);
+}
+
 function renderBiz() {
   var body = document.getElementById('bizList');
   body.innerHTML = state.bizCosts.map(function(c, i) {
+    var annual = annualize(c.cost||0, c.freq||'year');
     return '<tr><td><input value="' + c.name + '" onchange="updateBiz(' + i + ',\'name\',this.value)" style="border:none;background:transparent;width:100%;font-size:13px;"></td>' +
-      '<td><input type="number" value="' + (c.cost||0) + '" onchange="updateBiz(' + i + ',\'cost\',parseFloat(this.value)||0)" style="width:100px"></td>' +
+      '<td style="display:flex;gap:4px;align-items:center;"><input type="number" value="' + (c.cost||0) + '" onchange="updateBiz(' + i + ',\'cost\',parseFloat(this.value)||0)" style="width:70px">' +
+      freqDropdown(i, 'Biz', c.freq||'year') + '</td>' +
+      '<td style="font-size:11px;color:#888;">$' + annual.toFixed(0) + '/yr</td>' +
       '<td><button class="delete-btn" onclick="removeBiz(' + i + ')">✕</button></td></tr>';
   }).join('');
   calcRate();
 }
 
-function addBiz() { state.bizCosts.push({name:'', cost:0}); renderBiz(); saveState(); }
+function addBiz() { state.bizCosts.push({name:'', cost:0, freq:'year'}); renderBiz(); saveState(); }
 function removeBiz(i) { state.bizCosts.splice(i,1); renderBiz(); saveState(); }
 function updateBiz(i, f, v) { state.bizCosts[i][f] = v; calcRate(); saveState(); }
 
@@ -231,21 +246,24 @@ function updateBiz(i, f, v) { state.bizCosts[i][f] = v; calcRate(); saveState();
 function renderPersonal() {
   var body = document.getElementById('personalList');
   body.innerHTML = state.personalCosts.map(function(c, i) {
+    var annual = annualize(c.cost||0, c.freq||'year');
     return '<tr><td><input value="' + c.name + '" onchange="updatePersonal(' + i + ',\'name\',this.value)" style="border:none;background:transparent;width:100%;font-size:13px;"></td>' +
-      '<td><input type="number" value="' + (c.cost||0) + '" onchange="updatePersonal(' + i + ',\'cost\',parseFloat(this.value)||0)" style="width:100px"></td>' +
+      '<td style="display:flex;gap:4px;align-items:center;"><input type="number" value="' + (c.cost||0) + '" onchange="updatePersonal(' + i + ',\'cost\',parseFloat(this.value)||0)" style="width:70px">' +
+      freqDropdown(i, 'Personal', c.freq||'year') + '</td>' +
+      '<td style="font-size:11px;color:#888;">$' + annual.toFixed(0) + '/yr</td>' +
       '<td><button class="delete-btn" onclick="removePersonal(' + i + ')">✕</button></td></tr>';
   }).join('');
   calcRate();
 }
 
-function addPersonal() { state.personalCosts.push({name:'', cost:0}); renderPersonal(); saveState(); }
+function addPersonal() { state.personalCosts.push({name:'', cost:0, freq:'year'}); renderPersonal(); saveState(); }
 function removePersonal(i) { state.personalCosts.splice(i,1); renderPersonal(); saveState(); }
 function updatePersonal(i, f, v) { state.personalCosts[i][f] = v; calcRate(); saveState(); }
 
 // ===== RATE CALC =====
 function calcRate() {
-  var bizTotal = state.bizCosts.reduce(function(s, c) { return s + (parseFloat(c.cost)||0); }, 0);
-  var personalTotal = state.personalCosts.reduce(function(s, c) { return s + (parseFloat(c.cost)||0); }, 0);
+  var bizTotal = state.bizCosts.reduce(function(s, c) { return s + annualize(parseFloat(c.cost)||0, c.freq||'year'); }, 0);
+  var personalTotal = state.personalCosts.reduce(function(s, c) { return s + annualize(parseFloat(c.cost)||0, c.freq||'year'); }, 0);
   var partner = parseFloat(document.getElementById('partnerContrib').value) || 0;
   var taxPct = parseFloat(document.getElementById('taxRate').value) || 0;
   var retained = parseFloat(document.getElementById('retainedProfit').value) || 0;
