@@ -50,6 +50,14 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
 .quote-body { padding: 20px; }
 @media print { nav, .no-print { display: none !important; } body { background: white; } }
 .empty-state { text-align: center; padding: 40px; color: #888; }
+.tag-draft { background: #f0f0f0; color: #666; }
+.tag-sent { background: #fff3cd; color: #856404; }
+.tag-accepted { background: #d4edda; color: #155724; }
+.tag-invoiced { background: #cce5ff; color: #004085; }
+.tag-paid { background: #c3e6cb; color: #1e7e34; }
+.tag-lost { background: #f8d7da; color: #721c24; }
+.btn-success { background: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+.btn-primary { background: #007bff; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -62,6 +70,7 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
 <nav>
   <button class="active" onclick="switchTab('overview')">📊 Overview</button>
   <button onclick="switchTab('newquote')">➕ New Quote</button>
+  <button onclick="switchTab('pipeline')">📊 Pipeline</button>
   <button onclick="switchTab('overhead')">🏢 Overhead</button>
   <button onclick="switchTab('materials')">📦 Materials</button>
   <button onclick="switchTab('history')">📋 Quote History</button>
@@ -167,6 +176,10 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
 
     <div class="row mt">
       <div class="col">
+        <label>Deposit % (ask upfront)</label>
+        <input id="nqDeposit" type="number" value="30" min="0" max="100">
+      </div>
+      <div class="col">
         <label>Contingency %</label>
         <input id="nqContingency" type="number" value="5" min="0" max="50">
       </div>
@@ -188,6 +201,44 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
       <button class="btn btn-secondary" onclick="printQuote()">🖨️ Print as PDF</button>
       <button class="btn btn-outline" onclick="resetQuoteForm()">Reset</button>
     </div>
+  </div>
+</div>
+
+<!-- ============ PIPELINE ============ -->
+<div id="tab-pipeline" class="tab">
+  <div class="card">
+    <h2>Quote Pipeline</h2>
+    <p style="font-size:13px;color:#888;margin-bottom:12px;">Track each quote through the stages. Use buttons in Quote History to move them forward.</p>
+    <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:12px;" id="pipelineView">
+      <div style="min-width:150px;background:#f0f0f0;border-radius:8px;padding:12px;">
+        <div style="font-size:11px;color:#888;text-transform:uppercase;font-weight:bold;">📝 DRAFT</div>
+        <div id="pipe-draft"></div>
+      </div>
+      <div style="min-width:150px;background:#fff3cd;border-radius:8px;padding:12px;">
+        <div style="font-size:11px;color:#856404;text-transform:uppercase;font-weight:bold;">📤 SENT</div>
+        <div id="pipe-sent"></div>
+      </div>
+      <div style="min-width:150px;background:#d4edda;border-radius:8px;padding:12px;">
+        <div style="font-size:11px;color:#155724;text-transform:uppercase;font-weight:bold;">✅ ACCEPTED</div>
+        <div id="pipe-accepted"></div>
+      </div>
+      <div style="min-width:150px;background:#cce5ff;border-radius:8px;padding:12px;">
+        <div style="font-size:11px;color:#004085;text-transform:uppercase;font-weight:bold;">🧾 INVOICED</div>
+        <div id="pipe-invoiced"></div>
+      </div>
+      <div style="min-width:150px;background:#c3e6cb;border-radius:8px;padding:12px;">
+        <div style="font-size:11px;color:#1e7e34;text-transform:uppercase;font-weight:bold;">💰 PAID</div>
+        <div id="pipe-paid"></div>
+      </div>
+      <div style="min-width:150px;background:#f8d7da;border-radius:8px;padding:12px;">
+        <div style="font-size:11px;color:#721c24;text-transform:uppercase;font-weight:bold;">❌ LOST</div>
+        <div id="pipe-lost"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Need Follow-Up (sent > 7 days)</h2>
+    <div id="staleQuotes"><div class="empty-state">None — good job!</div></div>
   </div>
 </div>
 
@@ -447,7 +498,20 @@ function switchTab(name) {
   renderCurrentTab(name);
 }
 
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('nav button').forEach(function(b){b.classList.remove('active');});
+  var tab = document.getElementById('tab-' + name);
+  if (tab) tab.classList.add('active');
+  var labels = {overview:'Overview',newquote:'New Quote',pipeline:'Pipeline',overhead:'Overhead',materials:'Materials',history:'Quote History'};
+  Array.from(document.querySelectorAll('nav button')).forEach(function(b){
+    if (b.textContent.includes(labels[name] || name)) b.classList.add('active');
+  });
+  renderCurrentTab(name);
+}
+
 function renderCurrentTab(name) {
+  if (name === 'pipeline') return renderPipeline();
   if (name === 'overview') renderOverview();
   else if (name === 'history') renderHistory();
   else if (name === 'overhead') renderOverhead();
@@ -784,6 +848,7 @@ function saveQuote() {
   const type = document.getElementById('nqType').value;
   const location = document.getElementById('nqLocation').value || '';
   const overheadPct = parseFloat(document.getElementById('nqOverheadPct').value) || 100;
+  const depositPct = parseFloat(document.getElementById('nqDeposit').value) || 30;
   const contingency = parseFloat(document.getElementById('nqContingency').value) || 5;
   const profitPct = parseFloat(document.getElementById('nqProfit').value) || 25;
   
@@ -816,6 +881,8 @@ function saveQuote() {
     overheadPct,
     contingency,
     profitPct,
+    depositPct,
+    depositAmt: matTotal * depositPct / 100,
     matTotal,
     labTotal,
     subTotal,
@@ -834,6 +901,8 @@ function saveQuote() {
   renderOverview();
   renderHistory();
   
+  var staleSent = state.quotes.filter(function(q){return (q.status||'draft')==='sent';}).length;
+  document.getElementById('pipelineCount').textContent = staleSent + ' sent';
   document.getElementById('quoteCounter').textContent = `${state.quotes.length} quotes`;
   
   if (confirm(`Quote saved for ${client}: $${grandTotal.toFixed(2)}\n\nOpen Print Preview?`)) {
@@ -842,6 +911,63 @@ function saveQuote() {
 }
 
 // ===== PRINT QUOTE =====
+
+// ===== STATUS & PIPELINE =====
+function updateQuoteStatus(i, status) {
+  state.quotes[i].status = status;
+  if (status === 'invoiced' && !state.quotes[i].invoiceNumber) {
+    state.quotes[i].invoiceNumber = 'INV-' + Date.now().toString().slice(-6);
+    state.quotes[i].invoiceDate = new Date().toISOString().split('T')[0];
+  }
+  saveState();
+  renderHistory();
+  renderPipeline();
+  renderOverview();
+}
+function markSent(i) { updateQuoteStatus(i, 'sent'); }
+function markAccepted(i) { updateQuoteStatus(i, 'accepted'); }
+function markInvoiced(i) { updateQuoteStatus(i, 'invoiced'); }
+function markPaid(i) { updateQuoteStatus(i, 'paid'); }
+function markLost(i) { updateQuoteStatus(i, 'lost'); }
+
+function renderPipeline() {
+  var stages = ['draft','sent','accepted','invoiced','paid','lost'];
+  stages.forEach(function(s) {
+    var el = document.getElementById('pipe-' + s);
+    if (!el) return;
+    var qs = state.quotes.filter(function(q) { return (q.status || 'draft') === s; });
+    if (qs.length === 0) {
+      el.innerHTML = '<div style="font-size:12px;color:#aaa;text-align:center;padding:12px;">Empty</div>';
+      return;
+    }
+    var t = qs.reduce(function(x,q) { return x + q.grandTotal; }, 0);
+    el.innerHTML = '<div style="font-size:11px;color:#888;margin-bottom:6px;">' + qs.length + ' quot' + (qs.length>1?'es':'e') + ' · $' + t.toFixed(0) + '</div>' +
+      qs.map(function(q) {
+        var idx = state.quotes.indexOf(q);
+        return '<div style="background:white;border-radius:6px;padding:8px;margin-bottom:4px;font-size:12px;cursor:pointer;border:1px solid #eee;" onclick="printQuote(state.quotes[' + idx + '])">' +
+          '<div style="font-weight:bold;">' + q.client + '</div>' +
+          '<div style="color:#888;font-size:11px;">$' + q.grandTotal.toFixed(0) + ' · ' + q.date + '</div></div>';
+      }).join('');
+  });
+  var stale = document.getElementById('staleQuotes');
+  if (stale) {
+    var now = new Date();
+    var old = state.quotes.filter(function(q) {
+      if ((q.status || 'draft') !== 'sent') return false;
+      return (now - new Date(q.date)) / (1000*60*60*24) > 7;
+    });
+    if (old.length === 0) {
+      stale.innerHTML = '<div class="empty-state">None \u2014 good job!</div>';
+    } else {
+      stale.innerHTML = old.map(function(q) {
+        var idx = state.quotes.indexOf(q);
+        return '<div style="padding:8px 0;border-bottom:1px solid #eee;display:flex;justify-content:space-between;">' +
+          '<div><strong>' + q.client + '</strong><br><span style="color:#888;font-size:12px;">$' + q.grandTotal.toFixed(0) + '</span></div>' +
+          '<button class="btn btn-small btn-outline" onclick="printQuote(state.quotes[' + idx + '])">Follow Up</button></div>';
+      }).join('');
+    }
+  }
+}
 function printQuote(quote) {
   const q = quote || state.quotes[0];
   if (!q) return;
@@ -938,7 +1064,7 @@ function renderHistory() {
     <div class="card" style="padding:14px;margin-bottom:8px;">
       <div class="flex">
         <div>
-          <strong>${q.client}</strong> <span class="tag ${q.type === 'sauna' ? 'tag-sauna' : 'tag-reno'}">${typeNames[q.type] || q.type}</span>
+          <strong>${q.client}</strong> <span class="tag tag-${q.status||'draft'}" style="font-size:10px;">${(q.status||'draft').toUpperCase()}</span> <span class="tag ${q.type === 'sauna' ? 'tag-sauna' : 'tag-reno'}">${typeNames[q.type] || q.type}</span>
           <span style="font-size:12px;color:#888;margin-left:8px;">${q.date}${q.location ? ' — ' + q.location : ''}</span>
         </div>
         <div style="font-weight:bold;color:#1a1a2e;">$${q.grandTotal.toFixed(0)}</div>
@@ -947,15 +1073,22 @@ function renderHistory() {
         ${q.totalHours} hrs · $${q.matTotal.toFixed(0)} mat · $${q.labTotal.toFixed(0)} lab · ${q.profitPct}% margin
       </div>
       <div style="margin-top:6px;">
-        <button class="btn btn-small btn-outline" onclick="printQuote(state.quotes[${i}])">🖨️ Print</button>
+        <button class="btn btn-small btn-outline" onclick="printQuote(state.quotes[${i}])">🖨️ Quote</button>
+        <button class="btn btn-small btn-outline" onclick="markSent(${i})">📤 Sent</button>
+        <button class="btn btn-small btn-success" onclick="markAccepted(${i})">✅ Accept</button>
+        <button class="btn btn-small btn-primary" onclick="markInvoiced(${i})">🧾 Invoice</button>
+        <button class="btn btn-small btn-success" onclick="markPaid(${i})">💰 Paid</button>
+        <button class="btn btn-small btn-outline" onclick="markLost(${i})">❌ Lost</button>
         <button class="btn btn-small btn-outline" onclick="duplicateQuote(${i})">📋 Duplicate</button>
-        <button class="btn btn-small btn-danger" onclick="deleteQuote(${i})">🗑️</button>
+        <button class="btn btn-small btn-danger" onclick="deleteQuote(${i})">🗑️ Delete</button>
       </div>
     </div>
   `).join('');
 }
 
 function renderOverview() {
+  var staleSent = state.quotes.filter(function(q){return (q.status||'draft')==='sent';}).length;
+  document.getElementById('pipelineCount').textContent = staleSent + ' sent';
   document.getElementById('quoteCounter').textContent = `${state.quotes.length} quotes`;
   
   const div = document.getElementById('overviewQuotes');
@@ -1000,7 +1133,9 @@ function deleteQuote(i) {
     saveState();
     renderHistory();
     renderOverview();
-    document.getElementById('quoteCounter').textContent = `${state.quotes.length} quotes`;
+    var staleSent = state.quotes.filter(function(q){return (q.status||'draft')==='sent';}).length;
+  document.getElementById('pipelineCount').textContent = staleSent + ' sent';
+  document.getElementById('quoteCounter').textContent = `${state.quotes.length} quotes`;
   }
 }
 
@@ -1076,7 +1211,9 @@ renderMaterialsDB();
 renderHistory();
 renderOverview();
 loadJobTemplate();
-document.getElementById('quoteCounter').textContent = `${state.quotes.length} quotes`;
+var staleSent = state.quotes.filter(function(q){return (q.status||'draft')==='sent';}).length;
+  document.getElementById('pipelineCount').textContent = staleSent + ' sent';
+  document.getElementById('quoteCounter').textContent = `${state.quotes.length} quotes`;
 recalcOverhead();
 </script>
 </body>
