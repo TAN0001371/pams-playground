@@ -2,191 +2,429 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kevin's Quote Builder</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a1a2e">
+<title>Kevin's Business Numbers</title>
 <style>
+:root {
+  --ink: #1a1a2e;
+  --muted: #667085;
+  --line: #e5e7eb;
+  --paper: #fff;
+  --bg: #f3f5f4;
+  --green: #2d8f2d;
+  --green2: #e8f4e8;
+  --navy: #1a1a2e;
+  --danger: #dc3545;
+  --accent: #e94560;
+  --radius: 10px;
+}
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
-header { background: #1a1a2e; color: white; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--ink); }
+header { background: var(--navy); color: #fff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 30; }
 header h1 { font-size: 20px; }
 header span { color: #aaa; font-size: 13px; }
-nav { display: flex; background: #16213e; overflow-x: auto; }
-nav button { padding: 12px 18px; border: none; background: none; color: #aaa; font-size: 14px; cursor: pointer; white-space: nowrap; border-bottom: 3px solid transparent; }
-nav button.active { color: white; border-bottom-color: #e94560; background: rgba(233,69,96,0.1); }
-main { max-width: 1000px; margin: 0 auto; padding: 16px; }
+nav { display: flex; background: #16213e; overflow-x: auto; position: sticky; top: 56px; z-index: 30; }
+nav button { padding: 12px 18px; border: none; background: none; color: #aaa; font-size: 14px; cursor: pointer; white-space: nowrap; border-bottom: 3px solid transparent; transition: all 0.15s; }
+nav button:hover { color: #ddd; background: rgba(255,255,255,0.04); }
+nav button:active { background: rgba(255,255,255,0.08); }
+nav button.active { color: #fff; border-bottom-color: var(--accent); background: rgba(233,69,96,0.1); }
+main { max-width: 1100px; margin: 0 auto; padding: 16px; }
 .tab { display: none; }
 .tab.active { display: block; }
-.card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-.card h2 { font-size: 16px; margin-bottom: 12px; color: #1a1a2e; }
+.card { background: var(--paper); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.card h2 { font-size: 16px; margin-bottom: 12px; color: var(--ink); }
 .row { display: flex; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
 .col { flex: 1; min-width: 140px; }
-label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; }
-input, select { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
-input:focus, select:focus { outline: none; border-color: #e94560; }
+label { display: block; font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 4px; }
+input, select { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; min-height: 40px; transition: border-color 0.15s; }
+input:focus, select:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(45,143,45,0.12); }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #eee; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
 th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
 .total-row { font-weight: bold; background: #f9f9f9; }
-.grand-total { font-size: 18px; font-weight: bold; color: #1a1a2e; text-align: right; padding: 16px 0; }
-.btn { padding: 10px 20px; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; }
-.btn-primary { background: #e94560; color: white; }
-.btn-secondary { background: #16213e; color: white; }
+
+/* === BUTTONS === */
+.btn { padding: 10px 20px; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.15s; font-weight: 600; }
+.btn:hover { filter: brightness(0.92); transform: translateY(-1px); }
+.btn:active { filter: brightness(0.85); transform: translateY(0); }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { box-shadow: 0 2px 8px rgba(233,69,96,0.35); }
+.btn-secondary { background: var(--navy); color: #fff; }
+.btn-secondary:hover { box-shadow: 0 2px 8px rgba(22,33,62,0.35); }
 .btn-outline { background: none; border: 1px solid #ddd; color: #555; }
+.btn-outline:hover { border-color: #bbb; background: #f9f9f9; }
 .btn-small { padding: 6px 12px; font-size: 12px; }
-.btn-danger { background: #dc3545; color: white; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { box-shadow: 0 2px 8px rgba(220,53,69,0.35); }
+
+/* === TOOLTIP === */
+.tooltip { position: relative; display: inline-block; }
+.tooltip .tip { visibility: hidden; opacity: 0; transition: opacity 0.15s; background: var(--navy); color: #fff; font-size: 12px; padding: 6px 10px; border-radius: 6px; position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); white-space: nowrap; pointer-events: none; z-index: 10; }
+.tooltip .tip::after { content: ''; position: absolute; top: 100%; left: 50%; margin-left: -4px; border: 4px solid transparent; border-top-color: var(--navy); }
+.tooltip:hover .tip, .tooltip:focus-within .tip { visibility: visible; opacity: 1; }
+
+/* === INFO TIP (inline ? button) === */
+.info-tip { display: inline-flex; width: 18px; height: 18px; border-radius: 50%; border: 1px solid #bac3cc; background: #fff; color: #586574; font-weight: 700; font-size: 11px; align-items: center; justify-content: center; cursor: help; margin-left: 4px; vertical-align: middle; position: relative; }
+.info-tip::after { content: attr(data-tip); position: absolute; left: 50%; bottom: calc(100% + 6px); transform: translateX(-50%); width: 220px; background: var(--navy); color: #fff; padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: 400; line-height: 1.4; opacity: 0; visibility: hidden; transition: 0.15s; pointer-events: none; z-index: 50; white-space: normal; text-align: left; }
+.info-tip:hover::after { opacity: 1; visibility: visible; }
+
+/* === TEMPLATE STRIP === */
+.template-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+.template-chip { background: #fff; border: 1.5px solid var(--line); border-radius: 10px; padding: 12px; text-align: left; cursor: pointer; transition: all 0.15s; font: inherit; }
+.template-chip strong, .template-chip span { display: block; }
+.template-chip strong { font-size: 13px; margin-bottom: 2px; }
+.template-chip span { font-size: 11px; color: var(--muted); }
+.template-chip:hover { border-color: var(--green); background: var(--green2); }
+.template-chip.active { border-color: var(--green); background: var(--green2); box-shadow: 0 0 0 2px rgba(45,143,45,0.18); }
+
+/* === COLLAPSIBLE SECTIONS === */
+.collapsible-section { border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; }
+.section-toggle { width: 100%; display: flex; align-items: center; gap: 8px; padding: 12px 14px; background: #fafbfa; border: none; cursor: pointer; font: inherit; text-align: left; transition: background 0.15s; }
+.section-toggle:hover { background: #f2f6f2; }
+.section-toggle .chevron { font-size: 10px; transition: transform 0.2s; width: 20px; text-align: center; flex-shrink: 0; color: var(--muted); }
+.section-toggle .chevron.open { transform: rotate(90deg); }
+.section-toggle .sec-title { font-weight: 700; font-size: 14px; flex: 0 0 auto; }
+.section-toggle .sec-summary { font-size: 12px; color: var(--muted); margin-left: auto; text-align: right; }
+.section-body { padding: 0 14px 14px; display: none; }
+.section-body.open { display: block; }
+
+/* === ADD ROW BARS === */
+.add-row-bar { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+.add-row-bar-below { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+
+/* === TWO-COLUMN JOB COSTING LAYOUT === */
+.quote-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start; }
+.quote-left { min-width: 0; }
+.quote-right { position: relative; }
+
+/* === STICKY PRICE SIDEBAR === */
+.price-sidebar { position: sticky; top: 120px; background: var(--navy); color: #fff; border-radius: 12px; padding: 24px; }
+.price-sidebar .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #99b0bf; margin-bottom: 4px; font-weight: 700; }
+.price-sidebar .big-price { font-size: 34px; font-weight: 700; line-height: 1.1; }
+.price-sidebar .gst-note { font-size: 12px; color: #b9c7d0; margin: 2px 0 14px; }
+.price-sidebar .price-lines { border-top: 1px solid rgba(255,255,255,0.12); padding-top: 10px; }
+.price-line { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 13px; color: #c8d3da; }
+.price-line.total-line { border-top: 1px solid rgba(255,255,255,0.12); margin-top: 6px; padding-top: 10px; font-size: 14px; font-weight: 700; color: #fff; }
+.price-sidebar .insight-box { background: rgba(255,255,255,0.08); border-left-color: #4caf84; color: #c8e8d4; font-size: 12px; margin-top: 12px; }
+.price-sidebar .insight-box strong { color: #fff; }
+.price-sidebar .btn { width: 100%; margin-top: 4px; }
+.price-sidebar .btn-primary { background: #fff; color: var(--navy); }
+.price-sidebar .btn-primary:hover { box-shadow: 0 2px 8px rgba(255,255,255,0.25); }
+
+/* === MOBILE BOTTOM BAR === */
+.mobile-price-bar { display: none; }
+
+/* === INSIGHT BOX === */
+.insight-box { background: var(--green2); border-left: 4px solid var(--green); padding: 12px 16px; margin-top: 12px; border-radius: 0 6px 6px 0; font-size: 13px; color: #1a5c1a; }
+.insight-box strong { display: block; margin-bottom: 2px; }
+
+/* === OVERVIEW METRICS === */
+.metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.metric-grid .metric { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+.metric-grid .metric span { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+.metric-grid .metric strong { display: block; font-size: 22px; }
+.overview-hero { background: linear-gradient(135deg, var(--navy), #25475a); color: #fff; border-radius: 14px; padding: 28px 30px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; box-shadow: 0 8px 24px rgba(22,44,58,0.15); }
+.overview-hero h2 { font-size: 44px; line-height: 1; margin: 6px 0; color: #fff; }
+.overview-hero p { color: #c4d1d8; margin: 0; }
+.overview-hero .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: #a8cfb7; font-weight: 700; }
+
+/* === MODAL === */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(10,23,34,0.6); display: grid; place-items: center; padding: 16px; z-index: 100; }
+.modal { background: #fff; width: min(550px, 100%); max-height: 80vh; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+.modal-head { padding: 16px 18px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+.modal-head h2 { margin: 0; font-size: 16px; }
+.modal-head input { width: auto; flex: 1; margin: 0 12px; min-height: 36px; }
+.modal-body { overflow-y: auto; flex: 1; }
+.modal-body button { width: 100%; display: flex; justify-content: space-between; text-align: left; padding: 12px 18px; border: none; border-bottom: 1px solid var(--line); background: #fff; font: inherit; cursor: pointer; transition: background 0.1s; }
+.modal-body button:hover { background: var(--green2); }
+.modal-body button small { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
+
+/* === MISC === */
 .right { text-align: right; }
 .mt { margin-top: 16px; }
 .mb { margin-bottom: 12px; }
 .flex { display: flex; justify-content: space-between; align-items: center; }
 .gap { gap: 10px; }
+.muted { font-size: 12px; color: var(--muted); }
 .tag { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; }
 .tag-sauna { background: #fff3cd; color: #856404; }
 .tag-reno { background: #d4edda; color: #155724; }
-.tag-pending { background: #ffeeba; }
-.tag-active { background: #b8daff; }
-.tag-done { background: #c3e6cb; }
-.quote-header { background: #1a1a2e; color: white; padding: 20px; border-radius: 10px 10px 0 0; }
-.quote-header h2 { color: white; margin: 0; }
-.quote-body { padding: 20px; }
-@media print { nav, .no-print { display: none !important; } body { background: white; } }
 .empty-state { text-align: center; padding: 40px; color: #888; }
+.tight-name { width: 100%; border: none; background: transparent; font-size: 13px; padding: 6px 4px; min-height: auto; box-shadow: none; }
+.hist-name { width: auto; min-width: 150px; max-width: 60%; border: 1px solid transparent; background: transparent; font-size: 15px; font-weight: 700; color: var(--ink); padding: 2px 6px; min-height: auto; border-radius: 5px; }
+.hist-name:hover { border-color: var(--line); background: #fafbfa; }
+.hist-name:focus { outline: none; border-color: var(--green); background: #fff; box-shadow: 0 0 0 2px rgba(45,143,45,0.15); }
+.tight-num { width: 100%; padding: 6px 4px; font-size: 13px; border: 1px solid #ddd; border-radius: 4px; text-align: right; min-height: auto; }
+.tight-num:focus { box-shadow: 0 0 0 2px rgba(45,143,45,0.12); }
+.tight-select { padding: 5px 2px; font-size: 12px; border: 1px solid #ddd; border-radius: 4px; background: #fff; min-height: auto; }
+.annual-readout { font-weight: 600; color: var(--ink); text-align: right; padding-right: 4px; }
+
+/* === MOBILE === */
+@media (max-width: 800px) {
+  .metric-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .metric-grid .metric { padding: 12px; }
+  .metric-grid .metric strong { font-size: 18px; }
+  .overview-hero { display: block; padding: 20px; }
+  .overview-hero h2 { font-size: 34px; }
+  .template-strip { grid-template-columns: 1fr 1fr; }
+  .add-row-bar, .add-row-bar-below { flex-direction: column; }
+  .add-row-bar button, .add-row-bar-below button { width: 100%; text-align: center; }
+  /* Collapse to single column, hide sidebar, show mobile bar */
+  .quote-layout { display: block; }
+  .price-sidebar { display: none; }
+  .mobile-price-bar { display: flex; position: fixed; left: 0; right: 0; bottom: 0; background: var(--navy); color: #fff; padding: 10px 16px; align-items: center; justify-content: space-between; z-index: 40; box-shadow: 0 -4px 20px rgba(0,0,0,0.25); }
+  .mobile-price-bar span { font-size: 11px; color: #b9c7d0; display: block; }
+  .mobile-price-bar strong { font-size: 18px; }
+  main { padding-bottom: 80px; }
+  header { padding: 12px 16px; }
+  header h1 { font-size: 17px; }
+  nav { top: 48px; }
+  nav button { padding: 10px 14px; font-size: 13px; }
+}
+
+@media (max-width: 500px) {
+  .metric-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .template-strip { grid-template-columns: 1fr 1fr; }
+  .card { padding: 14px; }
+}
+
+@media print { nav, .no-print { display: none !important; } body { background: #fff; } }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>🔨 Kevin's Quote Builder</h1>
-  <span id="quoteCounter">0 quotes</span>
+  <h1>Kevin's Business Numbers</h1>
+  <span id="quoteCounter">0 jobs</span>
 </header>
 
 <nav>
-  <button class="active" onclick="switchTab('overview')">📊 Overview</button>
-  <button onclick="switchTab('newquote')">➕ New Quote</button>
-  <button onclick="switchTab('overhead')">🏢 Overhead</button>
-  <button onclick="switchTab('materials')">📦 Materials</button>
-  <button onclick="switchTab('history')">📋 Quote History</button>
+  <button class="active" data-tab="overview" onclick="switchTab('overview')">📊 Overview</button>
+  <button data-tab="newquote" onclick="switchTab('newquote')">🧮 Job Costing</button>
+  <button data-tab="overhead" onclick="switchTab('overhead')">🏢 Overhead</button>
+  <button data-tab="materials" onclick="switchTab('materials')">📦 Materials</button>
+  <button data-tab="history" onclick="switchTab('history')">📋 History</button>
 </nav>
 
 <main>
 
 <!-- ============ OVERVIEW ============ -->
 <div id="tab-overview" class="tab active">
-  <div class="card">
-    <h2>Your Numbers at a Glance</h2>
-    <div class="row">
-      <div class="col">
-        <label>Annual Overhead</label>
-        <div id="ovTotalOverhead" style="font-size:24px;font-weight:bold;">$0</div>
-      </div>
-      <div class="col">
-        <label>Billable Hours/Yr</label>
-        <div id="ovBillableHrs" style="font-size:24px;font-weight:bold;">1,400</div>
-      </div>
-      <div class="col">
-        <label>Overhead per Hour</label>
-        <div id="ovOverheadRate" style="font-size:24px;font-weight:bold;">$0</div>
-      </div>
-      <div class="col">
-        <label>Min. Charge Rate (w/ profit)</label>
-        <div id="ovMinRate" style="font-size:24px;font-weight:bold;">$0</div>
-      </div>
+  <div class="overview-hero">
+    <div>
+      <div class="eyebrow">Your Minimum Rate</div>
+      <h2 id="ovHeroRate">$0<small style="font-size:16px;color:#c4d1d8;">/hr</small></h2>
+      <p>This covers all your costs, your target pay, and 25% profit.</p>
     </div>
-    <div class="row mt" style="color:#888;font-size:12px;">
-      <div class="col">This is your floor — don't quote below this per hour.</div>
-    </div>
+    <button class="btn btn-small" style="background:#fff;color:var(--navy);" onclick="switchTab('overhead')">Adjust in Overhead →</button>
+  </div>
+
+  <div class="metric-grid">
+    <div class="metric"><span>Annual Overhead</span><strong id="ovTotalOverhead">$0</strong></div>
+    <div class="metric"><span>Billable Hours/Yr</span><strong id="ovBillableHrs">1,408</strong></div>
+    <div class="metric"><span>Cost Per Hour</span><strong id="ovOverheadRate">$0</strong></div>
+    <div class="metric"><span>Target Wage/hr</span><strong id="ovWageRateShort">$0</strong></div>
+  </div>
+
+  <div class="card" id="chargingCheckCard">
+    <h2>Am I charging enough?</h2>
+    <div id="chargingCheck"></div>
   </div>
 
   <div class="card">
-    <h2>Recent Quotes</h2>
-    <div id="overviewQuotes"><div class="empty-state">No quotes yet. Create one!</div></div>
+    <h2>Recent Jobs</h2>
+    <div id="overviewQuotes"><div class="empty-state">No jobs yet. Price one in the Job Costing tab!</div></div>
   </div>
 </div>
 
-<!-- ============ NEW QUOTE ============ -->
+<!-- ============ JOB COSTING ============ -->
 <div id="tab-newquote" class="tab">
   <div class="card">
-    <h2>New Quote</h2>
+    <h2>What Should This Job Cost?</h2>
+    <p class="muted" style="margin-bottom:10px;">Pick a template, tweak the numbers, and see what you should charge.</p>
+
+    <div id="editingBanner" style="display:none;background:#fff3cd;color:#856404;padding:8px 12px;border-radius:6px;margin-bottom:12px;font-size:13px;">
+      ✏️ Editing saved job — <strong id="editingName"></strong>. Saving updates it.
+      <button class="btn btn-small btn-outline" onclick="newQuoteFresh()" style="margin-left:8px;">Start a new job instead</button>
+    </div>
+
+    <!-- Template strip -->
+    <div class="template-strip">
+      <button class="template-chip active" id="tpl-sauna" onclick="selectTemplate('sauna')">
+        <strong>🏠 Sauna</strong><span>$20k–$40k · ~8 days</span>
+      </button>
+      <button class="template-chip" id="tpl-reno-wall" onclick="selectTemplate('reno-wall')">
+        <strong>🧱 Wall / Framing</strong><span>Stud walls, plaster</span>
+      </button>
+      <button class="template-chip" id="tpl-reno-tile" onclick="selectTemplate('reno-tile')">
+        <strong>🛁 Tiling / Bathroom</strong><span>Waterproof, tile</span>
+      </button>
+      <button class="template-chip" id="tpl-custom" onclick="selectTemplate('custom')">
+        <strong>📋 Custom</strong><span>Start from scratch</span>
+      </button>
+    </div>
+    <input type="hidden" id="nqType" value="sauna">
+
     <div class="row">
       <div class="col">
-        <label>Client Name</label>
-        <input id="nqClient" placeholder="e.g. John Smith">
+        <label>Job Name</label>
+        <input id="nqClient" placeholder="e.g. Smith St sauna">
       </div>
       <div class="col">
-        <label>Job Type</label>
-        <select id="nqType" onchange="loadJobTemplate()">
-          <option value="sauna">🏠 Sauna</option>
-          <option value="reno-wall">🧱 Wall / Framing</option>
-          <option value="reno-tile">🛁 Tiling / Bathroom</option>
-          <option value="reno-general">🔨 Reno — General</option>
-          <option value="custom">📋 Custom</option>
-        </select>
-      </div>
-      <div class="col">
-        <label>Job Name/Location</label>
+        <label>Location / Notes</label>
         <input id="nqLocation" placeholder="e.g. 123 Smith St">
+      </div>
+    </div>
+
+    <!-- Contingency / Profit / Overhead — moved up so it's always visible -->
+    <div class="row">
+      <div class="col">
+        <label>Contingency % <span class="info-tip" data-tip="A safety buffer for unexpected costs — extra materials, a day running long, something you forgot. 5–10% is standard in construction.">?</span></label>
+        <input id="nqContingency" type="number" value="5" min="0" max="50" onchange="recalcQuote()">
+      </div>
+      <div class="col">
+        <label>Profit Margin % <span class="info-tip" data-tip="Your profit on top of ALL costs (materials, labour, overhead, contingency). 25% is a healthy target for a trade business.">?</span></label>
+        <input id="nqProfit" type="number" value="25" min="0" max="100" onchange="recalcQuote()">
+      </div>
+      <div class="col">
+        <label>Overhead Recovery % <span class="info-tip" data-tip="How much of your annual overhead this job should cover. 100% means it pays its fair share. Set lower for small jobs, higher for big ones.">?</span></label>
+        <input id="nqOverheadPct" type="number" value="100" min="0" max="200" onchange="recalcQuote()">
       </div>
     </div>
   </div>
 
-  <div class="card" id="nqTemplateCard">
-    <div class="flex mb">
-      <h2>Materials</h2>
-      <div>
-        <button class="btn btn-small btn-outline" onclick="addMaterialRow()">+ Add Item</button>
-        <button class="btn btn-small btn-outline" onclick="loadFromMaterialsDB()">📦 From DB</button>
+  <!-- TWO-COLUMN LAYOUT: left scrolls, right sticks -->
+  <div class="quote-layout">
+    <div class="quote-left">
+
+      <!-- COLLAPSIBLE: Materials -->
+      <div class="collapsible-section" id="sec-mat">
+        <button class="section-toggle" onclick="toggleSection('mat')">
+          <span class="chevron open" id="chevron-mat">▶</span>
+          <span class="sec-title">Materials</span>
+          <span class="sec-summary" id="summary-mat">0 items · $0</span>
+        </button>
+        <div class="section-body open" id="body-mat">
+          <div class="add-row-bar">
+            <button class="btn btn-small btn-outline" onclick="addMaterialRow()">+ Add Item</button>
+            <span class="tooltip">
+              <button class="btn btn-small btn-outline" onclick="openMaterialPicker()">📦 From Materials</button>
+              <span class="tip">Pick from your saved materials price list</span>
+            </span>
+          </div>
+          <table id="nqMaterialsTable">
+            <thead><tr><th>Item</th><th style="width:64px">Qty</th><th style="width:85px">Unit Cost</th><th style="width:75px">Markup % <span class="info-tip" data-tip="Added on top of the unit cost. Covers your time sourcing, handling, and delivery. 20-30% is typical.">?</span></th><th style="width:95px">Sell Price</th><th style="width:36px"></th></tr></thead>
+            <tbody id="nqMaterialsBody"></tbody>
+            <tfoot><tr class="total-row"><td colspan="3">Materials Total</td><td id="nqMatMarkupPct"></td><td id="nqMatTotal">$0.00</td><td></td></tr></tfoot>
+          </table>
+          <div class="add-row-bar-below">
+            <button class="btn btn-small btn-outline" onclick="addMaterialRow()">+ Add Item</button>
+          </div>
+        </div>
       </div>
-    </div>
-    <table id="nqMaterialsTable">
-      <thead>
-        <tr><th>Item</th><th style="width:60px">Qty</th><th style="width:90px">Unit Cost</th><th style="width:90px">Markup %</th><th style="width:100px">Sell Price</th><th style="width:40px"></th></tr>
-      </thead>
-      <tbody id="nqMaterialsBody"></tbody>
-      <tfoot><tr class="total-row"><td colspan="3">Materials Total</td><td id="nqMatMarkupPct"></td><td id="nqMatTotal">$0.00</td><td></td></tr></tfoot>
-    </table>
 
-    <h2 class="mt">Labour</h2>
-    <table>
-      <thead><tr><th>Worker</th><th style="width:60px">Hours</th><th style="width:90px">Rate/hr</th><th style="width:100px">Total</th><th style="width:40px"></th></tr></thead>
-      <tbody id="nqLabourBody"></tbody>
-      <tfoot><tr class="total-row"><td colspan="2">Labour Total</td><td id="nqLabRate"></td><td id="nqLabTotal">$0.00</td><td></td></tr></tfoot>
-    </table>
-
-    <h2 class="mt">Subcontractors</h2>
-    <table>
-      <thead><tr><th>Trade</th><th style="width:90px">Cost</th><th style="width:40px"></th></tr></thead>
-      <tbody id="nqSubbieBody"></tbody>
-      <tfoot><tr class="total-row"><td>Subbies Total</td><td id="nqSubTotal">$0.00</td><td></td></tr></tfoot>
-    </table>
-
-    <h2 class="mt">Other Costs</h2>
-    <table>
-      <thead><tr><th>Item</th><th style="width:90px">Cost</th><th style="width:40px"></th></tr></thead>
-      <tbody id="nqOtherBody"></tbody>
-      <tfoot><tr class="total-row"><td>Other Total</td><td id="nqOtherTotal">$0.00</td><td></td></tr></tfoot>
-    </table>
-
-    <div class="row mt">
-      <div class="col">
-        <label>Contingency %</label>
-        <input id="nqContingency" type="number" value="5" min="0" max="50">
+      <!-- COLLAPSIBLE: Labour -->
+      <div class="collapsible-section" id="sec-lab">
+        <button class="section-toggle" onclick="toggleSection('lab')">
+          <span class="chevron open" id="chevron-lab">▶</span>
+          <span class="sec-title">Labour</span>
+          <span class="sec-summary" id="summary-lab">0 hrs · $0</span>
+        </button>
+        <div class="section-body open" id="body-lab">
+          <div class="add-row-bar">
+            <button class="btn btn-small btn-outline" onclick="addLabourRow()">+ Add Worker</button>
+          </div>
+          <table>
+            <thead><tr><th>Worker</th><th style="width:64px">Hours</th><th style="width:85px">Rate/hr</th><th style="width:95px">Total</th><th style="width:36px"></th></tr></thead>
+            <tbody id="nqLabourBody"></tbody>
+            <tfoot><tr class="total-row"><td colspan="2">Labour Total</td><td id="nqLabRate"></td><td id="nqLabTotal">$0.00</td><td></td></tr></tfoot>
+          </table>
+          <div class="add-row-bar-below">
+            <button class="btn btn-small btn-outline" onclick="addLabourRow()">+ Add Worker</button>
+          </div>
+        </div>
       </div>
-      <div class="col">
-        <label>Profit Margin %</label>
-        <input id="nqProfit" type="number" value="25" min="0" max="100">
-      </div>
-      <div class="col">
-        <label>Overhead % to apply</label>
-        <input id="nqOverheadPct" type="number" value="100" min="0" max="100">
-        <span style="font-size:11px;color:#888;">(% of overhead rate applied to labour hours)</span>
-      </div>
-    </div>
 
-    <div class="grand-total" id="nqGrandTotal">$0.00</div>
+      <!-- COLLAPSIBLE: Subbies -->
+      <div class="collapsible-section" id="sec-sub">
+        <button class="section-toggle" onclick="toggleSection('sub')">
+          <span class="chevron" id="chevron-sub">▶</span>
+          <span class="sec-title">Subcontractors</span>
+          <span class="sec-summary" id="summary-sub">0 trades · $0</span>
+        </button>
+        <div class="section-body" id="body-sub">
+          <div class="add-row-bar">
+            <button class="btn btn-small btn-outline" onclick="addSubbieRow()">+ Add Subbie</button>
+          </div>
+          <table>
+            <thead><tr><th>Trade</th><th style="width:90px">Cost</th><th style="width:36px"></th></tr></thead>
+            <tbody id="nqSubbieBody"></tbody>
+            <tfoot><tr class="total-row"><td>Subbies Total</td><td id="nqSubTotal">$0.00</td><td></td></tr></tfoot>
+          </table>
+          <div class="add-row-bar-below">
+            <button class="btn btn-small btn-outline" onclick="addSubbieRow()">+ Add Subbie</button>
+          </div>
+        </div>
+      </div>
 
-    <div class="flex gap">
-      <button class="btn btn-primary" onclick="saveQuote()">💾 Save Quote</button>
-      <button class="btn btn-secondary" onclick="printQuote()">🖨️ Print as PDF</button>
-      <button class="btn btn-outline" onclick="resetQuoteForm()">Reset</button>
+      <!-- COLLAPSIBLE: Other Costs -->
+      <div class="collapsible-section" id="sec-oth">
+        <button class="section-toggle" onclick="toggleSection('oth')">
+          <span class="chevron" id="chevron-oth">▶</span>
+          <span class="sec-title">Other Costs</span>
+          <span class="sec-summary" id="summary-oth">0 items · $0</span>
+        </button>
+        <div class="section-body" id="body-oth">
+          <div class="add-row-bar">
+            <button class="btn btn-small btn-outline" onclick="addOtherRow()">+ Add Cost</button>
+          </div>
+          <table>
+            <thead><tr><th>Item</th><th style="width:90px">Cost</th><th style="width:36px"></th></tr></thead>
+            <tbody id="nqOtherBody"></tbody>
+            <tfoot><tr class="total-row"><td>Other Total</td><td id="nqOtherTotal">$0.00</td><td></td></tr></tfoot>
+          </table>
+          <div class="add-row-bar-below">
+            <button class="btn btn-small btn-outline" onclick="addOtherRow()">+ Add Cost</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /quote-left -->
+
+    <!-- STICKY PRICE SIDEBAR -->
+    <div class="quote-right">
+      <div class="price-sidebar" id="priceSidebar">
+        <div class="eyebrow">Recommended Quote</div>
+        <div class="big-price" id="sideGrandTotal">$0</div>
+        <div class="gst-note">including GST</div>
+        <div class="price-lines">
+          <div class="price-line"><span>Materials</span><b id="sideMat">$0.00</b></div>
+          <div class="price-line"><span>Labour cost</span><b id="sideLab">$56.82</b></div>
+          <div class="price-line"><span>Overhead recovery <span class="info-tip" data-tip="Your annual fixed costs (vehicle, tools, insurance etc.) spread across this job's labour hours.">?</span></span><b id="sideOv">$26.56</b></div>
+          <div class="price-line"><span>Subbies + other</span><b id="sideSubOth">$0.00</b></div>
+          <div class="price-line"><span>Contingency</span><b id="sideCont">$4.17</b></div>
+          <div class="price-line"><span>Business profit</span><b id="sideProf">$29.18</b></div>
+          <div class="price-line" style="color:#b9c7d0;"><span>Price ex GST</span><b id="sideExGst">$116.73</b></div>
+          <div class="price-line"><span>GST</span><b id="sideGst">$11.67</b></div>
+        </div>
+        <div class="insight-box" id="sideInsight" style="display:none;">
+          <strong>💡 Your take-home</strong>
+          <span id="sideInsightText"></span>
+        </div>
+        <button class="btn btn-primary mt" onclick="saveQuote()" style="margin-top:14px;">💾 Save job</button>
+        <button class="btn btn-secondary" onclick="copyQuote(this)" style="background:rgba(255,255,255,0.1);">📋 Copy figures for Xero</button>
+        <button class="btn btn-secondary" onclick="printForSelf()" style="background:rgba(255,255,255,0.1);">🖨️ Print</button>
+      </div>
+    </div><!-- /quote-right -->
+  </div><!-- /quote-layout -->
+
+  <!-- MOBILE BOTTOM BAR -->
+  <div class="mobile-price-bar" id="mobilePriceBar">
+    <div><span>Recommended quote (incl. GST)</span><strong id="mobileGrandTotal">$0</strong></div>
+    <div style="display:flex;gap:6px;">
+      <button class="btn btn-secondary btn-small" onclick="copyQuote(this)" style="background:rgba(255,255,255,0.15);" title="Copy figures for Xero">📋</button>
+      <button class="btn btn-primary btn-small" onclick="saveQuote()">💾 Save</button>
     </div>
   </div>
 </div>
@@ -194,14 +432,17 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
 <!-- ============ OVERHEAD ============ -->
 <div id="tab-overhead" class="tab">
   <div class="card">
-    <h2>Annual Fixed Costs</h2>
-    <p style="font-size:13px;color:#888;margin-bottom:12px;">These are your yearly costs to run the business, regardless of any job.</p>
+    <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <h2 style="margin:0;">Annual Fixed Costs</h2>
+      <button class="btn btn-small btn-outline" onclick="addOverheadRow()">+ Add Expense</button>
+    </div>
+    <p class="muted" style="margin-bottom:8px;">Enter what you actually pay — pick weekly, monthly, or yearly. The tool converts everything to annual.</p>
     <table id="overheadTable">
-      <thead><tr><th>Expense</th><th style="width:120px">Annual Cost</th><th style="width:40px"></th></tr></thead>
+      <thead><tr><th>Expense</th><th style="width:100px">$ Amount</th><th style="width:72px">Per</th><th style="width:105px">= Annual</th><th style="width:36px"></th></tr></thead>
       <tbody id="overheadBody"></tbody>
-      <tfoot><tr class="total-row"><td>Total Annual Overhead</td><td id="ovTotal">$0.00</td><td></td></tr></tfoot>
+      <tfoot><tr class="total-row"><td colspan="3">Total Annual Overhead</td><td id="ovTotal">$0.00</td><td></td></tr></tfoot>
     </table>
-    <div class="mt">
+    <div class="add-row-bar-below">
       <button class="btn btn-small btn-outline" onclick="addOverheadRow()">+ Add Expense</button>
     </div>
   </div>
@@ -214,7 +455,7 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
         <input id="ovWeeks" type="number" value="44" min="1" max="52" onchange="recalcOverhead()">
       </div>
       <div class="col">
-        <label>Hours per week (billable)</label>
+        <label>Hours per week (billable) <span class="info-tip" data-tip="The hours you can actually charge for — not including quoting, travel, picking up materials, or admin. 32 out of a 40-hr week is realistic.">?</span></label>
         <input id="ovHoursPerWeek" type="number" value="32" min="1" max="80" onchange="recalcOverhead()">
       </div>
     </div>
@@ -222,11 +463,11 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
       <div class="col"><strong>Total billable hours:</strong> <span id="ovBillableCalc">1,408</span></div>
       <div class="col"><strong>Overhead cost per hour:</strong> <span id="ovRateCalc">$0.00</span></div>
     </div>
-    <p style="font-size:12px;color:#888;margin-top:8px;">Tip: 44 wks × 32 hrs = 1,408 billable hrs. Realistic for a tradie with holidays, sick days, and gaps between jobs.</p>
+    <p class="muted" style="margin-top:8px;">Realistic for a tradie: 44 wks × 32 hrs = 1,408 billable hrs. Accounts for holidays, sick days, rain days, and gaps between jobs.</p>
   </div>
 
   <div class="card">
-    <h2>Target Hourly Rate</h2>
+    <h2>Target Income</h2>
     <div class="row">
       <div class="col">
         <label>What you want to pay yourself per year</label>
@@ -236,10 +477,13 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
     <div class="row">
       <div class="col"><strong>Target wage per hour:</strong> <span id="ovWageRate">$56.82</span></div>
       <div class="col"><strong>Overhead per hour:</strong> <span id="ovOvRateDisplay">$0.00</span></div>
-      <div class="col"><strong>Min charge rate (no profit):</strong> <span id="ovMinChargeRate">$0.00</span></div>
-      <div class="col"><strong>With 25% profit margin:</strong> <span id="ovChargeWithProfit">$0.00</span></div>
+      <div class="col"><strong>Break-even rate:</strong> <span id="ovMinChargeRate">$0.00</span></div>
+      <div class="col"><strong>Your minimum rate:</strong> <span id="ovChargeWithProfit">$0.00</span></div>
     </div>
-    <p style="font-size:12px;color:#888;margin-top:8px;">This is the minimum you should charge per hour. Anything less means you're losing money.</p>
+    <div class="insight-box">
+      <strong>💡 This is what you need to charge per hour.</strong>
+      Anything less means you're losing money. The rate covers all your costs, your target pay, and 25% profit for the business.
+    </div>
     <div class="mt">
       <button class="btn btn-primary" onclick="saveOverhead()">💾 Save Overhead Settings</button>
     </div>
@@ -249,36 +493,59 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
 <!-- ============ MATERIALS DB ============ -->
 <div id="tab-materials" class="tab">
   <div class="card">
-    <div class="flex mb">
-      <h2>Materials Price List</h2>
+    <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <h2 style="margin:0;">Materials Price List</h2>
       <button class="btn btn-small btn-outline" onclick="addMaterialDBRow()">+ Add Item</button>
     </div>
-    <p style="font-size:13px;color:#888;margin-bottom:12px;">Store your regular material prices here. Set your default markup and they'll be available when quoting.</p>
+    <p class="muted" style="margin-bottom:8px;">Store your regular material prices here. They'll be available when costing a job via the "From Materials" button.</p>
     <table>
-      <thead><tr><th>Category</th><th>Item Name</th><th style="width:80px">Unit</th><th style="width:90px">Cost Price</th><th style="width:90px">Default Markup %</th><th style="width:40px"></th></tr></thead>
+      <thead><tr><th>Category</th><th>Item Name</th><th style="width:70px">Unit</th><th style="width:90px">Cost Price</th><th style="width:90px">Default Markup %</th><th style="width:36px"></th></tr></thead>
       <tbody id="materialsDBBody"></tbody>
     </table>
+    <div class="add-row-bar-below">
+      <button class="btn btn-small btn-outline" onclick="addMaterialDBRow()">+ Add Item</button>
+    </div>
     <div class="mt">
       <button class="btn btn-primary" onclick="saveMaterialsDB()">💾 Save Materials DB</button>
     </div>
   </div>
 </div>
 
-<!-- ============ QUOTE HISTORY ============ -->
+<!-- ============ HISTORY ============ -->
 <div id="tab-history" class="tab">
   <div class="card">
     <div class="flex mb">
-      <h2>Quote History</h2>
-      <button class="btn btn-small btn-outline" onclick="exportQuotes()">📤 Export All</button>
+      <h2>Job History</h2>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="btn btn-small btn-outline" onclick="exportQuotes()">📤 Export CSV</button>
+        <button class="btn btn-small btn-outline" onclick="backupData()">💾 Backup</button>
+        <button class="btn btn-small btn-outline" onclick="document.getElementById('importFile').click()">📥 Restore</button>
+        <input type="file" id="importFile" accept="application/json,.json" style="display:none" onchange="restoreData(this)">
+      </div>
     </div>
-    <div id="historyList"><div class="empty-state">No quotes saved yet.</div></div>
+    <p class="muted" style="margin-bottom:10px;">Everything is stored only in this browser. Use <strong>Backup</strong> regularly to save a file you can restore later or move to another computer.</p>
+    <div id="historyList"><div class="empty-state">No jobs saved yet.</div></div>
   </div>
 </div>
 
 </main>
 
+<!-- ===== MODAL MATERIAL PICKER ===== -->
+<div class="modal-backdrop" id="modalPicker" style="display:none;" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>📦 Pick Materials</h2>
+      <input id="modalSearch" placeholder="Search..." oninput="filterModalMaterials()">
+      <button class="btn btn-small btn-outline" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
 <script>
 // ===== DATA =====
+const FREQ_MULT = { wk: 52, mo: 12, yr: 1 };
+
 const DEFAULT_MATERIALS_DB = [
   {cat:'Timber', item:'Steel studs 75mm', unit:'each', cost:13.13, markup:20},
   {cat:'Timber', item:'Top & bottom track 75mm', unit:'each', cost:19.44, markup:20},
@@ -334,12 +601,8 @@ const JOB_TEMPLATES = {
       {item:'Bucket & ladle set', qty:1, cost:35, markup:30},
       {item:'Stainless steel screws', qty:1, cost:22, markup:20},
     ],
-    labour: [
-      {worker:'Kevin', hours:40, rate:110},
-      {worker:'Jordan', hours:20, rate:55},
-    ],
-    subbies: [],
-    other: [{item:'Dump/rubbish removal', cost:150}],
+    labour: [{worker:'Kevin', hours:40, rate:110},{worker:'Jordan', hours:20, rate:55}],
+    subbies: [], other: [{item:'Dump/rubbish removal', cost:150}],
   },
   'reno-wall': {
     materials: [
@@ -350,11 +613,7 @@ const JOB_TEMPLATES = {
       {item:'Stud adhesive', qty:1, cost:18.85, markup:0},
       {item:'Aluminium skirt angle', qty:2, cost:28.07, markup:0},
     ],
-    labour: [
-      {worker:'Kevin', hours:8, rate:110},
-    ],
-    subbies: [],
-    other: [],
+    labour: [{worker:'Kevin', hours:8, rate:110}], subbies: [], other: [],
   },
   'reno-tile': {
     materials: [
@@ -366,718 +625,594 @@ const JOB_TEMPLATES = {
       {item:'Tile trim L-shaped', qty:8, cost:5.50, markup:20},
       {item:'Drainage grate', qty:1, cost:65, markup:20},
     ],
-    labour: [
-      {worker:'Kevin', hours:24, rate:110},
-      {worker:'Jordan', hours:12, rate:55},
-    ],
-    subbies: [{trade:'Plumber', cost:400}],
-    other: [{item:'Skip bin', cost:180}],
+    labour: [{worker:'Kevin', hours:24, rate:110},{worker:'Jordan', hours:12, rate:55}],
+    subbies: [{trade:'Plumber', cost:400}], other: [{item:'Skip bin', cost:180}],
   },
-  'reno-general': {
-    materials: [],
-    labour: [
-      {worker:'Kevin', hours:1, rate:110},
-    ],
-    subbies: [],
-    other: [],
-  },
-  'custom': {
-    materials: [],
-    labour: [
-      {worker:'Kevin', hours:1, rate:110},
-    ],
-    subbies: [],
-    other: [],
-  },
+  'reno-general': { materials: [], labour: [{worker:'Kevin', hours:1, rate:110}], subbies: [], other: [] },
+  'custom': { materials: [], labour: [{worker:'Kevin', hours:1, rate:110}], subbies: [], other: [] },
 };
 
-// Default overhead expenses
 const DEFAULT_OVERHEAD = [
-  {name:'Insurance', cost:1600},
-  {name:'Vehicle', cost:12000},
-  {name:'Fuel', cost:9200},
-  {name:'Registration', cost:1000},
-  {name:'Repairs', cost:3200},
-  {name:'Phone', cost:450},
-  {name:'Internet', cost:0},
-  {name:'Software', cost:300},
-  {name:'Accountant', cost:500},
-  {name:'Advertising', cost:0},
-  {name:'Tools', cost:8000},
-  {name:'PPE', cost:1000},
-  {name:'Bank Fees', cost:150},
-  {name:'Rent', cost:0},
-  {name:'Other', cost:0},
+  {name:'Insurance', amount:1600, freq:'yr'},
+  {name:'Vehicle', amount:1000, freq:'mo'},
+  {name:'Fuel', amount:177, freq:'wk'},
+  {name:'Registration', amount:1000, freq:'yr'},
+  {name:'Repairs', amount:3200, freq:'yr'},
+  {name:'Phone', amount:450, freq:'yr'},
+  {name:'Internet', amount:0, freq:'yr'},
+  {name:'Software', amount:300, freq:'yr'},
+  {name:'Accountant', amount:500, freq:'yr'},
+  {name:'Advertising', amount:0, freq:'yr'},
+  {name:'Tools', amount:8000, freq:'yr'},
+  {name:'PPE', amount:1000, freq:'yr'},
+  {name:'Bank Fees', amount:150, freq:'yr'},
+  {name:'Rent', amount:0, freq:'yr'},
+  {name:'Other', amount:0, freq:'yr'},
 ];
+
+function annualAmount(e) { return (parseFloat(e.amount) || 0) * (FREQ_MULT[e.freq] || 1); }
 
 // ===== STATE =====
 let state = {
   quotes: [],
-  overhead: { expenses: [...DEFAULT_OVERHEAD], weeks: 44, hoursPerWeek: 32, targetSalary: 80000 },
+  overhead: { expenses: deepClone(DEFAULT_OVERHEAD), weeks: 44, hoursPerWeek: 32, targetSalary: 80000 },
   materialsDB: [...DEFAULT_MATERIALS_DB],
 };
+let currentQuote = { materials: [], labour: [], subbies: [], other: [] };
+let editingQuoteId = null;
+
+function deepClone(obj) { return JSON.parse(JSON.stringify(obj)); }
+function esc(s) { return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmt(n) { return (Math.round(n)||0).toLocaleString(); }
 
 // ===== STORAGE =====
 function loadState() {
   try {
-    const saved = localStorage.getItem('kevinQuoteBuilder');
+    const saved = localStorage.getItem('kevinBusinessNumbers');
     if (saved) {
       const parsed = JSON.parse(saved);
       state.quotes = parsed.quotes || [];
       state.overhead = { ...state.overhead, ...(parsed.overhead || {}) };
+      state.overhead.expenses = (state.overhead.expenses || []).map(e => ({
+        name: e.name || '', amount: e.amount || e.cost || 0, freq: e.freq || 'yr'
+      }));
       state.materialsDB = parsed.materialsDB && parsed.materialsDB.length > 0 ? parsed.materialsDB : [...DEFAULT_MATERIALS_DB];
     }
   } catch(e) { console.log('Load error', e); }
 }
-
 function saveState() {
-  localStorage.setItem('kevinQuoteBuilder', JSON.stringify({
-    quotes: state.quotes,
-    overhead: state.overhead,
-    materialsDB: state.materialsDB,
+  localStorage.setItem('kevinBusinessNumbers', JSON.stringify({
+    quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB,
   }));
 }
 
-// ===== TAB SWITCHING =====
+// ===== TABS =====
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
   document.getElementById(`tab-${name}`).classList.add('active');
-  event.target.classList.add('active');
-  renderCurrentTab(name);
-}
-
-function renderCurrentTab(name) {
+  const navBtn = document.querySelector(`nav button[data-tab="${name}"]`);
+  if (navBtn) navBtn.classList.add('active');
   if (name === 'overview') renderOverview();
   else if (name === 'history') renderHistory();
   else if (name === 'overhead') renderOverhead();
   else if (name === 'materials') renderMaterialsDB();
 }
 
+// ===== TEMPLATE STRIP =====
+function selectTemplate(type) {
+  document.getElementById('nqType').value = type;
+  document.querySelectorAll('.template-chip').forEach(b => b.classList.remove('active'));
+  document.getElementById('tpl-' + type).classList.add('active');
+  loadJobTemplate();
+}
+
+// ===== COLLAPSIBLE SECTIONS =====
+function toggleSection(key) {
+  const body = document.getElementById('body-' + key);
+  const chev = document.getElementById('chevron-' + key);
+  const isOpen = body.classList.contains('open');
+  if (isOpen) { body.classList.remove('open'); chev.classList.remove('open'); }
+  else { body.classList.add('open'); chev.classList.add('open'); }
+}
+
+function updateSectionSummaries() {
+  const c = calculateJobTotals();
+  document.getElementById('summary-mat').textContent = currentQuote.materials.length + ' items · $' + c.matTotal.toFixed(0);
+  document.getElementById('summary-lab').textContent = c.totalHours + ' hrs · $' + c.labTotal.toFixed(0);
+  document.getElementById('summary-sub').textContent = currentQuote.subbies.length + ' trades · $' + c.subTotal.toFixed(0);
+  document.getElementById('summary-oth').textContent = (currentQuote.other||[]).length + ' items · $' + c.otherTotal.toFixed(0);
+}
+
 // ===== OVERHEAD =====
 function renderOverhead() {
   const body = document.getElementById('overheadBody');
-  const expenses = state.overhead.expenses;
-  body.innerHTML = expenses.map((e, i) => `
-    <tr>
-      <td><input value="${e.name}" onchange="updateOverhead(${i},'name',this.value)" style="border:none;background:transparent;font-size:13px;"></td>
-      <td><input type="number" value="${e.cost}" onchange="updateOverhead(${i},'cost',parseFloat(this.value)||0)" style="width:110px"></td>
+  body.innerHTML = state.overhead.expenses.map((e, i) => {
+    const annual = annualAmount(e);
+    return `<tr>
+      <td><input value="${esc(e.name)}" onchange="updateOverhead(${i},'name',this.value)" class="tight-name" placeholder="Expense name"></td>
+      <td><input type="number" value="${e.amount}" onchange="updateOverhead(${i},'amount',parseFloat(this.value)||0)" class="tight-num" placeholder="0"></td>
+      <td><select class="tight-select" onchange="updateOverhead(${i},'freq',this.value)" style="width:100%;">
+        <option value="wk" ${e.freq==='wk'?'selected':''}>week</option>
+        <option value="mo" ${e.freq==='mo'?'selected':''}>month</option>
+        <option value="yr" ${e.freq==='yr'?'selected':''}>year</option>
+      </select></td>
+      <td><div class="annual-readout">$${annual.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:0})}</div></td>
       <td><button class="btn btn-small btn-danger" onclick="removeOverheadRow(${i})">✕</button></td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
   recalcOverhead();
 }
-
 function addOverheadRow() {
-  state.overhead.expenses.push({name:'', cost:0});
-  renderOverhead();
-  saveState();
+  state.overhead.expenses.push({name:'', amount:0, freq:'yr'});
+  renderOverhead(); saveState(); focusLast('overheadBody');
 }
+function removeOverheadRow(i) { state.overhead.expenses.splice(i,1); renderOverhead(); saveState(); }
+function updateOverhead(i, field, value) { state.overhead.expenses[i][field] = value; recalcOverhead(); saveState(); }
 
-function removeOverheadRow(i) {
-  state.overhead.expenses.splice(i, 1);
-  renderOverhead();
-  saveState();
-}
-
-function updateOverhead(i, field, value) {
-  state.overhead.expenses[i][field] = value;
-  recalcOverhead();
-  saveState();
-}
-
-function recalcOverhead() {
+function getOverheadCalculations() {
   const expenses = state.overhead.expenses;
-  const total = expenses.reduce((s, e) => s + (parseFloat(e.cost) || 0), 0);
+  const total = expenses.reduce((s, e) => s + annualAmount(e), 0);
   const weeks = parseInt(document.getElementById('ovWeeks').value) || state.overhead.weeks;
   const hPerW = parseInt(document.getElementById('ovHoursPerWeek').value) || state.overhead.hoursPerWeek;
   const salary = parseFloat(document.getElementById('ovTargetSalary').value) || state.overhead.targetSalary;
-  
-  state.overhead.weeks = weeks;
-  state.overhead.hoursPerWeek = hPerW;
-  state.overhead.targetSalary = salary;
-  
+  state.overhead.weeks = weeks; state.overhead.hoursPerWeek = hPerW; state.overhead.targetSalary = salary;
   const billable = weeks * hPerW;
   const overheadRate = billable > 0 ? total / billable : 0;
   const wageRate = billable > 0 ? salary / billable : 0;
   const minCharge = overheadRate + wageRate;
-  const withProfit = minCharge / 0.75; // 25% profit built in
-  
-  document.getElementById('ovTotal').textContent = `$${total.toFixed(2)}`;
-  document.getElementById('ovBillableCalc').textContent = billable.toLocaleString();
-  document.getElementById('ovRateCalc').textContent = `$${overheadRate.toFixed(2)}/hr`;
-  document.getElementById('ovWageRate').textContent = `$${wageRate.toFixed(2)}/hr`;
-  document.getElementById('ovOvRateDisplay').textContent = `$${overheadRate.toFixed(2)}/hr`;
-  document.getElementById('ovMinChargeRate').textContent = `$${minCharge.toFixed(2)}/hr`;
-  document.getElementById('ovChargeWithProfit').textContent = `$${withProfit.toFixed(2)}/hr`;
-  
-  document.getElementById('ovTotalOverhead').textContent = `$${total.toFixed(0)}`;
-  document.getElementById('ovBillableHrs').textContent = billable.toLocaleString();
-  document.getElementById('ovOverheadRate').textContent = `$${overheadRate.toFixed(2)}/hr`;
-  document.getElementById('ovMinRate').textContent = `$${withProfit.toFixed(0)}/hr`;
-  
-  saveState();
+  const withProfit = minCharge * 1.25; // 25% on top of costs
+  return { total, weeks, hPerW, salary, billable, overheadRate, wageRate, minCharge, withProfit };
 }
 
-function saveOverhead() {
+function recalcOverhead() {
+  const c = getOverheadCalculations();
+  document.getElementById('ovTotal').textContent = '$' + c.total.toFixed(2);
+  document.getElementById('ovBillableCalc').textContent = c.billable.toLocaleString();
+  document.getElementById('ovRateCalc').textContent = '$' + c.overheadRate.toFixed(2) + '/hr';
+  document.getElementById('ovWageRate').textContent = '$' + c.wageRate.toFixed(2) + '/hr';
+  document.getElementById('ovOvRateDisplay').textContent = '$' + c.overheadRate.toFixed(2) + '/hr';
+  document.getElementById('ovMinChargeRate').textContent = '$' + c.minCharge.toFixed(2) + '/hr';
+  document.getElementById('ovChargeWithProfit').textContent = '$' + c.withProfit.toFixed(2) + '/hr';
+  document.getElementById('ovTotalOverhead').textContent = '$' + fmt(c.total);
+  document.getElementById('ovBillableHrs').textContent = c.billable.toLocaleString();
+  document.getElementById('ovOverheadRate').textContent = '$' + c.overheadRate.toFixed(2) + '/hr';
+  document.getElementById('ovHeroRate').innerHTML = '$' + c.withProfit.toFixed(0) + '<small style="font-size:16px;color:#c4d1d8;">/hr</small>';
+  document.getElementById('ovWageRateShort').textContent = '$' + c.wageRate.toFixed(0) + '/hr';
   saveState();
-  alert('Overhead settings saved!');
 }
+function saveOverhead() { saveState(); alert('Overhead settings saved!'); }
 
-// ===== JOB TEMPLATES =====
+// ===== JOB COSTING =====
 function loadJobTemplate() {
   const type = document.getElementById('nqType').value;
-  const tmpl = JOB_TEMPLATES[type] || JOB_TEMPLATES.custom;
-  
-  // Load materials
-  const matBody = document.getElementById('nqMaterialsBody');
-  matBody.innerHTML = tmpl.materials.map((m, i) => `
-    <tr>
-      <td><input value="${m.item}" onchange="updateNQMat(${i},'item',this.value)" style="border:none;background:transparent;font-size:13px;width:100%;"></td>
-      <td><input type="number" value="${m.qty}" onchange="updateNQMat(${i},'qty',parseFloat(this.value)||0)" style="width:60px"></td>
-      <td><input type="number" value="${m.cost}" onchange="updateNQMat(${i},'cost',parseFloat(this.value)||0)" style="width:90px"></td>
-      <td><input type="number" value="${m.markup}" onchange="updateNQMat(${i},'markup',parseFloat(this.value)||0)" style="width:90px"></td>
-      <td id="nqMatSell_${i}">$${(m.qty * m.cost * (1 + m.markup/100)).toFixed(2)}</td>
-      <td><button class="btn btn-small btn-danger" onclick="removeNQMat(${i})">✕</button></td>
-    </tr>
-  `).join('');
-  
-  // Labour
-  const labBody = document.getElementById('nqLabourBody');
-  labBody.innerHTML = tmpl.labour.map((l, i) => `
-    <tr>
-      <td><input value="${l.worker}" onchange="updateNQLab(${i},'worker',this.value)" style="border:none;background:transparent;font-size:13px;width:100%;"></td>
-      <td><input type="number" value="${l.hours}" onchange="updateNQLab(${i},'hours',parseFloat(this.value)||0)" style="width:60px"></td>
-      <td><input type="number" value="${l.rate}" onchange="updateNQLab(${i},'rate',parseFloat(this.value)||0)" style="width:90px"></td>
-      <td id="nqLabSell_${i}">$${(l.hours * l.rate).toFixed(2)}</td>
-      <td><button class="btn btn-small btn-danger" onclick="removeNQLab(${i})">✕</button></td>
-    </tr>
-  `).join('');
-  
-  // Subbies
-  const subBody = document.getElementById('nqSubbieBody');
-  subBody.innerHTML = tmpl.subbies.map((s, i) => `
-    <tr>
-      <td><input value="${s.trade}" onchange="updateNQSub(${i},'trade',this.value)" style="border:none;background:transparent;font-size:13px;width:100%;"></td>
-      <td><input type="number" value="${s.cost}" onchange="updateNQSub(${i},'cost',parseFloat(this.value)||0)" style="width:90px"></td>
-      <td><button class="btn btn-small btn-danger" onclick="removeNQSub(${i})">✕</button></td>
-    </tr>
-  `).join('');
-  
-  // Other
-  const oBody = document.getElementById('nqOtherBody');
-  oBody.innerHTML = (tmpl.other || []).map((o, i) => `
-    <tr>
-      <td><input value="${o.item}" onchange="updateNQOther(${i},'item',this.value)" style="border:none;background:transparent;font-size:13px;width:100%;"></td>
-      <td><input type="number" value="${o.cost}" onchange="updateNQOther(${i},'cost',parseFloat(this.value)||0)" style="width:90px"></td>
-      <td><button class="btn btn-small btn-danger" onclick="removeNQOther(${i})">✕</button></td>
-    </tr>
-  `).join('');
-  
+  currentQuote = deepClone(JOB_TEMPLATES[type] || JOB_TEMPLATES.custom);
+  renderCurrentQuote();
   recalcQuote();
 }
 
-// Track current NQ data
-let nqState = { materials: [], labour: [], subbies: [], other: [] };
+function renderCurrentQuote() {
+  const matBody = document.getElementById('nqMaterialsBody');
+  matBody.innerHTML = currentQuote.materials.map((m, i) => `
+    <tr>
+      <td><input value="${esc(m.item)}" onchange="updateNQMat(${i},'item',this.value)" class="tight-name"></td>
+      <td><input type="number" value="${m.qty}" onchange="updateNQMat(${i},'qty',parseFloat(this.value)||0)" class="tight-num"></td>
+      <td><input type="number" value="${m.cost}" onchange="updateNQMat(${i},'cost',parseFloat(this.value)||0)" class="tight-num"></td>
+      <td><input type="number" value="${m.markup}" onchange="updateNQMat(${i},'markup',parseFloat(this.value)||0)" class="tight-num"></td>
+      <td style="text-align:right;font-weight:500;padding-right:10px;" id="nqMatSell_${i}">$${(m.qty*m.cost*(1+m.markup/100)).toFixed(2)}</td>
+      <td><button class="btn btn-small btn-danger" onclick="removeNQMat(${i})">✕</button></td>
+    </tr>`).join('');
 
-function syncNQState() {
-  const type = document.getElementById('nqType').value;
-  const tmpl = JOB_TEMPLATES[type] || JOB_TEMPLATES.custom;
-  nqState.materials = tmpl.materials.map((m, i) => {
-    const row = document.getElementById('nqMaterialsBody')?.children[i];
-    const inputs = row?.querySelectorAll('input');
-    return {
-      item: inputs?.[0]?.value || m.item,
-      qty: parseFloat(inputs?.[1]?.value) || m.qty,
-      cost: parseFloat(inputs?.[2]?.value) || m.cost,
-      markup: parseFloat(inputs?.[3]?.value) || m.markup,
-    };
-  });
-  nqState.labour = tmpl.labour.map((l, i) => {
-    const row = document.getElementById('nqLabourBody')?.children[i];
-    const inputs = row?.querySelectorAll('input');
-    return {
-      worker: inputs?.[0]?.value || l.worker,
-      hours: parseFloat(inputs?.[1]?.value) || l.hours,
-      rate: parseFloat(inputs?.[2]?.value) || l.rate,
-    };
-  });
-  nqState.subbies = tmpl.subbies.map((s, i) => {
-    const row = document.getElementById('nqSubbieBody')?.children[i];
-    const inputs = row?.querySelectorAll('input');
-    return {
-      trade: inputs?.[0]?.value || s.trade,
-      cost: parseFloat(inputs?.[1]?.value) || s.cost,
-    };
-  });
-  nqState.other = (tmpl.other || []).map((o, i) => {
-    const row = document.getElementById('nqOtherBody')?.children[i];
-    const inputs = row?.querySelectorAll('input');
-    return {
-      item: inputs?.[0]?.value || o.item,
-      cost: parseFloat(inputs?.[1]?.value) || o.cost,
-    };
+  const labBody = document.getElementById('nqLabourBody');
+  labBody.innerHTML = currentQuote.labour.map((l, i) => `
+    <tr>
+      <td><input value="${esc(l.worker)}" onchange="updateNQLab(${i},'worker',this.value)" class="tight-name"></td>
+      <td><input type="number" value="${l.hours}" onchange="updateNQLab(${i},'hours',parseFloat(this.value)||0)" class="tight-num"></td>
+      <td><input type="number" value="${l.rate}" onchange="updateNQLab(${i},'rate',parseFloat(this.value)||0)" class="tight-num"></td>
+      <td style="text-align:right;font-weight:500;padding-right:10px;" id="nqLabSell_${i}">$${(l.hours*l.rate).toFixed(2)}</td>
+      <td><button class="btn btn-small btn-danger" onclick="removeNQLab(${i})">✕</button></td>
+    </tr>`).join('');
+
+  const subBody = document.getElementById('nqSubbieBody');
+  subBody.innerHTML = currentQuote.subbies.map((s, i) => `
+    <tr>
+      <td><input value="${esc(s.trade)}" onchange="updateNQSub(${i},'trade',this.value)" class="tight-name"></td>
+      <td><input type="number" value="${s.cost}" onchange="updateNQSub(${i},'cost',parseFloat(this.value)||0)" class="tight-num"></td>
+      <td><button class="btn btn-small btn-danger" onclick="removeNQSub(${i})">✕</button></td>
+    </tr>`).join('');
+
+  const oBody = document.getElementById('nqOtherBody');
+  oBody.innerHTML = (currentQuote.other||[]).map((o, i) => `
+    <tr>
+      <td><input value="${esc(o.item)}" onchange="updateNQOther(${i},'item',this.value)" class="tight-name"></td>
+      <td><input type="number" value="${o.cost}" onchange="updateNQOther(${i},'cost',parseFloat(this.value)||0)" class="tight-num"></td>
+      <td><button class="btn btn-small btn-danger" onclick="removeNQOther(${i})">✕</button></td>
+    </tr>`).join('');
+}
+
+function syncCurrentQuoteFromDOM() {
+  ['materials','labour','subbies','other'].forEach(section => {
+    const bodyId = section === 'materials' ? 'nqMaterialsBody' : section === 'labour' ? 'nqLabourBody' : section === 'subbies' ? 'nqSubbieBody' : 'nqOtherBody';
+    const rows = document.getElementById(bodyId)?.children || [];
+    const arr = section === 'other' ? (currentQuote.other || (currentQuote.other = [])) : currentQuote[section];
+    for (let i = 0; i < rows.length && i < arr.length; i++) {
+      const inputs = rows[i].querySelectorAll('input');
+      if (section === 'materials') {
+        if (inputs[0]) arr[i].item = inputs[0].value;
+        if (inputs[1]) arr[i].qty = parseFloat(inputs[1].value) || 0;
+        if (inputs[2]) arr[i].cost = parseFloat(inputs[2].value) || 0;
+        if (inputs[3]) arr[i].markup = parseFloat(inputs[3].value) || 0;
+      } else if (section === 'labour') {
+        if (inputs[0]) arr[i].worker = inputs[0].value;
+        if (inputs[1]) arr[i].hours = parseFloat(inputs[1].value) || 0;
+        if (inputs[2]) arr[i].rate = parseFloat(inputs[2].value) || 0;
+      } else if (section === 'subbies') {
+        if (inputs[0]) arr[i].trade = inputs[0].value;
+        if (inputs[1]) arr[i].cost = parseFloat(inputs[1].value) || 0;
+      } else if (section === 'other') {
+        if (inputs[0]) arr[i].item = inputs[0].value;
+        if (inputs[1]) arr[i].cost = parseFloat(inputs[1].value) || 0;
+      }
+    }
   });
 }
 
-function recalcQuote() {
-  syncNQState();
-  
-  let matTotal = 0;
-  nqState.materials.forEach((m, i) => {
-    const sell = m.qty * m.cost * (1 + m.markup / 100);
+function calculateJobTotals() {
+  syncCurrentQuoteFromDOM();
+  let matTotal = 0, totalMarkup = 0;
+  currentQuote.materials.forEach(m => {
+    const sell = m.qty * m.cost * (1 + m.markup/100);
+    totalMarkup += sell - (m.qty * m.cost);
     matTotal += sell;
-    const el = document.getElementById(`nqMatSell_${i}`);
-    if (el) el.textContent = `$${sell.toFixed(2)}`;
   });
-  document.getElementById('nqMatTotal').textContent = `$${matTotal.toFixed(2)}`;
-  
-  let labTotal = 0;
-  nqState.labour.forEach((l, i) => {
-    const total = l.hours * l.rate;
-    labTotal += total;
-    const el = document.getElementById(`nqLabSell_${i}`);
-    if (el) el.textContent = `$${total.toFixed(2)}`;
-  });
-  document.getElementById('nqLabTotal').textContent = `$${labTotal.toFixed(2)}`;
-  
-  let subTotal = nqState.subbies.reduce((s, sb) => s + sb.cost, 0);
-  document.getElementById('nqSubTotal').textContent = `$${subTotal.toFixed(2)}`;
-  
-  let otherTotal = nqState.other.reduce((s, o) => s + o.cost, 0);
-  document.getElementById('nqOtherTotal').textContent = `$${otherTotal.toFixed(2)}`;
-  
-  // Overhead applied
-  const totalHours = nqState.labour.reduce((s, l) => s + l.hours, 0);
-  const overheadRate = state.overhead.expenses.reduce((s, e) => s + (parseFloat(e.cost) || 0), 0) / (state.overhead.weeks * state.overhead.hoursPerWeek || 1);
+  let labTotal = 0, totalHours = 0;
+  currentQuote.labour.forEach(l => { labTotal += l.hours * l.rate; totalHours += l.hours; });
+  let subTotal = currentQuote.subbies.reduce((s, sb) => s + sb.cost, 0);
+  let otherTotal = (currentQuote.other||[]).reduce((s, o) => s + o.cost, 0);
+  const overhead = getOverheadCalculations();
   const overheadPct = parseFloat(document.getElementById('nqOverheadPct').value) / 100;
-  const overheadCost = totalHours * overheadRate * overheadPct;
-  
+  const overheadCost = totalHours * overhead.overheadRate * overheadPct;
   const contingency = parseFloat(document.getElementById('nqContingency').value) || 0;
   const profitPct = parseFloat(document.getElementById('nqProfit').value) || 0;
-  
   const subtotal = matTotal + labTotal + subTotal + otherTotal + overheadCost;
   const contingencyAmt = subtotal * contingency / 100;
   const profitAmt = (subtotal + contingencyAmt) * profitPct / 100;
   const gst = (subtotal + contingencyAmt + profitAmt) * 0.1;
   const grandTotal = subtotal + contingencyAmt + profitAmt + gst;
-  
-  document.getElementById('nqGrandTotal').innerHTML = `
-    <div style="font-size:14px;color:#888;font-weight:normal;margin-bottom:4px;">
-      Subtotal: $${subtotal.toFixed(2)} |
-      Contingency: $${contingencyAmt.toFixed(2)} |
-      Profit: $${profitAmt.toFixed(2)} |
-      GST: $${gst.toFixed(2)}
-    </div>
-    <div style="font-size:28px;">Grand Total: $${grandTotal.toFixed(2)}</div>
-  `;
+  const kevinHours = currentQuote.labour.filter(l => l.worker.toLowerCase()==='kevin').reduce((s,l) => s+l.hours, 0);
+  return { matTotal, totalMarkup, labTotal, totalHours, subTotal, otherTotal, overheadCost, contingency, profitPct, subtotal, contingencyAmt, profitAmt, gst, grandTotal, kevinHours, overheadRate: overhead.overheadRate, minRate: overhead.withProfit };
 }
 
-function updateNQMat(i, field, value) {
-  const type = document.getElementById('nqType').value;
-  const tmpl = JOB_TEMPLATES[type] || JOB_TEMPLATES.custom;
-  tmpl.materials[i][field] = value;
-  recalcQuote();
+function recalcQuote() {
+  const c = calculateJobTotals();
+  currentQuote.materials.forEach((m, i) => { const el = document.getElementById('nqMatSell_'+i); if (el) el.textContent = '$'+(m.qty*m.cost*(1+m.markup/100)).toFixed(2); });
+  currentQuote.labour.forEach((l, i) => { const el = document.getElementById('nqLabSell_'+i); if (el) el.textContent = '$'+(l.hours*l.rate).toFixed(2); });
+  document.getElementById('nqMatMarkupPct').textContent = c.totalMarkup > 0 ? '+$'+c.totalMarkup.toFixed(2)+' markup' : '';
+  document.getElementById('nqMatTotal').textContent = '$'+c.matTotal.toFixed(2);
+  document.getElementById('nqLabTotal').textContent = '$'+c.labTotal.toFixed(2);
+  document.getElementById('nqSubTotal').textContent = '$'+c.subTotal.toFixed(2);
+  document.getElementById('nqOtherTotal').textContent = '$'+c.otherTotal.toFixed(2);
+
+  // === Sticky sidebar ===
+  const exGst = c.subtotal + c.contingencyAmt + c.profitAmt;
+  document.getElementById('sideGrandTotal').textContent = '$'+c.grandTotal.toFixed(0);
+  document.getElementById('sideMat').textContent = '$'+c.matTotal.toFixed(2);
+  document.getElementById('sideLab').textContent = '$'+c.labTotal.toFixed(2);
+  document.getElementById('sideOv').textContent = '$'+c.overheadCost.toFixed(2);
+  document.getElementById('sideSubOth').textContent = '$'+(c.subTotal + c.otherTotal).toFixed(2);
+  document.getElementById('sideCont').textContent = '$'+c.contingencyAmt.toFixed(2);
+  document.getElementById('sideProf').textContent = '$'+c.profitAmt.toFixed(2);
+  document.getElementById('sideExGst').textContent = '$'+exGst.toFixed(2);
+  document.getElementById('sideGst').textContent = '$'+c.gst.toFixed(2);
+
+  // Sidebar insight
+  if (c.kevinHours > 0) {
+    const effectiveRate = c.grandTotal / c.kevinHours;
+    const takeHome = (c.grandTotal - c.matTotal - c.subTotal - c.otherTotal - c.gst - c.overheadCost) / c.kevinHours;
+    document.getElementById('sideInsight').style.display = 'block';
+    document.getElementById('sideInsightText').innerHTML =
+      'That\'s <strong>$'+effectiveRate.toFixed(0)+'/hr effective</strong> for your '+c.kevinHours+' hours. '+
+      'After costs: roughly <strong>$'+takeHome.toFixed(0)+'/hr</strong> (min. rate is $'+c.minRate.toFixed(0)+'/hr).';
+  }
+
+  // === Mobile bottom bar ===
+  document.getElementById('mobileGrandTotal').textContent = '$'+c.grandTotal.toFixed(0);
+
+  updateSectionSummaries();
 }
 
-function removeNQMat(i) {
-  const type = document.getElementById('nqType').value;
-  const tmpl = JOB_TEMPLATES[type] || JOB_TEMPLATES.custom;
-  tmpl.materials.splice(i, 1);
-  loadJobTemplate();
+// === Mutation functions ===
+function updateNQMat(i,f,v) { if(i<currentQuote.materials.length)currentQuote.materials[i][f]=v; recalcQuote(); }
+function removeNQMat(i) { currentQuote.materials.splice(i,1); renderCurrentQuote(); recalcQuote(); }
+function addMaterialRow() { currentQuote.materials.push({item:'',qty:1,cost:0,markup:20}); renderCurrentQuote(); recalcQuote(); focusLast('nqMaterialsBody'); }
+function updateNQLab(i,f,v) { if(i<currentQuote.labour.length)currentQuote.labour[i][f]=v; recalcQuote(); }
+function removeNQLab(i) { currentQuote.labour.splice(i,1); renderCurrentQuote(); recalcQuote(); }
+function addLabourRow() { currentQuote.labour.push({worker:'Jordan',hours:1,rate:55}); renderCurrentQuote(); recalcQuote(); focusLast('nqLabourBody'); }
+function updateNQSub(i,f,v) { if(i<currentQuote.subbies.length)currentQuote.subbies[i][f]=v; recalcQuote(); }
+function removeNQSub(i) { currentQuote.subbies.splice(i,1); renderCurrentQuote(); recalcQuote(); }
+function addSubbieRow() { currentQuote.subbies.push({trade:'',cost:0}); renderCurrentQuote(); recalcQuote(); focusLast('nqSubbieBody'); }
+function updateNQOther(i,f,v) { if(!currentQuote.other)currentQuote.other=[]; if(i<currentQuote.other.length)currentQuote.other[i][f]=v; recalcQuote(); }
+function removeNQOther(i) { if(currentQuote.other)currentQuote.other.splice(i,1); renderCurrentQuote(); recalcQuote(); }
+function addOtherRow() { if(!currentQuote.other)currentQuote.other=[]; currentQuote.other.push({item:'',cost:0}); renderCurrentQuote(); recalcQuote(); focusLast('nqOtherBody'); }
+function focusLast(id) { setTimeout(()=>{const rows=document.getElementById(id)?.children; if(rows&&rows.length>0){const fi=rows[rows.length-1].querySelector('input'); if(fi){fi.focus();fi.select();}}},50); }
+
+// === MODAL MATERIAL PICKER ===
+function openMaterialPicker() {
+  const modal = document.getElementById('modalPicker');
+  const body = document.getElementById('modalBody');
+  document.getElementById('modalSearch').value = '';
+  renderModalMaterials(state.materialsDB);
+  modal.style.display = 'grid';
+}
+function closeModal() { document.getElementById('modalPicker').style.display = 'none'; }
+function filterModalMaterials() {
+  const q = document.getElementById('modalSearch').value.toLowerCase();
+  const filtered = state.materialsDB.filter(m => m.item.toLowerCase().includes(q) || m.cat.toLowerCase().includes(q));
+  renderModalMaterials(filtered);
+}
+function renderModalMaterials(items) {
+  const body = document.getElementById('modalBody');
+  body.innerHTML = items.map((m, i) => {
+    const origIdx = state.materialsDB.indexOf(m);
+    return `<button onclick="pickMaterial(${origIdx})"><div><strong>${esc(m.item)}</strong><small>${esc(m.cat)} · $${m.cost.toFixed(2)}/${esc(m.unit)} · ${m.markup}% markup</small></div><span style="color:var(--green);font-weight:700;font-size:18px;">+</span></button>`;
+  }).join('');
+  if (items.length === 0) body.innerHTML = '<div class="empty-state compact">No materials match that search.</div>';
+}
+function pickMaterial(idx) {
+  const m = state.materialsDB[idx];
+  currentQuote.materials.push({item: m.cat+' - '+m.item, qty:1, cost:m.cost, markup:m.markup});
+  renderCurrentQuote(); recalcQuote(); closeModal();
 }
 
-function addMaterialRow() {
-  const type = document.getElementById('nqType').value;
-  const tmpl = JOB_TEMPLATES[type] || JOB_TEMPLATES.custom;
-  tmpl.materials.push({item:'', qty:1, cost:0, markup:20});
-  loadJobTemplate();
-}
+// Legacy — keep for the tooltip button
+function loadFromMaterialsDB() { openMaterialPicker(); }
 
-function updateNQLab(i, field, value) {
-  const type = document.getElementById('nqType').value;
-  const tmpl = JOB_TEMPLATES[type] || JOB_TEMPLATES.custom;
-  tmpl.labour[i][field] = value;
-  recalcQuote();
-}
-
-function removeNQLab(i) {
-  const type = document.getElementById('nqType').value;
-  const tmpl = JOB_TEMPLATES[type] || JOB_TEMPLATES.custom;
-  tmpl.labour.splice(i, 1);
-  loadJobTemplate();
-}
-
-function addLabourRow() {
-  const type = document.getElementById('nqType').value;
-  const tmpl = JOB_TEMPLATES[type] || JOB_TEMPLATES.custom;
-  tmpl.labour.push({worker:'Kevin', hours:1, rate:110});
-  loadJobTemplate();
-}
-
-function updateNQSub(i, field, value) {
-  const type = document.getElementById('nqType').value;
-  const tmpl = JOB_TEMPLATES[type] || JOB_TEMPLATES.custom;
-  tmpl.subbies[i][field] = value;
-  recalcQuote();
-}
-
-function removeNQSub(i) {
-  const type = document.getElementById('nqType').value;
-  const tmpl = JOB_TEMPLATES[type] || JOB_TEMPLATES.custom;
-  tmpl.subbies.splice(i, 1);
-  loadJobTemplate();
-}
-
-function addSubbieRow() {
-  const type = document.getElementById('nqType').value;
-  const tmpl = JOB_TEMPLATES[type] || JOB_TEMPLATES.custom;
-  tmpl.subbies.push({trade:'', cost:0});
-  loadJobTemplate();
-}
-
-function updateNQOther(i, field, value) {
-  const type = document.getElementById('nqType').value;
-  const tmpl = JOB_TEMPLATES[type] || JOB_TEMPLATES.custom;
-  if (!tmpl.other) tmpl.other = [];
-  if (tmpl.other[i]) tmpl.other[i][field] = value;
-  recalcQuote();
-}
-
-function removeNQOther(i) {
-  const type = document.getElementById('nqType').value;
-  const tmpl = JOB_TEMPLATES[type] || JOB_TEMPLATES.custom;
-  if (tmpl.other) tmpl.other.splice(i, 1);
-  loadJobTemplate();
-}
-
-function addOtherRow() {
-  const type = document.getElementById('nqType').value;
-  const tmpl = JOB_TEMPLATES[type] || JOB_TEMPLATES.custom;
-  if (!tmpl.other) tmpl.other = [];
-  tmpl.other.push({item:'', cost:0});
-  loadJobTemplate();
-}
-
-function loadFromMaterialsDB() {
-  const type = document.getElementById('nqType').value;
-  const tmpl = JOB_TEMPLATES[type] || JOB_TEMPLATES.custom;
-  
-  // Show a simple prompt for now - in production would be a modal
-  const items = state.materialsDB.map((m, i) => `${i}: ${m.cat} - ${m.item} ($${m.cost})`).join('\n');
-  const choice = prompt(`Enter material numbers to add (comma separated):\n\n${items}`);
-  if (!choice) return;
-  
-  const indices = choice.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n) && n >= 0 && n < state.materialsDB.length);
-  indices.forEach(idx => {
-    const m = state.materialsDB[idx];
-    tmpl.materials.push({item: `${m.cat} - ${m.item}`, qty: 1, cost: m.cost, markup: m.markup});
-  });
-  loadJobTemplate();
-}
-
-// ===== SAVE QUOTE =====
+// ===== SAVE JOB =====
 function saveQuote() {
-  syncNQState();
-  
+  const c = calculateJobTotals();
   const client = document.getElementById('nqClient').value || 'Unnamed';
   const type = document.getElementById('nqType').value;
   const location = document.getElementById('nqLocation').value || '';
   const overheadPct = parseFloat(document.getElementById('nqOverheadPct').value) || 100;
-  const contingency = parseFloat(document.getElementById('nqContingency').value) || 5;
-  const profitPct = parseFloat(document.getElementById('nqProfit').value) || 25;
-  
-  // Calculate totals
-  const matTotal = nqState.materials.reduce((s, m) => s + m.qty * m.cost * (1 + m.markup/100), 0);
-  const labTotal = nqState.labour.reduce((s, l) => s + l.hours * l.rate, 0);
-  const subTotal = nqState.subbies.reduce((s, sb) => s + sb.cost, 0);
-  const otherTotal = nqState.other.reduce((s, o) => s + o.cost, 0);
-  const totalHours = nqState.labour.reduce((s, l) => s + l.hours, 0);
-  
-  const overheadRate = state.overhead.expenses.reduce((s, e) => s + (parseFloat(e.cost) || 0), 0) / (state.overhead.weeks * state.overhead.hoursPerWeek || 1);
-  const overheadCost = totalHours * overheadRate * (overheadPct / 100);
-  
-  const subtotal = matTotal + labTotal + subTotal + otherTotal + overheadCost;
-  const contingencyAmt = subtotal * contingency / 100;
-  const profitAmt = (subtotal + contingencyAmt) * profitPct / 100;
-  const gst = (subtotal + contingencyAmt + profitAmt) * 0.1;
-  const grandTotal = subtotal + contingencyAmt + profitAmt + gst;
-  
-  const quote = {
-    id: Date.now(),
-    date: new Date().toISOString().split('T')[0],
-    client,
-    type,
-    location,
-    materials: [...nqState.materials],
-    labour: [...nqState.labour],
-    subbies: [...nqState.subbies],
-    other: [...nqState.other],
-    overheadPct,
-    contingency,
-    profitPct,
-    matTotal,
-    labTotal,
-    subTotal,
-    otherTotal,
-    overheadCost,
-    subtotal,
-    contingencyAmt,
-    profitAmt,
-    gst,
-    grandTotal,
-    totalHours,
+  const isEditing = editingQuoteId !== null;
+  const existingIdx = isEditing ? state.quotes.findIndex(q => q.id === editingQuoteId) : -1;
+  const job = {
+    id: isEditing ? editingQuoteId : Date.now(),
+    date: (isEditing && existingIdx >= 0) ? state.quotes[existingIdx].date : new Date().toISOString().split('T')[0],
+    client, type, location,
+    materials: deepClone(currentQuote.materials), labour: deepClone(currentQuote.labour),
+    subbies: deepClone(currentQuote.subbies), other: deepClone(currentQuote.other||[]), overheadPct,
+    contingency: c.contingency, profitPct: c.profitPct,
+    matTotal: c.matTotal, labTotal: c.labTotal, subTotal: c.subTotal, otherTotal: c.otherTotal,
+    overheadCost: c.overheadCost, subtotal: c.subtotal, contingencyAmt: c.contingencyAmt,
+    profitAmt: c.profitAmt, gst: c.gst, grandTotal: c.grandTotal, totalHours: c.totalHours,
   };
-  
-  state.quotes.unshift(quote);
-  saveState();
-  renderOverview();
-  renderHistory();
-  
-  document.getElementById('quoteCounter').textContent = `${state.quotes.length} quotes`;
-  
-  if (confirm(`Quote saved for ${client}: $${grandTotal.toFixed(2)}\n\nOpen Print Preview?`)) {
-    printQuote(quote);
-  }
+  if (isEditing && existingIdx >= 0) { state.quotes[existingIdx] = job; }
+  else { state.quotes.unshift(job); }
+  editingQuoteId = null; updateEditingBanner();
+  saveState(); renderOverview(); renderHistory();
+  document.getElementById('quoteCounter').textContent = state.quotes.length + ' jobs'; recalcQuote();
+  alert((isEditing ? 'Job updated!' : 'Job saved!')+'\n\nWhat you should charge: $'+c.grandTotal.toFixed(2)+'\n\nMaterials: $'+c.matTotal.toFixed(0)+'\nLabour: $'+c.labTotal.toFixed(0)+' ('+c.totalHours+' hrs)\nOverhead: $'+c.overheadCost.toFixed(0)+'\nContingency: $'+c.contingencyAmt.toFixed(0)+'\nProfit: $'+c.profitAmt.toFixed(0)+'\nGST: $'+c.gst.toFixed(0));
 }
 
-// ===== PRINT QUOTE =====
-function printQuote(quote) {
-  const q = quote || state.quotes[0];
-  if (!q) return;
-  
-  const typeNames = {sauna:'Sauna', 'reno-wall':'Wall / Framing Renovation', 'reno-tile':'Tiling / Bathroom Renovation', 'reno-general':'General Renovation', custom:'Custom Job'};
-  
+// ===== COPY FIGURES (for pasting into Xero etc.) =====
+function copyQuote(btn) {
+  const c = calculateJobTotals();
+  const name = document.getElementById('nqClient').value || 'Job';
+  const exGst = c.subtotal + c.contingencyAmt + c.profitAmt;
+  const money = n => '$' + (n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  const text = [
+    name,
+    'Materials\t' + money(c.matTotal),
+    'Labour\t' + money(c.labTotal),
+    'Overhead\t' + money(c.overheadCost),
+    'Subbies + other\t' + money(c.subTotal + c.otherTotal),
+    'Contingency\t' + money(c.contingencyAmt),
+    'Profit\t' + money(c.profitAmt),
+    'Price ex GST\t' + money(exGst),
+    'GST\t' + money(c.gst),
+    'TOTAL inc GST\t' + money(c.grandTotal),
+  ].join('\n');
+  const done = () => flashCopied(btn);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+  } else {
+    fallbackCopy(text, done);
+  }
+}
+function fallbackCopy(text, done) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch(e) {}
+  document.body.removeChild(ta);
+  if (ok && done) done();
+  else if (!ok) alert('Couldn\'t copy automatically. Here are the figures:\n\n' + text);
+}
+function flashCopied(btn) {
+  if (!btn) return;
+  const orig = btn.innerHTML;
+  btn.innerHTML = '✓ Copied';
+  btn.disabled = true;
+  setTimeout(() => { btn.innerHTML = orig; btn.disabled = false; }, 1400);
+}
+
+// ===== PRINT =====
+function printForSelf(job) {
+  const q = job || (state.quotes.length > 0 ? state.quotes[0] : null);
+  if (!q) { alert('Save a job first!'); return; }
+  const typeNames = {sauna:'Sauna','reno-wall':'Wall / Framing','reno-tile':'Tiling / Bathroom','reno-general':'General Reno',custom:'Custom'};
   const win = window.open('', '_blank');
-  win.document.write(`
-<!DOCTYPE html><html><head>
-<title>Quote - ${q.client}</title>
-<style>
-body { font-family: 'Helvetica Neue', Arial, sans-serif; padding: 40px; max-width: 800px; margin: auto; color: #333; }
-h1 { font-size: 24px; color: #1a1a2e; margin-bottom: 4px; }
-.header { margin-bottom: 30px; }
-.header .meta { color: #888; font-size: 13px; }
-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
-th { background: #f0f0f0; text-align: left; padding: 8px 10px; font-size: 11px; color: #666; text-transform: uppercase; }
-td { padding: 6px 10px; border-bottom: 1px solid #eee; }
-.total { font-weight: bold; background: #f9f9f9; }
-.grand { font-size: 20px; text-align: right; margin-top: 20px; color: #1a1a2e; }
-.section-title { font-size: 16px; font-weight: bold; color: #1a1a2e; margin: 24px 0 8px; padding-bottom: 4px; border-bottom: 2px solid #e94560; }
-.print-btn { padding: 10px 20px; background: #1a1a2e; color: white; border: none; border-radius: 6px; cursor: pointer; margin-bottom: 20px; }
-@media print { .print-btn { display: none; } body { padding: 20px; } }
-.right { text-align: right; }
-</style>
-</head><body>
-<button class="print-btn" onclick="window.print()">🖨️ Print / Save PDF</button>
-<div class="header">
-  <h1>Quote ${q.client}</h1>
-  <div class="meta">Date: ${q.date} | Job Type: ${typeNames[q.type] || q.type}${q.location ? ' | ' + q.location : ''}</div>
-</div>
-`);
-
-  // Materials
-  if (q.materials && q.materials.length > 0) {
-    win.document.write(`<div class="section-title">Materials</div><table><tr><th>Item</th><th class="right">Qty</th><th class="right">Unit Cost</th><th class="right">Markup</th><th class="right">Total</th></tr>`);
-    q.materials.forEach(m => {
-      const sell = m.qty * m.cost * (1 + m.markup / 100);
-      win.document.write(`<tr><td>${m.item}</td><td class="right">${m.qty}</td><td class="right">$${m.cost.toFixed(2)}</td><td class="right">${m.markup}%</td><td class="right">$${sell.toFixed(2)}</td></tr>`);
-    });
-    win.document.write(`<tr class="total"><td colspan="4">Materials Total</td><td class="right">$${q.matTotal.toFixed(2)}</td></tr></table>`);
-  }
-
-  // Labour
-  if (q.labour && q.labour.length > 0) {
-    win.document.write(`<div class="section-title">Labour</div><table><tr><th>Worker</th><th class="right">Hours</th><th class="right">Rate</th><th class="right">Total</th></tr>`);
-    q.labour.forEach(l => {
-      win.document.write(`<tr><td>${l.worker}</td><td class="right">${l.hours}</td><td class="right">$${l.rate.toFixed(2)}/hr</td><td class="right">$${(l.hours * l.rate).toFixed(2)}</td></tr>`);
-    });
-    win.document.write(`<tr class="total"><td colspan="3">Labour Total (${q.totalHours} hrs)</td><td class="right">$${q.labTotal.toFixed(2)}</td></tr></table>`);
-  }
-
-  // Subbies & Other
-  if (q.subbies && q.subbies.length > 0) {
-    win.document.write(`<div class="section-title">Subcontractors</div><table><tr><th>Trade</th><th class="right">Cost</th></tr>`);
-    q.subbies.forEach(s => win.document.write(`<tr><td>${s.trade}</td><td class="right">$${s.cost.toFixed(2)}</td></tr>`));
-    win.document.write(`<tr class="total"><td>Subbies Total</td><td class="right">$${q.subTotal.toFixed(2)}</td></tr></table>`);
-  }
-
-  if (q.other && q.other.length > 0) {
-    win.document.write(`<div class="section-title">Other Costs</div><table><tr><th>Item</th><th class="right">Cost</th></tr>`);
-    q.other.forEach(o => win.document.write(`<tr><td>${o.item}</td><td class="right">$${o.cost.toFixed(2)}</td></tr>`));
-    win.document.write(`<tr class="total"><td>Other Total</td><td class="right">$${q.otherTotal.toFixed(2)}</td></tr></table>`);
-  }
-
-  // Grand total
-  win.document.write(`
-    <div class="section-title" style="margin-top:30px;">Summary</div>
-    <table>
-      <tr><td>Subtotal (materials + labour + subbies + other)</td><td class="right">$${(q.matTotal + q.labTotal + q.subTotal + q.otherTotal).toFixed(2)}</td></tr>
-      <tr><td>Overhead applied (${q.overheadPct}% of overhead rate × ${q.totalHours} hrs)</td><td class="right">$${q.overheadCost.toFixed(2)}</td></tr>
-      <tr><td>Contingency (${q.contingency}%)</td><td class="right">$${q.contingencyAmt.toFixed(2)}</td></tr>
-      <tr><td>Profit (${q.profitPct}%)</td><td class="right">$${q.profitAmt.toFixed(2)}</td></tr>
-      <tr><td>GST (10%)</td><td class="right">$${q.gst.toFixed(2)}</td></tr>
-      <tr class="total"><td style="font-size:18px;">Total Quote</td><td class="right" style="font-size:18px;color:#1a1a2e;">$${q.grandTotal.toFixed(2)}</td></tr>
-    </table>
-  `);
-
-  win.document.write(`</body></html>`);
+  win.document.write('<!DOCTYPE html><html><head><title>Job Costing - '+q.client+'</title><style>body{font-family:Arial,sans-serif;padding:40px;max-width:800px;margin:auto;color:#333}h1{font-size:24px;color:#1a1a2e}.header{margin-bottom:30px}.header .meta{color:#888;font-size:13px}table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}th{background:#f0f0f0;text-align:left;padding:8px 10px;font-size:11px;color:#666;text-transform:uppercase}td{padding:6px 10px;border-bottom:1px solid #eee}.total{font-weight:bold;background:#f9f9f9}.section-title{font-size:16px;font-weight:bold;color:#1a1a2e;margin:24px 0 8px;padding-bottom:4px;border-bottom:2px solid #e94560}.right{text-align:right}@media print{body{padding:20px}}</style></head><body><button onclick="window.print()" style="padding:10px 20px;background:#1a1a2e;color:#fff;border:none;border-radius:6px;cursor:pointer;margin-bottom:20px">🖨️ Print / Save PDF</button><div class="header"><h1>Job Costing — '+q.client+'</h1><div class="meta">Date: '+q.date+' | Type: '+(typeNames[q.type]||q.type)+(q.location?' | '+q.location:'')+'</div></div>');
+  if (q.materials && q.materials.length) { win.document.write('<div class="section-title">Materials</div><table><tr><th>Item</th><th class="right">Qty</th><th class="right">Unit Cost</th><th class="right">Markup</th><th class="right">Total</th></tr>'); q.materials.forEach(m => win.document.write('<tr><td>'+m.item+'</td><td class="right">'+m.qty+'</td><td class="right">$'+m.cost.toFixed(2)+'</td><td class="right">'+m.markup+'%</td><td class="right">$'+(m.qty*m.cost*(1+m.markup/100)).toFixed(2)+'</td></tr>')); win.document.write('<tr class="total"><td colspan="4">Materials Total</td><td class="right">$'+q.matTotal.toFixed(2)+'</td></tr></table>'); }
+  if (q.labour && q.labour.length) { win.document.write('<div class="section-title">Labour</div><table><tr><th>Worker</th><th class="right">Hours</th><th class="right">Rate</th><th class="right">Total</th></tr>'); q.labour.forEach(l => win.document.write('<tr><td>'+l.worker+'</td><td class="right">'+l.hours+'</td><td class="right">$'+l.rate.toFixed(2)+'/hr</td><td class="right">$'+(l.hours*l.rate).toFixed(2)+'</td></tr>')); win.document.write('<tr class="total"><td colspan="3">Labour Total ('+q.totalHours+' hrs)</td><td class="right">$'+q.labTotal.toFixed(2)+'</td></tr></table>'); }
+  if (q.subbies && q.subbies.length) { win.document.write('<div class="section-title">Subcontractors</div><table><tr><th>Trade</th><th class="right">Cost</th></tr>'); q.subbies.forEach(s => win.document.write('<tr><td>'+s.trade+'</td><td class="right">$'+s.cost.toFixed(2)+'</td></tr>')); win.document.write('<tr class="total"><td>Subbies Total</td><td class="right">$'+q.subTotal.toFixed(2)+'</td></tr></table>'); }
+  if (q.other && q.other.length) { win.document.write('<div class="section-title">Other Costs</div><table><tr><th>Item</th><th class="right">Cost</th></tr>'); q.other.forEach(o => win.document.write('<tr><td>'+o.item+'</td><td class="right">$'+o.cost.toFixed(2)+'</td></tr>')); win.document.write('<tr class="total"><td>Other Total</td><td class="right">$'+q.otherTotal.toFixed(2)+'</td></tr></table>'); }
+  win.document.write('<div class="section-title" style="margin-top:30px">Summary</div><table><tr><td>Materials + Labour + Subbies + Other</td><td class="right">$'+(q.matTotal+q.labTotal+q.subTotal+q.otherTotal).toFixed(2)+'</td></tr><tr><td>Overhead applied ('+q.overheadPct+'% × '+q.totalHours+' hrs)</td><td class="right">$'+q.overheadCost.toFixed(2)+'</td></tr><tr><td>Contingency ('+q.contingency+'%)</td><td class="right">$'+q.contingencyAmt.toFixed(2)+'</td></tr><tr><td>Profit ('+q.profitPct+'%)</td><td class="right">$'+q.profitAmt.toFixed(2)+'</td></tr><tr><td>GST (10%)</td><td class="right">$'+q.gst.toFixed(2)+'</td></tr><tr class="total"><td style="font-size:18px">What You Should Charge</td><td class="right" style="font-size:18px;color:#1a1a2e">$'+q.grandTotal.toFixed(2)+'</td></tr></table></body></html>');
   win.document.close();
 }
 
 // ===== HISTORY =====
 function renderHistory() {
   const div = document.getElementById('historyList');
-  if (state.quotes.length === 0) {
-    div.innerHTML = '<div class="empty-state">No quotes saved yet.</div>';
+  if (!state.quotes.length) { div.innerHTML = '<div class="empty-state">No jobs saved yet.</div>'; return; }
+  const tN = {sauna:'🏠 Sauna','reno-wall':'🧱 Wall','reno-tile':'🛁 Tiling','reno-general':'🔨 Reno',custom:'📋 Custom'};
+  div.innerHTML = state.quotes.map((q,i) => '<div class="card" style="padding:14px;margin-bottom:8px"><div class="flex"><div><input class="hist-name" value="'+esc(q.client)+'" title="Click to rename" onchange="renameQuote('+i+',this.value)"> <span class="tag '+(q.type==='sauna'?'tag-sauna':'tag-reno')+'">'+(tN[q.type]||q.type)+'</span><span style="font-size:12px;color:#888;margin-left:8px">'+q.date+(q.location?' — '+esc(q.location):'')+'</span></div><div style="font-weight:bold;color:#1a1a2e">$'+fmt(q.grandTotal)+'</div></div><div style="font-size:12px;color:#888;margin-top:4px">'+q.totalHours+' hrs · $'+fmt(q.matTotal)+' mat · $'+fmt(q.labTotal)+' lab · '+q.profitPct+'% margin</div><div style="margin-top:6px"><button class="btn btn-small btn-outline" onclick="editQuote('+i+')">✏️ Edit</button> <button class="btn btn-small btn-outline" onclick="printForSelf(state.quotes['+i+'])">🖨️ Print</button> <button class="btn btn-small btn-outline" onclick="duplicateQuote('+i+')">📋 Reuse</button> <button class="btn btn-small btn-danger" onclick="deleteQuote('+i+')">🗑️</button></div></div>').join('');
+}
+function renameQuote(i, value) {
+  if (!state.quotes[i]) return;
+  const name = (value || '').trim() || 'Unnamed';
+  state.quotes[i].client = name;
+  saveState();
+  renderHistory();
+  renderOverview();
+}
+
+function jobEffectiveRate(q) {
+  const kevinHrs = (q.labour||[]).filter(l => (l.worker||'').toLowerCase()==='kevin').reduce((s,l)=>s+(l.hours||0),0);
+  const hrs = kevinHrs > 0 ? kevinHrs : (q.totalHours||0);
+  return hrs > 0 ? { rate: q.grandTotal / hrs, hrs } : null;
+}
+
+function renderChargingCheck() {
+  const box = document.getElementById('chargingCheck');
+  if (!box) return;
+  const minRate = getOverheadCalculations().withProfit;
+  if (!state.quotes.length) {
+    box.innerHTML = '<p class="muted">Save a few job costings and this will tell you whether your quotes clear your <strong>$'+minRate.toFixed(0)+'/hr</strong> minimum rate.</p>';
     return;
   }
-  
-  const typeNames = {sauna:'🏠 Sauna', 'reno-wall':'🧱 Wall', 'reno-tile':'🛁 Tiling', 'reno-general':'🔨 Reno', custom:'📋 Custom'};
-  
-  div.innerHTML = state.quotes.map((q, i) => `
-    <div class="card" style="padding:14px;margin-bottom:8px;">
-      <div class="flex">
-        <div>
-          <strong>${q.client}</strong> <span class="tag ${q.type === 'sauna' ? 'tag-sauna' : 'tag-reno'}">${typeNames[q.type] || q.type}</span>
-          <span style="font-size:12px;color:#888;margin-left:8px;">${q.date}${q.location ? ' — ' + q.location : ''}</span>
-        </div>
-        <div style="font-weight:bold;color:#1a1a2e;">$${q.grandTotal.toFixed(0)}</div>
-      </div>
-      <div style="font-size:12px;color:#888;margin-top:4px;">
-        ${q.totalHours} hrs · $${q.matTotal.toFixed(0)} mat · $${q.labTotal.toFixed(0)} lab · ${q.profitPct}% margin
-      </div>
-      <div style="margin-top:6px;">
-        <button class="btn btn-small btn-outline" onclick="printQuote(state.quotes[${i}])">🖨️ Print</button>
-        <button class="btn btn-small btn-outline" onclick="duplicateQuote(${i})">📋 Duplicate</button>
-        <button class="btn btn-small btn-danger" onclick="deleteQuote(${i})">🗑️</button>
-      </div>
-    </div>
-  `).join('');
+  const rated = state.quotes.map(q => ({ q, r: jobEffectiveRate(q) })).filter(x => x.r);
+  if (!rated.length) {
+    box.innerHTML = '<p class="muted">Add labour hours to your jobs to see your effective hourly rate here.</p>';
+    return;
+  }
+  const avg = rated.reduce((s,x)=>s+x.r.rate,0) / rated.length;
+  const below = rated.filter(x => x.r.rate < minRate);
+  const ok = avg >= minRate;
+  let html = '<div class="insight-box" style="'+(ok?'':'background:#fff3cd;border-left-color:#e0a800;color:#856404;')+'">';
+  html += '<strong>'+(ok?'✓ On average, yes':'⚠ Some jobs are under your minimum')+'</strong>';
+  html += 'Across '+rated.length+' job'+(rated.length>1?'s':'')+' you average <b>$'+avg.toFixed(0)+'/hr</b> for your own time — your minimum is <b>$'+minRate.toFixed(0)+'/hr</b>.';
+  html += '</div>';
+  if (below.length) {
+    html += '<div style="margin-top:12px;font-size:13px;">';
+    html += '<div class="muted" style="margin-bottom:4px;">'+below.length+' below your minimum:</div>';
+    html += below.slice(0,6).map(x => '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;"><span>'+esc(x.q.client)+'</span><span style="color:#c0392b;font-weight:600;">$'+x.r.rate.toFixed(0)+'/hr</span></div>').join('');
+    html += '</div>';
+  }
+  box.innerHTML = html;
 }
 
 function renderOverview() {
-  document.getElementById('quoteCounter').textContent = `${state.quotes.length} quotes`;
-  
+  document.getElementById('quoteCounter').textContent = state.quotes.length + ' jobs';
+  renderChargingCheck();
   const div = document.getElementById('overviewQuotes');
-  if (state.quotes.length === 0) {
-    div.innerHTML = '<div class="empty-state">No quotes yet. Create one!</div>';
-    return;
-  }
-  
-  const recent = state.quotes.slice(0, 5);
-  div.innerHTML = recent.map(q => `
-    <div style="padding:10px 0;border-bottom:1px solid #eee;display:flex;justify-content:space-between;">
-      <div><strong>${q.client}</strong> <span style="color:#888;font-size:12px;">${q.date}</span></div>
-      <div style="font-weight:bold;">$${q.grandTotal.toFixed(0)}</div>
-    </div>
-  `).join('');
+  if (!state.quotes.length) { div.innerHTML = '<div class="empty-state">No jobs yet. Price one in the Job Costing tab!</div>'; return; }
+  div.innerHTML = state.quotes.slice(0,5).map(q => '<div style="padding:10px 0;border-bottom:1px solid #eee;display:flex;justify-content:space-between"><div><strong>'+esc(q.client)+'</strong> <span style="color:#888;font-size:12px">'+q.date+'</span></div><div style="font-weight:bold">$'+fmt(q.grandTotal)+'</div></div>').join('');
 }
-
+function loadQuoteIntoForm(q) {
+  document.getElementById('nqType').value = q.type;
+  document.querySelectorAll('.template-chip').forEach(b => b.classList.remove('active'));
+  const chip = document.getElementById('tpl-'+q.type); if (chip) chip.classList.add('active');
+  currentQuote = { materials: deepClone(q.materials||[]), labour: deepClone(q.labour||[]), subbies: deepClone(q.subbies||[]), other: deepClone(q.other||[]) };
+  document.getElementById('nqLocation').value = q.location||'';
+  document.getElementById('nqContingency').value = q.contingency||5;
+  document.getElementById('nqProfit').value = q.profitPct||25;
+  document.getElementById('nqOverheadPct').value = q.overheadPct||100;
+  renderCurrentQuote(); recalcQuote(); switchTab('newquote'); updateEditingBanner();
+}
 function duplicateQuote(i) {
+  editingQuoteId = null;
   const q = state.quotes[i];
-  const type = document.getElementById('nqType');
-  type.value = q.type;
-  
-  const tmpl = JOB_TEMPLATES[q.type] || JOB_TEMPLATES.custom;
-  tmpl.materials = q.materials.map(m => ({...m}));
-  tmpl.labour = q.labour.map(l => ({...l}));
-  tmpl.subbies = q.subbies.map(s => ({...s}));
-  tmpl.other = q.other.map(o => ({...o}));
-  
+  loadQuoteIntoForm(q);
   document.getElementById('nqClient').value = '';
-  document.getElementById('nqLocation').value = q.location || '';
-  document.getElementById('nqContingency').value = q.contingency || 5;
-  document.getElementById('nqProfit').value = q.profitPct || 25;
-  document.getElementById('nqOverheadPct').value = q.overheadPct || 100;
-  
-  loadJobTemplate();
-  switchTab('newquote');
 }
-
-function deleteQuote(i) {
-  if (confirm('Delete this quote?')) {
-    state.quotes.splice(i, 1);
-    saveState();
-    renderHistory();
-    renderOverview();
-    document.getElementById('quoteCounter').textContent = `${state.quotes.length} quotes`;
-  }
+function editQuote(i) {
+  const q = state.quotes[i];
+  editingQuoteId = q.id;
+  loadQuoteIntoForm(q);
+  document.getElementById('nqClient').value = (q.client && q.client !== 'Unnamed') ? q.client : '';
 }
-
-function resetQuoteForm() {
-  if (!confirm('Reset quote form?')) return;
+function newQuoteFresh() {
+  editingQuoteId = null;
   document.getElementById('nqClient').value = '';
   document.getElementById('nqLocation').value = '';
-  document.getElementById('nqType').value = 'sauna';
-  document.getElementById('nqContingency').value = '5';
-  document.getElementById('nqProfit').value = '25';
-  document.getElementById('nqOverheadPct').value = '100';
-  loadJobTemplate();
+  selectTemplate('sauna');
+  updateEditingBanner();
 }
+function updateEditingBanner() {
+  const banner = document.getElementById('editingBanner');
+  if (!banner) return;
+  if (editingQuoteId !== null) {
+    const q = state.quotes.find(x => x.id === editingQuoteId);
+    document.getElementById('editingName').textContent = q ? (q.client || 'Unnamed') : '';
+    banner.style.display = 'block';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+function deleteQuote(i) { if(confirm('Delete this job?')){state.quotes.splice(i,1);saveState();renderHistory();renderOverview();document.getElementById('quoteCounter').textContent=state.quotes.length+' jobs';} }
+function resetQuoteForm() { if(!confirm('Reset the form? This clears any unsaved changes.'))return; document.getElementById('nqClient').value='';document.getElementById('nqLocation').value='';selectTemplate('sauna'); }
 
 // ===== MATERIALS DB =====
 function renderMaterialsDB() {
-  const body = document.getElementById('materialsDBBody');
-  body.innerHTML = state.materialsDB.map((m, i) => `
-    <tr>
-      <td><input value="${m.cat}" onchange="updateMatDB(${i},'cat',this.value)" style="border:none;background:transparent;width:100px;font-size:13px;"></td>
-      <td><input value="${m.item}" onchange="updateMatDB(${i},'item',this.value)" style="border:none;background:transparent;width:100%;font-size:13px;"></td>
-      <td><input value="${m.unit}" onchange="updateMatDB(${i},'unit',this.value)" style="border:none;background:transparent;width:60px;font-size:13px;"></td>
-      <td><input type="number" value="${m.cost}" onchange="updateMatDB(${i},'cost',parseFloat(this.value)||0)" style="width:80px"></td>
-      <td><input type="number" value="${m.markup}" onchange="updateMatDB(${i},'markup',parseFloat(this.value)||0)" style="width:80px"></td>
-      <td><button class="btn btn-small btn-danger" onclick="removeMatDB(${i})">✕</button></td>
-    </tr>
-  `).join('');
+  document.getElementById('materialsDBBody').innerHTML = state.materialsDB.map((m,i) => '<tr><td><input value="'+esc(m.cat)+'" onchange="updateMatDB('+i+',\'cat\',this.value)" class="tight-name" style="width:100px"></td><td><input value="'+esc(m.item)+'" onchange="updateMatDB('+i+',\'item\',this.value)" class="tight-name"></td><td><input value="'+esc(m.unit)+'" onchange="updateMatDB('+i+',\'unit\',this.value)" class="tight-name" style="width:60px"></td><td><input type="number" value="'+m.cost+'" onchange="updateMatDB('+i+',\'cost\',parseFloat(this.value)||0)" class="tight-num"></td><td><input type="number" value="'+m.markup+'" onchange="updateMatDB('+i+',\'markup\',parseFloat(this.value)||0)" class="tight-num"></td><td><button class="btn btn-small btn-danger" onclick="removeMatDB('+i+')">✕</button></td></tr>').join('');
 }
-
-function updateMatDB(i, field, value) {
-  state.materialsDB[i][field] = value;
-}
-
-function addMaterialDBRow() {
-  state.materialsDB.push({cat:'', item:'', unit:'each', cost:0, markup:20});
-  renderMaterialsDB();
-}
-
-function removeMatDB(i) {
-  state.materialsDB.splice(i, 1);
-  renderMaterialsDB();
-}
-
-function saveMaterialsDB() {
-  saveState();
-  alert('Materials DB saved!');
-}
-
+function updateMatDB(i,f,v) { state.materialsDB[i][f] = v; saveState(); }
+function addMaterialDBRow() { state.materialsDB.push({cat:'',item:'',unit:'each',cost:0,markup:20}); renderMaterialsDB(); saveState(); focusLast('materialsDBBody'); }
+function removeMatDB(i) { state.materialsDB.splice(i,1); renderMaterialsDB(); saveState(); }
+function saveMaterialsDB() { saveState(); alert('Materials list saved!'); }
 function exportQuotes() {
-  if (state.quotes.length === 0) {
-    alert('No quotes to export.');
-    return;
-  }
-  
-  let csv = 'Date,Client,Type,Location,Mat Cost,Lab Cost,Subbies,Other,Overhead,Contingency,Profit,GST,Grand Total,Hours\n';
-  state.quotes.forEach(q => {
-    csv += `${q.date},"${q.client}",${q.type},"${q.location}",${q.matTotal.toFixed(2)},${q.labTotal.toFixed(2)},${q.subTotal.toFixed(2)},${q.otherTotal.toFixed(2)},${q.overheadCost.toFixed(2)},${q.contingencyAmt.toFixed(2)},${q.profitAmt.toFixed(2)},${q.gst.toFixed(2)},${q.grandTotal.toFixed(2)},${q.totalHours}\n`;
-  });
-  
-  const blob = new Blob([csv], {type:'text/csv'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `Kevin_Quotes_${new Date().toISOString().split('T')[0]}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+  if (!state.quotes.length) { alert('No jobs to export.'); return; }
+  let csv = 'Date,Job,Type,Location,Mat,Lab,Subbies,Other,Overhead,Contingency,Profit,GST,Total,Hours\n';
+  state.quotes.forEach(q => csv += q.date+',"'+q.client+'",'+q.type+',"'+q.location+'",'+q.matTotal.toFixed(2)+','+q.labTotal.toFixed(2)+','+q.subTotal.toFixed(2)+','+q.otherTotal.toFixed(2)+','+q.overheadCost.toFixed(2)+','+q.contingencyAmt.toFixed(2)+','+q.profitAmt.toFixed(2)+','+q.gst.toFixed(2)+','+q.grandTotal.toFixed(2)+','+q.totalHours+'\n');
+  const b = new Blob([csv],{type:'text/csv'}); const u = URL.createObjectURL(b); const a = document.createElement('a');
+  a.href = u; a.download = 'Kevin_Jobs_'+new Date().toISOString().split('T')[0]+'.csv'; a.click(); URL.revokeObjectURL(u);
+}
+
+// ===== BACKUP / RESTORE (full data) =====
+function backupData() {
+  const data = JSON.stringify({
+    _app: 'KevinsBusinessNumbers', _version: 1, _backup: new Date().toISOString(),
+    quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB,
+  }, null, 2);
+  const b = new Blob([data],{type:'application/json'}); const u = URL.createObjectURL(b); const a = document.createElement('a');
+  a.href = u; a.download = 'KevinBackup_'+new Date().toISOString().split('T')[0]+'.json'; a.click(); URL.revokeObjectURL(u);
+}
+function restoreData(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      if (!d || (!d.quotes && !d.overhead && !d.materialsDB)) throw new Error('This file doesn\'t look like a Kevin backup.');
+      if (!confirm('Restore this backup?\n\nIt will REPLACE your current jobs, overhead and materials with what\'s in the file.')) { input.value=''; return; }
+      if (Array.isArray(d.quotes)) state.quotes = d.quotes;
+      if (d.overhead) state.overhead = { ...state.overhead, ...d.overhead };
+      if (Array.isArray(d.materialsDB) && d.materialsDB.length) state.materialsDB = d.materialsDB;
+      saveState();
+      recalcOverhead(); renderOverhead(); renderMaterialsDB(); renderHistory(); renderOverview();
+      document.getElementById('quoteCounter').textContent = state.quotes.length + ' jobs';
+      alert('Backup restored — '+state.quotes.length+' job(s) loaded.');
+    } catch(err) {
+      alert('Could not read that file.\n\n'+err.message);
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
 }
 
 // ===== INIT =====
 loadState();
+recalcOverhead();
 renderOverhead();
 renderMaterialsDB();
 renderHistory();
 renderOverview();
 loadJobTemplate();
-document.getElementById('quoteCounter').textContent = `${state.quotes.length} quotes`;
-recalcOverhead();
+document.getElementById('quoteCounter').textContent = state.quotes.length + ' jobs';
 </script>
 </body>
 </html>
