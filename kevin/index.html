@@ -21,10 +21,11 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--ink); }
-header { background: var(--navy); color: #fff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 30; }
+.topbar { position: sticky; top: 0; z-index: 30; }
+header { background: var(--navy); color: #fff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
 header h1 { font-size: 20px; }
 header span { color: #aaa; font-size: 13px; }
-nav { display: flex; background: #16213e; overflow-x: auto; position: sticky; top: 56px; z-index: 30; }
+nav { display: flex; background: #16213e; overflow-x: auto; }
 nav button { padding: 12px 18px; border: none; background: none; color: #aaa; font-size: 14px; cursor: pointer; white-space: nowrap; border-bottom: 3px solid transparent; transition: all 0.15s; }
 nav button:hover { color: #ddd; background: rgba(255,255,255,0.04); }
 nav button:active { background: rgba(255,255,255,0.08); }
@@ -40,6 +41,8 @@ label { display: block; font-size: 12px; color: var(--muted); font-weight: 600; 
 input, select { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; min-height: 40px; transition: border-color 0.15s; }
 input:focus, select:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(45,143,45,0.12); }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table-scroll table { width: auto; min-width: 100%; }
 th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
 th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
 .total-row { font-weight: bold; background: #f9f9f9; }
@@ -179,7 +182,6 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
   main { padding-bottom: 80px; }
   header { padding: 12px 16px; }
   header h1 { font-size: 17px; }
-  nav { top: 48px; }
   nav button { padding: 10px 14px; font-size: 13px; }
 }
 
@@ -208,21 +210,23 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
   </div>
 </div>
 
-<header>
-  <h1>Kevin's Business Numbers</h1>
-  <div style="display:flex; align-items:center; gap:12px;">
-    <span id="quoteCounter">0 jobs</span>
-    <button id="logoutBtn" onclick="doLogout()" style="display:none; background:rgba(255,255,255,0.12); color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px;">Log out</button>
-  </div>
-</header>
+<div class="topbar">
+  <header>
+    <h1>Kevin's Business Numbers</h1>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span id="quoteCounter">0 jobs</span>
+      <button id="logoutBtn" onclick="doLogout()" style="display:none; background:rgba(255,255,255,0.12); color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:12px;">Log out</button>
+    </div>
+  </header>
 
-<nav>
-  <button class="active" data-tab="overview" onclick="switchTab('overview')">📊 Overview</button>
-  <button data-tab="newquote" onclick="switchTab('newquote')">🧮 Job Costing</button>
-  <button data-tab="overhead" onclick="switchTab('overhead')">🏢 Overhead</button>
-  <button data-tab="materials" onclick="switchTab('materials')">📦 Materials</button>
-  <button data-tab="history" onclick="switchTab('history')">📋 History</button>
-</nav>
+  <nav>
+    <button class="active" data-tab="overview" onclick="switchTab('overview')">📊 Overview</button>
+    <button data-tab="newquote" onclick="switchTab('newquote')">🧮 Job Costing</button>
+    <button data-tab="overhead" onclick="switchTab('overhead')">🏢 Overhead</button>
+    <button data-tab="materials" onclick="switchTab('materials')">📦 Materials</button>
+    <button data-tab="history" onclick="switchTab('history')">📋 History</button>
+  </nav>
+</div>
 
 <main>
 
@@ -337,11 +341,13 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
               <span class="tip">Pick from your saved materials price list</span>
             </span>
           </div>
-          <table id="nqMaterialsTable">
+          <div class="table-scroll">
+          <table id="nqMaterialsTable" style="min-width:520px;">
             <thead><tr><th>Item</th><th style="width:64px">Qty</th><th style="width:85px">Unit Cost</th><th style="width:75px">Markup % <span class="info-tip" data-tip="Added on top of the unit cost. Covers your time sourcing, handling, and delivery. 20-30% is typical.">?</span></th><th style="width:95px">Sell Price</th><th style="width:36px"></th></tr></thead>
             <tbody id="nqMaterialsBody"></tbody>
             <tfoot><tr class="total-row"><td colspan="3">Materials Total</td><td id="nqMatMarkupPct"></td><td id="nqMatTotal">$0.00</td><td></td></tr></tfoot>
           </table>
+          </div>
           <div class="add-row-bar-below">
             <button class="btn btn-small btn-outline" onclick="addMaterialRow()">+ Add Item</button>
           </div>
@@ -359,11 +365,13 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
           <div class="add-row-bar">
             <button class="btn btn-small btn-outline" onclick="addLabourRow()">+ Add Worker</button>
           </div>
-          <table>
+          <div class="table-scroll">
+          <table style="min-width:420px;">
             <thead><tr><th>Worker</th><th style="width:64px">Hours</th><th style="width:85px">Rate/hr</th><th style="width:95px">Total</th><th style="width:36px"></th></tr></thead>
             <tbody id="nqLabourBody"></tbody>
             <tfoot><tr class="total-row"><td colspan="2">Labour Total</td><td id="nqLabRate"></td><td id="nqLabTotal">$0.00</td><td></td></tr></tfoot>
           </table>
+          </div>
           <div class="add-row-bar-below">
             <button class="btn btn-small btn-outline" onclick="addLabourRow()">+ Add Worker</button>
           </div>
@@ -381,11 +389,13 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
           <div class="add-row-bar">
             <button class="btn btn-small btn-outline" onclick="addSubbieRow()">+ Add Subbie</button>
           </div>
-          <table>
+          <div class="table-scroll">
+          <table style="min-width:300px;">
             <thead><tr><th>Trade</th><th style="width:90px">Cost</th><th style="width:36px"></th></tr></thead>
             <tbody id="nqSubbieBody"></tbody>
             <tfoot><tr class="total-row"><td>Subbies Total</td><td id="nqSubTotal">$0.00</td><td></td></tr></tfoot>
           </table>
+          </div>
           <div class="add-row-bar-below">
             <button class="btn btn-small btn-outline" onclick="addSubbieRow()">+ Add Subbie</button>
           </div>
@@ -403,11 +413,13 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
           <div class="add-row-bar">
             <button class="btn btn-small btn-outline" onclick="addOtherRow()">+ Add Cost</button>
           </div>
-          <table>
+          <div class="table-scroll">
+          <table style="min-width:300px;">
             <thead><tr><th>Item</th><th style="width:90px">Cost</th><th style="width:36px"></th></tr></thead>
             <tbody id="nqOtherBody"></tbody>
             <tfoot><tr class="total-row"><td>Other Total</td><td id="nqOtherTotal">$0.00</td><td></td></tr></tfoot>
           </table>
+          </div>
           <div class="add-row-bar-below">
             <button class="btn btn-small btn-outline" onclick="addOtherRow()">+ Add Cost</button>
           </div>
@@ -461,11 +473,13 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
       <button class="btn btn-small btn-outline" onclick="addOverheadRow()">+ Add Expense</button>
     </div>
     <p class="muted" style="margin-bottom:8px;">Enter what you actually pay — pick weekly, monthly, or yearly. The tool converts everything to annual.</p>
-    <table id="overheadTable">
+    <div class="table-scroll">
+    <table id="overheadTable" style="min-width:480px;">
       <thead><tr><th>Expense</th><th style="width:100px">$ Amount</th><th style="width:72px">Per</th><th style="width:105px">= Annual</th><th style="width:36px"></th></tr></thead>
       <tbody id="overheadBody"></tbody>
       <tfoot><tr class="total-row"><td colspan="3">Total Annual Overhead</td><td id="ovTotal">$0.00</td><td></td></tr></tfoot>
     </table>
+    </div>
     <div class="add-row-bar-below">
       <button class="btn btn-small btn-outline" onclick="addOverheadRow()">+ Add Expense</button>
     </div>
@@ -522,10 +536,12 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
       <button class="btn btn-small btn-outline" onclick="addMaterialDBRow()">+ Add Item</button>
     </div>
     <p class="muted" style="margin-bottom:8px;">Store your regular material prices here. They'll be available when costing a job via the "From Materials" button.</p>
-    <table>
-      <thead><tr><th>Category</th><th>Item Name</th><th style="width:70px">Unit</th><th style="width:90px">Cost Price</th><th style="width:90px">Default Markup %</th><th style="width:36px"></th></tr></thead>
+    <div class="table-scroll">
+    <table style="min-width:560px;">
+      <thead><tr><th style="width:100px">Category</th><th>Item Name</th><th style="width:70px">Unit</th><th style="width:90px">Cost Price</th><th style="width:90px">Default Markup %</th><th style="width:36px"></th></tr></thead>
       <tbody id="materialsDBBody"></tbody>
     </table>
+    </div>
     <div class="add-row-bar-below">
       <button class="btn btn-small btn-outline" onclick="addMaterialDBRow()">+ Add Item</button>
     </div>
@@ -1023,12 +1039,25 @@ function focusLast(id) {
   const row = rows[rows.length - 1];
   const fi = row.querySelector('input');
   if (!fi) return;
+  const nudge = () => row.scrollIntoView({ block: 'center', behavior: 'smooth' });
   // Scroll it into view ourselves, then focus synchronously (no setTimeout) —
   // a delay here breaks the user-gesture chain on iPhone Safari and the
   // on-screen keyboard silently fails to pop up even though focus "succeeds".
-  row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  nudge();
   fi.focus({ preventScroll: true });
   try { fi.select(); } catch(e) {}
+  // The keyboard animates in *after* focus, shrinking the visible viewport —
+  // the field we just centred can end up hidden behind it. Re-centre once the
+  // keyboard has actually finished opening (visualViewport fires its own
+  // resize event for this); fall back to a fixed delay where unsupported.
+  if (window.visualViewport) {
+    const vv = window.visualViewport;
+    const onResize = () => { nudge(); vv.removeEventListener('resize', onResize); };
+    vv.addEventListener('resize', onResize);
+    setTimeout(() => vv.removeEventListener('resize', onResize), 1000);
+  } else {
+    setTimeout(nudge, 350);
+  }
 }
 
 // === MODAL MATERIAL PICKER ===
