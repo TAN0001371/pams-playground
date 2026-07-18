@@ -1292,17 +1292,16 @@ function restoreData(input) {
 // Paste the firebaseConfig values here to switch on cross-device sync + login.
 // While these are blank, the app runs local-only (current behaviour) with no login.
 const FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyAYyYsRpe8-UHbVZGwwEbwYIz54-gN9DfA",
+  authDomain: "kevin-4d94e.firebaseapp.com",
+  projectId: "kevin-4d94e",
+  storageBucket: "kevin-4d94e.firebasestorage.app",
+  messagingSenderId: "518940921626",
+  appId: "1:518940921626:web:4069431890195ce1a4e6a3"
 };
 
-// Only these Google accounts may sign in. Add Kev's Gmail address, e.g. "kev@gmail.com".
-// While this list is empty, any Google account is allowed (set it to lock the app to Kev).
-const ALLOWED_EMAILS = [];
+// Only these Google accounts may sign in. Any other Google account is signed straight back out.
+const ALLOWED_EMAILS = ["kevinwilliambarrett@gmail.com"];
 
 let cloud = { enabled:false, db:null, auth:null, uid:null, applyingRemote:false, saveTimer:null };
 
