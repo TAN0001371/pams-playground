@@ -1017,7 +1017,19 @@ function addSubbieRow() { currentQuote.subbies.push({trade:'',cost:0}); renderCu
 function updateNQOther(i,f,v) { if(!currentQuote.other)currentQuote.other=[]; if(i<currentQuote.other.length)currentQuote.other[i][f]=v; recalcQuote(); }
 function removeNQOther(i) { if(currentQuote.other)currentQuote.other.splice(i,1); renderCurrentQuote(); recalcQuote(); }
 function addOtherRow() { if(!currentQuote.other)currentQuote.other=[]; currentQuote.other.push({item:'',cost:0}); renderCurrentQuote(); recalcQuote(); focusLast('nqOtherBody'); }
-function focusLast(id) { setTimeout(()=>{const rows=document.getElementById(id)?.children; if(rows&&rows.length>0){const fi=rows[rows.length-1].querySelector('input'); if(fi){fi.focus();fi.select();}}},50); }
+function focusLast(id) {
+  const rows = document.getElementById(id)?.children;
+  if (!rows || !rows.length) return;
+  const row = rows[rows.length - 1];
+  const fi = row.querySelector('input');
+  if (!fi) return;
+  // Scroll it into view ourselves, then focus synchronously (no setTimeout) —
+  // a delay here breaks the user-gesture chain on iPhone Safari and the
+  // on-screen keyboard silently fails to pop up even though focus "succeeds".
+  row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  fi.focus({ preventScroll: true });
+  try { fi.select(); } catch(e) {}
+}
 
 // === MODAL MATERIAL PICKER ===
 function openMaterialPicker() {
