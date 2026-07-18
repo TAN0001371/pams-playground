@@ -1301,7 +1301,7 @@ const FIREBASE_CONFIG = {
 };
 
 // Only these Google accounts may sign in. Any other Google account is signed straight back out.
-const ALLOWED_EMAILS = ["kevinwilliambarrett@gmail.com"];
+const ALLOWED_EMAILS = ["kevinwilliambarrett@gmail.com", "grpa_ss@hotmail.com"];
 
 let cloud = { enabled:false, db:null, auth:null, uid:null, applyingRemote:false, saveTimer:null };
 
@@ -1356,7 +1356,7 @@ function initCloud() {
             cloud.auth.signOut();
             return;
           }
-          cloud.uid = user.uid; hideAuthGate(); attachCloudDoc(user.uid);
+          cloud.uid = user.uid; hideAuthGate(); attachCloudDoc();
         } else { cloud.uid = null; showAuthGate(); }
       });
     } catch(e) { console.log('Cloud init error', e); cloud.enabled = false; hideAuthGate(); }
@@ -1403,8 +1403,10 @@ function doLogout() {
   cloud.auth.signOut();
 }
 
-function attachCloudDoc(uid) {
-  const ref = cloud.db.collection('users').doc(uid);
+// Everyone on ALLOWED_EMAILS shares this one document — same data on every
+// signed-in device, regardless of whose Google account signed in.
+function attachCloudDoc() {
+  const ref = cloud.db.collection('appData').doc('shared');
   ref.get().then(snap => {
     if (snap.exists && snap.data() && snap.data().data) {
       hydrateFromCloud(snap.data().data);       // existing cloud data → load it
@@ -1436,7 +1438,7 @@ function hydrateFromCloud(data) {
 function pushToCloud() {
   if (!cloud.enabled || !cloud.uid) return;
   const payload = { quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB, templates: state.templates };
-  cloud.db.collection('users').doc(cloud.uid)
+  cloud.db.collection('appData').doc('shared')
     .set({ data: payload, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true })
     .catch(e => console.log('Cloud save error', e));
 }
