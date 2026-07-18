@@ -264,6 +264,13 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
         <strong>📋 Custom</strong><span>Start from scratch</span>
       </button>
     </div>
+
+    <!-- Kev's own saved templates -->
+    <div class="template-strip" id="userTemplateStrip" style="display:none;"></div>
+    <div class="add-row-bar" style="margin-bottom:14px;">
+      <button class="btn btn-small btn-outline" onclick="saveAsTemplate()">⭐ Save current as my template</button>
+    </div>
+
     <input type="hidden" id="nqType" value="sauna">
 
     <div class="row">
@@ -657,6 +664,7 @@ let state = {
   quotes: [],
   overhead: { expenses: deepClone(DEFAULT_OVERHEAD), weeks: 44, hoursPerWeek: 32, targetSalary: 80000 },
   materialsDB: [...DEFAULT_MATERIALS_DB],
+  templates: [],
 };
 let currentQuote = { materials: [], labour: [], subbies: [], other: [] };
 let editingQuoteId = null;
@@ -677,12 +685,13 @@ function loadState() {
         name: e.name || '', amount: e.amount || e.cost || 0, freq: e.freq || 'yr'
       }));
       state.materialsDB = parsed.materialsDB && parsed.materialsDB.length > 0 ? parsed.materialsDB : [...DEFAULT_MATERIALS_DB];
+      state.templates = Array.isArray(parsed.templates) ? parsed.templates : [];
     }
   } catch(e) { console.log('Load error', e); }
 }
 function saveState() {
   localStorage.setItem('kevinBusinessNumbers', JSON.stringify({
-    quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB,
+    quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB, templates: state.templates,
   }));
 }
 
@@ -703,8 +712,55 @@ function switchTab(name) {
 function selectTemplate(type) {
   document.getElementById('nqType').value = type;
   document.querySelectorAll('.template-chip').forEach(b => b.classList.remove('active'));
-  document.getElementById('tpl-' + type).classList.add('active');
+  const chip = document.getElementById('tpl-' + type);
+  if (chip) chip.classList.add('active');
   loadJobTemplate();
+}
+
+function renderUserTemplates() {
+  const strip = document.getElementById('userTemplateStrip');
+  if (!strip) return;
+  const tpls = state.templates || [];
+  if (!tpls.length) { strip.style.display = 'none'; strip.innerHTML = ''; return; }
+  strip.style.display = 'grid';
+  strip.innerHTML = tpls.map(t => {
+    const n = (t.materials||[]).length + (t.labour||[]).length + (t.subbies||[]).length + (t.other||[]).length;
+    return `<button class="template-chip" id="tpl-${t.id}" onclick="selectTemplate('${t.id}')">
+      <span onclick="event.stopPropagation();deleteTemplate('${t.id}')" title="Delete this template" style="display:inline-block;float:right;color:var(--muted);cursor:pointer;font-weight:700;padding:0 2px;line-height:1;">✕</span>
+      <strong>⭐ ${esc(t.name)}</strong><span>${n} item${n===1?'':'s'} · your template</span>
+    </button>`;
+  }).join('');
+}
+
+function saveAsTemplate() {
+  syncCurrentQuoteFromDOM();
+  const n = currentQuote.materials.length + currentQuote.labour.length + currentQuote.subbies.length + (currentQuote.other||[]).length;
+  if (n === 0) { alert('Add some materials or labour first, then save it as a template.'); return; }
+  const name = (prompt('Name this template (e.g. "Barrel sauna – 2 person"):') || '').trim();
+  if (!name) return;
+  const tpl = {
+    id: 'user-' + Date.now(),
+    name,
+    materials: deepClone(currentQuote.materials),
+    labour: deepClone(currentQuote.labour),
+    subbies: deepClone(currentQuote.subbies),
+    other: deepClone(currentQuote.other || []),
+  };
+  state.templates.push(tpl);
+  saveState();
+  renderUserTemplates();
+  selectTemplate(tpl.id);
+  alert('Template saved: ' + name + '\n\nIt\'s now a chip you can tap to start a job from.');
+}
+
+function deleteTemplate(id) {
+  const t = (state.templates || []).find(x => x.id === id);
+  if (!t) return;
+  if (!confirm('Delete the template "' + t.name + '"? (Saved jobs are not affected.)')) return;
+  state.templates = state.templates.filter(x => x.id !== id);
+  saveState();
+  renderUserTemplates();
+  if (document.getElementById('nqType').value === id) selectTemplate('sauna');
 }
 
 // ===== COLLAPSIBLE SECTIONS =====
@@ -786,7 +842,12 @@ function saveOverhead() { saveState(); alert('Overhead settings saved!'); }
 // ===== JOB COSTING =====
 function loadJobTemplate() {
   const type = document.getElementById('nqType').value;
-  currentQuote = deepClone(JOB_TEMPLATES[type] || JOB_TEMPLATES.custom);
+  let tpl = JOB_TEMPLATES[type] || (state.templates || []).find(t => t.id === type) || JOB_TEMPLATES.custom;
+  currentQuote = deepClone(tpl);
+  currentQuote.materials = currentQuote.materials || [];
+  currentQuote.labour = currentQuote.labour || [];
+  currentQuote.subbies = currentQuote.subbies || [];
+  currentQuote.other = currentQuote.other || [];
   renderCurrentQuote();
   recalcQuote();
 }
@@ -1175,7 +1236,7 @@ function exportQuotes() {
 function backupData() {
   const data = JSON.stringify({
     _app: 'KevinsBusinessNumbers', _version: 1, _backup: new Date().toISOString(),
-    quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB,
+    quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB, templates: state.templates,
   }, null, 2);
   const b = new Blob([data],{type:'application/json'}); const u = URL.createObjectURL(b); const a = document.createElement('a');
   a.href = u; a.download = 'KevinBackup_'+new Date().toISOString().split('T')[0]+'.json'; a.click(); URL.revokeObjectURL(u);
@@ -1192,8 +1253,9 @@ function restoreData(input) {
       if (Array.isArray(d.quotes)) state.quotes = d.quotes;
       if (d.overhead) state.overhead = { ...state.overhead, ...d.overhead };
       if (Array.isArray(d.materialsDB) && d.materialsDB.length) state.materialsDB = d.materialsDB;
+      if (Array.isArray(d.templates)) state.templates = d.templates;
       saveState();
-      recalcOverhead(); renderOverhead(); renderMaterialsDB(); renderHistory(); renderOverview();
+      recalcOverhead(); renderOverhead(); renderMaterialsDB(); renderHistory(); renderOverview(); renderUserTemplates();
       document.getElementById('quoteCounter').textContent = state.quotes.length + ' jobs';
       alert('Backup restored — '+state.quotes.length+' job(s) loaded.');
     } catch(err) {
@@ -1211,6 +1273,7 @@ renderOverhead();
 renderMaterialsDB();
 renderHistory();
 renderOverview();
+renderUserTemplates();
 loadJobTemplate();
 document.getElementById('quoteCounter').textContent = state.quotes.length + ' jobs';
 </script>
