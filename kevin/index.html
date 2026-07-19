@@ -366,10 +366,10 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
             <button class="btn btn-small btn-outline" onclick="addLabourRow()">+ Add Worker</button>
           </div>
           <div class="table-scroll">
-          <table style="min-width:420px;">
-            <thead><tr><th>Worker</th><th style="width:64px">Hours</th><th style="width:85px">Rate/hr</th><th style="width:95px">Total</th><th style="width:36px"></th></tr></thead>
+          <table style="min-width:500px;">
+            <thead><tr><th>Worker</th><th style="width:60px">Hours</th><th style="width:80px">Pay Rate <span class="info-tip" data-tip="What you actually pay this worker per hour.">?</span></th><th style="width:70px">Markup % <span class="info-tip" data-tip="Added on top of their pay rate — what you charge the job for their time. 0% for yourself; whatever you actually charge out an employee/apprentice for.">?</span></th><th style="width:95px">Total</th><th style="width:36px"></th></tr></thead>
             <tbody id="nqLabourBody"></tbody>
-            <tfoot><tr class="total-row"><td colspan="2">Labour Total</td><td id="nqLabRate"></td><td id="nqLabTotal">$0.00</td><td></td></tr></tfoot>
+            <tfoot><tr class="total-row"><td colspan="3">Labour Total</td><td id="nqLabRate"></td><td id="nqLabTotal">$0.00</td><td></td></tr></tfoot>
           </table>
           </div>
           <div class="add-row-bar-below">
@@ -641,7 +641,7 @@ const JOB_TEMPLATES = {
       {item:'Bucket & ladle set', qty:1, cost:35, markup:30},
       {item:'Stainless steel screws', qty:1, cost:22, markup:20},
     ],
-    labour: [{worker:'Kevin', hours:40, rate:110},{worker:'Jordan', hours:20, rate:55}],
+    labour: [{worker:'Kevin', hours:40, cost:110, markup:0},{worker:'Jordan', hours:20, cost:45, markup:20}],
     subbies: [], other: [{item:'Dump/rubbish removal', cost:150}],
   },
   'reno-wall': {
@@ -653,7 +653,7 @@ const JOB_TEMPLATES = {
       {item:'Stud adhesive', qty:1, cost:18.85, markup:0},
       {item:'Aluminium skirt angle', qty:2, cost:28.07, markup:0},
     ],
-    labour: [{worker:'Kevin', hours:8, rate:110}], subbies: [], other: [],
+    labour: [{worker:'Kevin', hours:8, cost:110, markup:0}], subbies: [], other: [],
   },
   'reno-tile': {
     materials: [
@@ -665,11 +665,11 @@ const JOB_TEMPLATES = {
       {item:'Tile trim L-shaped', qty:8, cost:5.50, markup:20},
       {item:'Drainage grate', qty:1, cost:65, markup:20},
     ],
-    labour: [{worker:'Kevin', hours:24, rate:110},{worker:'Jordan', hours:12, rate:55}],
+    labour: [{worker:'Kevin', hours:24, cost:110, markup:0},{worker:'Jordan', hours:12, cost:45, markup:20}],
     subbies: [{trade:'Plumber', cost:400}], other: [{item:'Skip bin', cost:180}],
   },
-  'reno-general': { materials: [], labour: [{worker:'Kevin', hours:1, rate:110}], subbies: [], other: [] },
-  'custom': { materials: [], labour: [{worker:'Kevin', hours:1, rate:110}], subbies: [], other: [] },
+  'reno-general': { materials: [], labour: [{worker:'Kevin', hours:1, cost:110, markup:0}], subbies: [], other: [] },
+  'custom': { materials: [], labour: [{worker:'Kevin', hours:1, cost:110, markup:0}], subbies: [], other: [] },
 };
 
 const DEFAULT_OVERHEAD = [
@@ -878,12 +878,21 @@ function recalcOverhead() {
 function saveOverhead() { saveState(); alert('Overhead settings saved!'); }
 
 // ===== JOB COSTING =====
+// Labour rows saved before the pay-rate/markup split only have a flat
+// `rate` — treat that as the pay rate with 0% markup so old jobs/templates
+// keep pricing exactly as before until Kev actively sets a markup on them.
+function normalizeLabour(arr) {
+  return (arr || []).map(l => l.cost !== undefined
+    ? { worker: l.worker, hours: l.hours, cost: l.cost, markup: l.markup || 0 }
+    : { worker: l.worker, hours: l.hours, cost: l.rate || 0, markup: 0 });
+}
+
 function loadJobTemplate() {
   const type = document.getElementById('nqType').value;
   let tpl = JOB_TEMPLATES[type] || (state.templates || []).find(t => t.id === type) || JOB_TEMPLATES.custom;
   currentQuote = deepClone(tpl);
   currentQuote.materials = currentQuote.materials || [];
-  currentQuote.labour = currentQuote.labour || [];
+  currentQuote.labour = normalizeLabour(currentQuote.labour);
   currentQuote.subbies = currentQuote.subbies || [];
   currentQuote.other = currentQuote.other || [];
   renderCurrentQuote();
@@ -907,8 +916,9 @@ function renderCurrentQuote() {
     <tr>
       <td><input value="${esc(l.worker)}" onchange="updateNQLab(${i},'worker',this.value)" class="tight-name"></td>
       <td><input type="number" value="${l.hours}" onchange="updateNQLab(${i},'hours',parseFloat(this.value)||0)" class="tight-num"></td>
-      <td><input type="number" value="${l.rate}" onchange="updateNQLab(${i},'rate',parseFloat(this.value)||0)" class="tight-num"></td>
-      <td style="text-align:right;font-weight:500;padding-right:10px;" id="nqLabSell_${i}">$${(l.hours*l.rate).toFixed(2)}</td>
+      <td><input type="number" value="${l.cost}" onchange="updateNQLab(${i},'cost',parseFloat(this.value)||0)" class="tight-num"></td>
+      <td><input type="number" value="${l.markup||0}" onchange="updateNQLab(${i},'markup',parseFloat(this.value)||0)" class="tight-num"></td>
+      <td style="text-align:right;font-weight:500;padding-right:10px;" id="nqLabSell_${i}">$${(l.hours*l.cost*(1+(l.markup||0)/100)).toFixed(2)}</td>
       <td><button class="btn btn-small btn-danger" onclick="removeNQLab(${i})">✕</button></td>
     </tr>`).join('');
 
@@ -944,7 +954,8 @@ function syncCurrentQuoteFromDOM() {
       } else if (section === 'labour') {
         if (inputs[0]) arr[i].worker = inputs[0].value;
         if (inputs[1]) arr[i].hours = parseFloat(inputs[1].value) || 0;
-        if (inputs[2]) arr[i].rate = parseFloat(inputs[2].value) || 0;
+        if (inputs[2]) arr[i].cost = parseFloat(inputs[2].value) || 0;
+        if (inputs[3]) arr[i].markup = parseFloat(inputs[3].value) || 0;
       } else if (section === 'subbies') {
         if (inputs[0]) arr[i].trade = inputs[0].value;
         if (inputs[1]) arr[i].cost = parseFloat(inputs[1].value) || 0;
@@ -964,8 +975,16 @@ function calculateJobTotals() {
     totalMarkup += sell - (m.qty * m.cost);
     matTotal += sell;
   });
-  let labTotal = 0, totalHours = 0;
-  currentQuote.labour.forEach(l => { labTotal += l.hours * l.rate; totalHours += l.hours; });
+  let labTotal = 0, totalHours = 0, labMarkupTotal = 0, otherWorkersPayout = 0;
+  currentQuote.labour.forEach(l => {
+    const markup = l.markup || 0;
+    const payout = l.hours * l.cost;
+    const sell = payout * (1 + markup / 100);
+    labTotal += sell;
+    labMarkupTotal += sell - payout;
+    totalHours += l.hours;
+    if ((l.worker || '').toLowerCase() !== 'kevin') otherWorkersPayout += payout;
+  });
   let subTotal = currentQuote.subbies.reduce((s, sb) => s + sb.cost, 0);
   let otherTotal = (currentQuote.other||[]).reduce((s, o) => s + o.cost, 0);
   const overhead = getOverheadCalculations();
@@ -979,15 +998,16 @@ function calculateJobTotals() {
   const gst = (subtotal + contingencyAmt + profitAmt) * 0.1;
   const grandTotal = subtotal + contingencyAmt + profitAmt + gst;
   const kevinHours = currentQuote.labour.filter(l => l.worker.toLowerCase()==='kevin').reduce((s,l) => s+l.hours, 0);
-  return { matTotal, totalMarkup, labTotal, totalHours, subTotal, otherTotal, overheadCost, contingency, profitPct, subtotal, contingencyAmt, profitAmt, gst, grandTotal, kevinHours, overheadRate: overhead.overheadRate, minRate: overhead.withProfit };
+  return { matTotal, totalMarkup, labTotal, labMarkupTotal, otherWorkersPayout, totalHours, subTotal, otherTotal, overheadCost, contingency, profitPct, subtotal, contingencyAmt, profitAmt, gst, grandTotal, kevinHours, overheadRate: overhead.overheadRate, minRate: overhead.withProfit };
 }
 
 function recalcQuote() {
   const c = calculateJobTotals();
   currentQuote.materials.forEach((m, i) => { const el = document.getElementById('nqMatSell_'+i); if (el) el.textContent = '$'+(m.qty*m.cost*(1+m.markup/100)).toFixed(2); });
-  currentQuote.labour.forEach((l, i) => { const el = document.getElementById('nqLabSell_'+i); if (el) el.textContent = '$'+(l.hours*l.rate).toFixed(2); });
+  currentQuote.labour.forEach((l, i) => { const el = document.getElementById('nqLabSell_'+i); if (el) el.textContent = '$'+(l.hours*l.cost*(1+(l.markup||0)/100)).toFixed(2); });
   document.getElementById('nqMatMarkupPct').textContent = c.totalMarkup > 0 ? '+$'+c.totalMarkup.toFixed(2)+' markup' : '';
   document.getElementById('nqMatTotal').textContent = '$'+c.matTotal.toFixed(2);
+  document.getElementById('nqLabRate').textContent = c.labMarkupTotal > 0 ? '+$'+c.labMarkupTotal.toFixed(2)+' markup' : '';
   document.getElementById('nqLabTotal').textContent = '$'+c.labTotal.toFixed(2);
   document.getElementById('nqSubTotal').textContent = '$'+c.subTotal.toFixed(2);
   document.getElementById('nqOtherTotal').textContent = '$'+c.otherTotal.toFixed(2);
@@ -1007,7 +1027,7 @@ function recalcQuote() {
   // Sidebar insight
   if (c.kevinHours > 0) {
     const effectiveRate = c.grandTotal / c.kevinHours;
-    const takeHome = (c.grandTotal - c.matTotal - c.subTotal - c.otherTotal - c.gst - c.overheadCost) / c.kevinHours;
+    const takeHome = (c.grandTotal - c.matTotal - c.subTotal - c.otherTotal - c.gst - c.overheadCost - c.otherWorkersPayout) / c.kevinHours;
     document.getElementById('sideInsight').style.display = 'block';
     document.getElementById('sideInsightText').innerHTML =
       'That\'s <strong>$'+effectiveRate.toFixed(0)+'/hr effective</strong> for your '+c.kevinHours+' hours. '+
@@ -1026,7 +1046,7 @@ function removeNQMat(i) { currentQuote.materials.splice(i,1); renderCurrentQuote
 function addMaterialRow() { currentQuote.materials.push({item:'',qty:1,cost:0,markup:20}); renderCurrentQuote(); recalcQuote(); focusLast('nqMaterialsBody'); }
 function updateNQLab(i,f,v) { if(i<currentQuote.labour.length)currentQuote.labour[i][f]=v; recalcQuote(); }
 function removeNQLab(i) { currentQuote.labour.splice(i,1); renderCurrentQuote(); recalcQuote(); }
-function addLabourRow() { currentQuote.labour.push({worker:'Jordan',hours:1,rate:55}); renderCurrentQuote(); recalcQuote(); focusLast('nqLabourBody'); }
+function addLabourRow() { currentQuote.labour.push({worker:'Jordan',hours:1,cost:45,markup:20}); renderCurrentQuote(); recalcQuote(); focusLast('nqLabourBody'); }
 function updateNQSub(i,f,v) { if(i<currentQuote.subbies.length)currentQuote.subbies[i][f]=v; recalcQuote(); }
 function removeNQSub(i) { currentQuote.subbies.splice(i,1); renderCurrentQuote(); recalcQuote(); }
 function addSubbieRow() { currentQuote.subbies.push({trade:'',cost:0}); renderCurrentQuote(); recalcQuote(); focusLast('nqSubbieBody'); }
@@ -1170,7 +1190,7 @@ function printForSelf(job) {
   const win = window.open('', '_blank');
   win.document.write('<!DOCTYPE html><html><head><title>Job Costing - '+q.client+'</title><style>body{font-family:Arial,sans-serif;padding:40px;max-width:800px;margin:auto;color:#333}h1{font-size:24px;color:#1a1a2e}.header{margin-bottom:30px}.header .meta{color:#888;font-size:13px}table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}th{background:#f0f0f0;text-align:left;padding:8px 10px;font-size:11px;color:#666;text-transform:uppercase}td{padding:6px 10px;border-bottom:1px solid #eee}.total{font-weight:bold;background:#f9f9f9}.section-title{font-size:16px;font-weight:bold;color:#1a1a2e;margin:24px 0 8px;padding-bottom:4px;border-bottom:2px solid #e94560}.right{text-align:right}@media print{body{padding:20px}}</style></head><body><button onclick="window.print()" style="padding:10px 20px;background:#1a1a2e;color:#fff;border:none;border-radius:6px;cursor:pointer;margin-bottom:20px">🖨️ Print / Save PDF</button><div class="header"><h1>Job Costing — '+q.client+'</h1><div class="meta">Date: '+q.date+' | Type: '+(typeNames[q.type]||q.type)+(q.location?' | '+q.location:'')+'</div></div>');
   if (q.materials && q.materials.length) { win.document.write('<div class="section-title">Materials</div><table><tr><th>Item</th><th class="right">Qty</th><th class="right">Unit Cost</th><th class="right">Markup</th><th class="right">Total</th></tr>'); q.materials.forEach(m => win.document.write('<tr><td>'+m.item+'</td><td class="right">'+m.qty+'</td><td class="right">$'+m.cost.toFixed(2)+'</td><td class="right">'+m.markup+'%</td><td class="right">$'+(m.qty*m.cost*(1+m.markup/100)).toFixed(2)+'</td></tr>')); win.document.write('<tr class="total"><td colspan="4">Materials Total</td><td class="right">$'+q.matTotal.toFixed(2)+'</td></tr></table>'); }
-  if (q.labour && q.labour.length) { win.document.write('<div class="section-title">Labour</div><table><tr><th>Worker</th><th class="right">Hours</th><th class="right">Rate</th><th class="right">Total</th></tr>'); q.labour.forEach(l => win.document.write('<tr><td>'+l.worker+'</td><td class="right">'+l.hours+'</td><td class="right">$'+l.rate.toFixed(2)+'/hr</td><td class="right">$'+(l.hours*l.rate).toFixed(2)+'</td></tr>')); win.document.write('<tr class="total"><td colspan="3">Labour Total ('+q.totalHours+' hrs)</td><td class="right">$'+q.labTotal.toFixed(2)+'</td></tr></table>'); }
+  if (q.labour && q.labour.length) { win.document.write('<div class="section-title">Labour</div><table><tr><th>Worker</th><th class="right">Hours</th><th class="right">Pay Rate</th><th class="right">Markup</th><th class="right">Total</th></tr>'); q.labour.forEach(l => { const cost = l.cost !== undefined ? l.cost : (l.rate || 0); const markup = l.markup || 0; const sell = l.hours * cost * (1 + markup / 100); win.document.write('<tr><td>'+l.worker+'</td><td class="right">'+l.hours+'</td><td class="right">$'+cost.toFixed(2)+'/hr</td><td class="right">'+markup+'%</td><td class="right">$'+sell.toFixed(2)+'</td></tr>'); }); win.document.write('<tr class="total"><td colspan="4">Labour Total ('+q.totalHours+' hrs)</td><td class="right">$'+q.labTotal.toFixed(2)+'</td></tr></table>'); }
   if (q.subbies && q.subbies.length) { win.document.write('<div class="section-title">Subcontractors</div><table><tr><th>Trade</th><th class="right">Cost</th></tr>'); q.subbies.forEach(s => win.document.write('<tr><td>'+s.trade+'</td><td class="right">$'+s.cost.toFixed(2)+'</td></tr>')); win.document.write('<tr class="total"><td>Subbies Total</td><td class="right">$'+q.subTotal.toFixed(2)+'</td></tr></table>'); }
   if (q.other && q.other.length) { win.document.write('<div class="section-title">Other Costs</div><table><tr><th>Item</th><th class="right">Cost</th></tr>'); q.other.forEach(o => win.document.write('<tr><td>'+o.item+'</td><td class="right">$'+o.cost.toFixed(2)+'</td></tr>')); win.document.write('<tr class="total"><td>Other Total</td><td class="right">$'+q.otherTotal.toFixed(2)+'</td></tr></table>'); }
   win.document.write('<div class="section-title" style="margin-top:30px">Summary</div><table><tr><td>Materials + Labour + Subbies + Other</td><td class="right">$'+(q.matTotal+q.labTotal+q.subTotal+q.otherTotal).toFixed(2)+'</td></tr><tr><td>Overhead applied ('+q.overheadPct+'% × '+q.totalHours+' hrs)</td><td class="right">$'+q.overheadCost.toFixed(2)+'</td></tr><tr><td>Contingency ('+q.contingency+'%)</td><td class="right">$'+q.contingencyAmt.toFixed(2)+'</td></tr><tr><td>Profit ('+q.profitPct+'%)</td><td class="right">$'+q.profitAmt.toFixed(2)+'</td></tr><tr><td>GST (10%)</td><td class="right">$'+q.gst.toFixed(2)+'</td></tr><tr class="total"><td style="font-size:18px">What You Should Charge</td><td class="right" style="font-size:18px;color:#1a1a2e">$'+q.grandTotal.toFixed(2)+'</td></tr></table></body></html>');
@@ -1239,7 +1259,7 @@ function loadQuoteIntoForm(q) {
   document.getElementById('nqType').value = q.type;
   document.querySelectorAll('.template-chip').forEach(b => b.classList.remove('active'));
   const chip = document.getElementById('tpl-'+q.type); if (chip) chip.classList.add('active');
-  currentQuote = { materials: deepClone(q.materials||[]), labour: deepClone(q.labour||[]), subbies: deepClone(q.subbies||[]), other: deepClone(q.other||[]) };
+  currentQuote = { materials: deepClone(q.materials||[]), labour: normalizeLabour(deepClone(q.labour||[])), subbies: deepClone(q.subbies||[]), other: deepClone(q.other||[]) };
   document.getElementById('nqLocation').value = q.location||'';
   document.getElementById('nqContingency').value = q.contingency||5;
   document.getElementById('nqProfit').value = q.profitPct||25;
