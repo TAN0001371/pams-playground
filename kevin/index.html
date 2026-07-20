@@ -43,6 +43,12 @@ input:focus, select:focus { outline: none; border-color: var(--green); box-shado
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .table-scroll table { width: auto; min-width: 100%; }
+
+/* === EDITABLE TABLE CELLS === */
+.tight-name { width: 100%; border: none; border-bottom: 1px solid #d8dce0; background: transparent; font-size: 13px; padding: 6px 4px; min-height: auto; box-shadow: none; transition: border-color 0.15s; }
+.tight-name:hover { border-bottom-color: #a0a8b0; }
+.tight-name:focus { border-bottom-color: var(--green); outline: none; box-shadow: 0 0 0 3px rgba(45,143,45,0.08); border-radius: 3px; }
+.tight-num { width: 100%; padding: 6px 4px; font-size: 13px; border: 1px solid #ddd; border-radius: 4px; text-align: right; min-height: auto; }
 th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
 th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
 .total-row { font-weight: bold; background: #f9f9f9; }
@@ -61,6 +67,25 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
 .btn-danger { background: var(--danger); color: #fff; }
 .btn-danger:hover { box-shadow: 0 2px 8px rgba(220,53,69,0.35); }
 
+/* === TOAST NOTIFICATIONS === */
+.toast-container { position: fixed; top: 16px; right: 16px; z-index: 300; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.toast { background: var(--navy); color: #fff; padding: 12px 18px; border-radius: 8px; font-size: 14px; font-weight: 600; box-shadow: 0 4px 16px rgba(0,0,0,0.2); animation: toastIn 0.25s ease-out; pointer-events: auto; max-width: 360px; }
+.toast.success { border-left: 3px solid var(--green); }
+.toast.error { border-left: 3px solid var(--danger); }
+.toast.info { border-left: 3px solid #4a9eff; }
+@keyframes toastIn { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes toastOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-12px); } }
+
+/* === CONFIRM DIALOG === */
+.confirm-overlay { position: fixed; inset: 0; background: rgba(10,23,34,0.5); z-index: 250; display: grid; place-items: center; padding: 16px; }
+.confirm-box { background: #fff; border-radius: 12px; padding: 24px; max-width: 380px; width: 100%; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+.confirm-box p { margin: 0 0 18px; font-size: 14px; line-height: 1.5; }
+.confirm-box .confirm-buttons { display: flex; gap: 10px; justify-content: flex-end; }
+
+/* === SAVE PULSE === */
+@keyframes savePulse { 0% { transform: scale(1); } 50% { transform: scale(1.03); box-shadow: 0 0 24px rgba(255,255,255,0.3); } 100% { transform: scale(1); } }
+.price-sidebar.pulse { animation: savePulse 0.5s ease; }
+
 /* === TOOLTIP === */
 .tooltip { position: relative; display: inline-block; }
 .tooltip .tip { visibility: hidden; opacity: 0; transition: opacity 0.15s; background: var(--navy); color: #fff; font-size: 12px; padding: 6px 10px; border-radius: 6px; position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); white-space: nowrap; pointer-events: none; z-index: 10; }
@@ -71,6 +96,7 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
 .info-tip { display: inline-flex; width: 18px; height: 18px; border-radius: 50%; border: 1px solid #bac3cc; background: #fff; color: #586574; font-weight: 700; font-size: 11px; align-items: center; justify-content: center; cursor: help; margin-left: 4px; vertical-align: middle; position: relative; }
 .info-tip::after { content: attr(data-tip); position: absolute; left: 50%; bottom: calc(100% + 6px); transform: translateX(-50%); width: 220px; background: var(--navy); color: #fff; padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: 400; line-height: 1.4; opacity: 0; visibility: hidden; transition: 0.15s; pointer-events: none; z-index: 50; white-space: normal; text-align: left; }
 .info-tip:hover::after { opacity: 1; visibility: visible; }
+.info-tip.show::after { opacity: 1 !important; visibility: visible !important; }
 
 /* === TEMPLATE STRIP === */
 .template-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
@@ -154,12 +180,9 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
 .tag-sauna { background: #fff3cd; color: #856404; }
 .tag-reno { background: #d4edda; color: #155724; }
 .empty-state { text-align: center; padding: 40px; color: #888; }
-.tight-name { width: 100%; border: none; background: transparent; font-size: 13px; padding: 6px 4px; min-height: auto; box-shadow: none; }
-.hist-name { width: auto; min-width: 150px; max-width: 60%; border: 1px solid transparent; background: transparent; font-size: 15px; font-weight: 700; color: var(--ink); padding: 2px 6px; min-height: auto; border-radius: 5px; }
+.hist-name { width: auto; min-width: 150px; max-width: 60%; border: 1px solid #d8dce0; background: transparent; font-size: 15px; font-weight: 700; color: var(--ink); padding: 2px 6px; min-height: auto; border-radius: 5px; }
 .hist-name:hover { border-color: var(--line); background: #fafbfa; }
 .hist-name:focus { outline: none; border-color: var(--green); background: #fff; box-shadow: 0 0 0 2px rgba(45,143,45,0.15); }
-.tight-num { width: 100%; padding: 6px 4px; font-size: 13px; border: 1px solid #ddd; border-radius: 4px; text-align: right; min-height: auto; }
-.tight-num:focus { box-shadow: 0 0 0 2px rgba(45,143,45,0.12); }
 .tight-select { padding: 5px 2px; font-size: 12px; border: 1px solid #ddd; border-radius: 4px; background: #fff; min-height: auto; }
 .annual-readout { font-weight: 600; color: var(--ink); text-align: right; padding-right: 4px; }
 
@@ -195,6 +218,8 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
 </style>
 </head>
 <body>
+
+<div class="toast-container" id="toastContainer"></div>
 
 <!-- ===== LOGIN GATE (only shown when cloud sync is configured) ===== -->
 <div id="authGate" style="display:none; position:fixed; inset:0; background:var(--bg); z-index:200; align-items:center; justify-content:center; padding:20px;">
@@ -238,7 +263,7 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
       <h2 id="ovHeroRate">$0<small style="font-size:16px;color:#c4d1d8;">/hr</small></h2>
       <p>This covers all your costs, your target pay, and 25% profit.</p>
     </div>
-    <button class="btn btn-small" style="background:#fff;color:var(--navy);" onclick="switchTab('overhead')">Adjust in Overhead →</button>
+    <button class="btn btn-small" style="background:#fff;color:var(--navy);" onclick="switchTab('overhead')">Adjust overhead →</button>
   </div>
 
   <div class="metric-grid">
@@ -305,7 +330,13 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
       </div>
     </div>
 
-    <!-- Contingency / Profit / Overhead — moved up so it's always visible -->
+    <!-- Advanced settings — collapsed by default so Kevin isn't overwhelmed -->
+    <button class="section-toggle" onclick="toggleSection('adv')" style="border:1px solid var(--line);border-radius:8px;margin-bottom:12px;font-size:13px;">
+      <span class="chevron" id="chevron-adv">▶</span>
+      <span class="sec-title">Advanced settings</span>
+      <span class="sec-summary">5% contingency · 25% profit · 100% overhead</span>
+    </button>
+    <div class="section-body" id="body-adv">
     <div class="row">
       <div class="col">
         <label>Contingency % <span class="info-tip" data-tip="A safety buffer for unexpected costs — extra materials, a day running long, something you forgot. 5–10% is standard in construction.">?</span></label>
@@ -319,6 +350,7 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
         <label>Overhead Recovery % <span class="info-tip" data-tip="How much of your annual overhead this job should cover. 100% means it pays its fair share. Set lower for small jobs, higher for big ones.">?</span></label>
         <input id="nqOverheadPct" type="number" value="100" min="0" max="200" onchange="recalcQuote()">
       </div>
+    </div>
     </div>
   </div>
 
@@ -383,7 +415,7 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
         <button class="section-toggle" onclick="toggleSection('sub')">
           <span class="chevron" id="chevron-sub">▶</span>
           <span class="sec-title">Subcontractors</span>
-          <span class="sec-summary" id="summary-sub">0 trades · $0</span>
+          <span class="sec-summary" id="summary-sub">0 subcontractors · $0</span>
         </button>
         <div class="section-body" id="body-sub">
           <div class="add-row-bar">
@@ -546,7 +578,7 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
       <button class="btn btn-small btn-outline" onclick="addMaterialDBRow()">+ Add Item</button>
     </div>
     <div class="mt">
-      <button class="btn btn-primary" onclick="saveMaterialsDB()">💾 Save Materials DB</button>
+      <button class="btn btn-primary" onclick="saveMaterialsDB()">💾 Save Materials</button>
     </div>
   </div>
 </div>
@@ -583,6 +615,41 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
 </div>
 
 <script>
+// ===== TOAST & CONFIRM (replaces alert/confirm) =====
+function showToast(msg, type) {
+  type = type || 'info';
+  const container = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  container.appendChild(el);
+  setTimeout(function() {
+    el.style.animation = 'toastOut 0.2s ease forwards';
+    setTimeout(function() { el.remove(); }, 200);
+  }, 3000);
+}
+
+function showConfirm(msg, onYes, onNo) {
+  const overlay = document.createElement('div');
+  overlay.className = 'confirm-overlay';
+  overlay.innerHTML = '<div class="confirm-box"><p>' + msg.replace(/\n/g, '<br>') + '</p><div class="confirm-buttons"><button class="btn btn-outline" id="confirmNo">Cancel</button><button class="btn btn-danger" id="confirmYes">Yes, delete</button></div></div>';
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) { overlay.remove(); if (onNo) onNo(); } });
+  document.body.appendChild(overlay);
+  document.getElementById('confirmYes').addEventListener('click', function() { overlay.remove(); if (onYes) onYes(); });
+  document.getElementById('confirmNo').addEventListener('click', function() { overlay.remove(); if (onNo) onNo(); });
+  // Close on Escape
+  var escHandler = function(e) { if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', escHandler); if (onNo) onNo(); } };
+  document.addEventListener('keydown', escHandler);
+}
+
+function pulseSidebar() {
+  var el = document.getElementById('priceSidebar');
+  if (!el) return;
+  el.classList.remove('pulse');
+  void el.offsetWidth;
+  el.classList.add('pulse');
+}
+
 // ===== DATA =====
 const FREQ_MULT = { wk: 52, mo: 12, yr: 1 };
 
@@ -695,7 +762,7 @@ function annualAmount(e) { return (parseFloat(e.amount) || 0) * (FREQ_MULT[e.fre
 // ===== STATE =====
 let state = {
   quotes: [],
-  overhead: { expenses: deepClone(DEFAULT_OVERHEAD), weeks: 44, hoursPerWeek: 32, targetSalary: 80000 },
+  overhead: { expenses: deepClone(DEFAULT_OVERHEAD), weeks: 44, hoursPerWeek: 32, targetSalary: 80000, configured: false },
   materialsDB: [...DEFAULT_MATERIALS_DB],
   templates: [],
 };
@@ -713,6 +780,8 @@ function loadState() {
     if (saved) {
       const parsed = JSON.parse(saved);
       state.quotes = parsed.quotes || [];
+      // Migration: if saved data predates the configured flag, treat as already set up
+      if (parsed.overhead && !('configured' in parsed.overhead)) state.overhead.configured = true;
       state.overhead = { ...state.overhead, ...(parsed.overhead || {}) };
       state.overhead.expenses = (state.overhead.expenses || []).map(e => ({
         name: e.name || '', amount: e.amount || e.cost || 0, freq: e.freq || 'yr'
@@ -737,13 +806,14 @@ function saveState() {
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-  document.getElementById(`tab-${name}`).classList.add('active');
-  const navBtn = document.querySelector(`nav button[data-tab="${name}"]`);
+  document.getElementById('tab-'+name).classList.add('active');
+  var navBtn = document.querySelector('nav button[data-tab="'+name+'"]');
   if (navBtn) navBtn.classList.add('active');
   if (name === 'overview') renderOverview();
   else if (name === 'history') renderHistory();
   else if (name === 'overhead') renderOverhead();
   else if (name === 'materials') renderMaterialsDB();
+  if (location.hash !== '#'+name) { history.replaceState(null, '', '#'+name); }
 }
 
 // ===== TEMPLATE STRIP =====
@@ -773,7 +843,7 @@ function renderUserTemplates() {
 function saveAsTemplate() {
   syncCurrentQuoteFromDOM();
   const n = currentQuote.materials.length + currentQuote.labour.length + currentQuote.subbies.length + (currentQuote.other||[]).length;
-  if (n === 0) { alert('Add some materials or labour first, then save it as a template.'); return; }
+  if (n === 0) { showToast('Add some materials or labour first, then save it as a template.', 'error'); return; }
   const name = (prompt('Name this template (e.g. "Barrel sauna – 2 person"):') || '').trim();
   if (!name) return;
   const tpl = {
@@ -788,17 +858,19 @@ function saveAsTemplate() {
   saveState();
   renderUserTemplates();
   selectTemplate(tpl.id);
-  alert('Template saved: ' + name + '\n\nIt\'s now a chip you can tap to start a job from.');
+  showToast('Template saved: ' + name, 'success');
 }
 
 function deleteTemplate(id) {
   const t = (state.templates || []).find(x => x.id === id);
   if (!t) return;
-  if (!confirm('Delete the template "' + t.name + '"? (Saved jobs are not affected.)')) return;
-  state.templates = state.templates.filter(x => x.id !== id);
-  saveState();
-  renderUserTemplates();
-  if (document.getElementById('nqType').value === id) selectTemplate('sauna');
+  showConfirm('Delete the template "' + t.name + '"? (Saved jobs are not affected.)', function() {
+    state.templates = state.templates.filter(x => x.id !== id);
+    saveState();
+    renderUserTemplates();
+    if (document.getElementById('nqType').value === id) selectTemplate('sauna');
+    showToast('Template deleted.', 'info');
+  });
 }
 
 // ===== COLLAPSIBLE SECTIONS =====
@@ -811,11 +883,18 @@ function toggleSection(key) {
 }
 
 function updateSectionSummaries() {
-  const c = calculateJobTotals();
+  var c = calculateJobTotals();
   document.getElementById('summary-mat').textContent = currentQuote.materials.length + ' items · $' + c.matTotal.toFixed(0);
   document.getElementById('summary-lab').textContent = c.totalHours + ' hrs · $' + c.labTotal.toFixed(0);
-  document.getElementById('summary-sub').textContent = currentQuote.subbies.length + ' trades · $' + c.subTotal.toFixed(0);
+  document.getElementById('summary-sub').textContent = currentQuote.subbies.length + ' subcontractors · $' + c.subTotal.toFixed(0);
   document.getElementById('summary-oth').textContent = (currentQuote.other||[]).length + ' items · $' + c.otherTotal.toFixed(0);
+  // Advanced settings summary
+  var advSummary = document.querySelector('#body-adv .sec-summary') || document.getElementById('chevron-adv').nextElementSibling;
+  var cont = parseFloat(document.getElementById('nqContingency').value) || 0;
+  var prof = parseFloat(document.getElementById('nqProfit').value) || 0;
+  var ovh = parseFloat(document.getElementById('nqOverheadPct').value) || 0;
+  var advEl = document.querySelector('.section-toggle[onclick*="adv"] .sec-summary');
+  if (advEl) advEl.textContent = cont + '% contingency · ' + prof + '% profit · ' + ovh + '% overhead';
 }
 
 // ===== OVERHEAD =====
@@ -875,7 +954,7 @@ function recalcOverhead() {
   document.getElementById('ovWageRateShort').textContent = '$' + c.wageRate.toFixed(0) + '/hr';
   saveState();
 }
-function saveOverhead() { saveState(); alert('Overhead settings saved!'); }
+function saveOverhead() { state.overhead.configured = true; saveState(); showToast('Overhead settings saved!', 'success'); }
 
 // ===== JOB COSTING =====
 // Labour rows saved before the pay-rate/markup split only have a flat
@@ -1112,7 +1191,10 @@ function pickMaterial(idx) {
 function loadFromMaterialsDB() { openMaterialPicker(); }
 
 // ===== SAVE JOB =====
+var savingInProgress = false;
 function saveQuote() {
+  if (savingInProgress) return;
+  savingInProgress = true;
   const c = calculateJobTotals();
   const client = document.getElementById('nqClient').value || 'Unnamed';
   const type = document.getElementById('nqType').value;
@@ -1136,7 +1218,8 @@ function saveQuote() {
   editingQuoteId = null; updateEditingBanner();
   saveState(); renderOverview(); renderHistory();
   document.getElementById('quoteCounter').textContent = state.quotes.length + ' jobs'; recalcQuote();
-  alert((isEditing ? 'Job updated!' : 'Job saved!')+'\n\nWhat you should charge: $'+c.grandTotal.toFixed(2)+'\n\nMaterials: $'+c.matTotal.toFixed(0)+'\nLabour: $'+c.labTotal.toFixed(0)+' ('+c.totalHours+' hrs)\nOverhead: $'+c.overheadCost.toFixed(0)+'\nContingency: $'+c.contingencyAmt.toFixed(0)+'\nProfit: $'+c.profitAmt.toFixed(0)+'\nGST: $'+c.gst.toFixed(0));
+  showToast((isEditing ? 'Job updated' : 'Job saved') + ' — $' + c.grandTotal.toFixed(0) + ' incl. GST', 'success'); pulseSidebar();
+  setTimeout(function() { savingInProgress = false; }, 400);
 }
 
 // ===== COPY FIGURES (for pasting into Xero etc.) =====
@@ -1172,7 +1255,7 @@ function fallbackCopy(text, done) {
   try { ok = document.execCommand('copy'); } catch(e) {}
   document.body.removeChild(ta);
   if (ok && done) done();
-  else if (!ok) alert('Couldn\'t copy automatically. Here are the figures:\n\n' + text);
+  else if (!ok) showToast('Couldn\'t copy automatically — figures shown below.', 'error');
 }
 function flashCopied(btn) {
   if (!btn) return;
@@ -1185,7 +1268,7 @@ function flashCopied(btn) {
 // ===== PRINT =====
 function printForSelf(job) {
   const q = job || (state.quotes.length > 0 ? state.quotes[0] : null);
-  if (!q) { alert('Save a job first!'); return; }
+  if (!q) { showToast('Save a job first!', 'info'); return; }
   const typeNames = {sauna:'Sauna','reno-wall':'Wall / Framing','reno-tile':'Tiling / Bathroom','reno-general':'General Reno',custom:'Custom'};
   const win = window.open('', '_blank');
   win.document.write('<!DOCTYPE html><html><head><title>Job Costing - '+q.client+'</title><style>body{font-family:Arial,sans-serif;padding:40px;max-width:800px;margin:auto;color:#333}h1{font-size:24px;color:#1a1a2e}.header{margin-bottom:30px}.header .meta{color:#888;font-size:13px}table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px}th{background:#f0f0f0;text-align:left;padding:8px 10px;font-size:11px;color:#666;text-transform:uppercase}td{padding:6px 10px;border-bottom:1px solid #eee}.total{font-weight:bold;background:#f9f9f9}.section-title{font-size:16px;font-weight:bold;color:#1a1a2e;margin:24px 0 8px;padding-bottom:4px;border-bottom:2px solid #e94560}.right{text-align:right}@media print{body{padding:20px}}</style></head><body><button onclick="window.print()" style="padding:10px 20px;background:#1a1a2e;color:#fff;border:none;border-radius:6px;cursor:pointer;margin-bottom:20px">🖨️ Print / Save PDF</button><div class="header"><h1>Job Costing — '+q.client+'</h1><div class="meta">Date: '+q.date+' | Type: '+(typeNames[q.type]||q.type)+(q.location?' | '+q.location:'')+'</div></div>');
@@ -1296,8 +1379,8 @@ function updateEditingBanner() {
     banner.style.display = 'none';
   }
 }
-function deleteQuote(i) { if(confirm('Delete this job?')){state.quotes.splice(i,1);saveState();renderHistory();renderOverview();document.getElementById('quoteCounter').textContent=state.quotes.length+' jobs';} }
-function resetQuoteForm() { if(!confirm('Reset the form? This clears any unsaved changes.'))return; document.getElementById('nqClient').value='';document.getElementById('nqLocation').value='';selectTemplate('sauna'); }
+function deleteQuote(i) { showConfirm('Delete this job?', function(){ state.quotes.splice(i,1);saveState();renderHistory();renderOverview();document.getElementById('quoteCounter').textContent=state.quotes.length+' jobs'; showToast('Job deleted.', 'info'); }); }
+function resetQuoteForm() { showConfirm('Reset the form? This clears any unsaved changes.', function(){ document.getElementById('nqClient').value='';document.getElementById('nqLocation').value='';selectTemplate('sauna'); }); }
 
 // ===== MATERIALS DB =====
 function renderMaterialsDB() {
@@ -1306,9 +1389,9 @@ function renderMaterialsDB() {
 function updateMatDB(i,f,v) { state.materialsDB[i][f] = v; saveState(); }
 function addMaterialDBRow() { state.materialsDB.push({cat:'',item:'',unit:'each',cost:0,markup:20}); renderMaterialsDB(); saveState(); focusLast('materialsDBBody'); }
 function removeMatDB(i) { state.materialsDB.splice(i,1); renderMaterialsDB(); saveState(); }
-function saveMaterialsDB() { saveState(); alert('Materials list saved!'); }
+function saveMaterialsDB() { saveState(); showToast('Materials list saved!', 'success'); }
 function exportQuotes() {
-  if (!state.quotes.length) { alert('No jobs to export.'); return; }
+  if (!state.quotes.length) { showToast('No jobs to export.', 'info'); return; }
   let csv = 'Date,Job,Type,Location,Mat,Lab,Subbies,Other,Overhead,Contingency,Profit,GST,Total,Hours\n';
   state.quotes.forEach(q => csv += q.date+',"'+q.client+'",'+q.type+',"'+q.location+'",'+q.matTotal.toFixed(2)+','+q.labTotal.toFixed(2)+','+q.subTotal.toFixed(2)+','+q.otherTotal.toFixed(2)+','+q.overheadCost.toFixed(2)+','+q.contingencyAmt.toFixed(2)+','+q.profitAmt.toFixed(2)+','+q.gst.toFixed(2)+','+q.grandTotal.toFixed(2)+','+q.totalHours+'\n');
   const b = new Blob([csv],{type:'text/csv'}); const u = URL.createObjectURL(b); const a = document.createElement('a');
@@ -1332,19 +1415,22 @@ function restoreData(input) {
     try {
       const d = JSON.parse(e.target.result);
       if (!d || (!d.quotes && !d.overhead && !d.materialsDB)) throw new Error('This file doesn\'t look like a Kevin backup.');
-      if (!confirm('Restore this backup?\n\nIt will REPLACE your current jobs, overhead and materials with what\'s in the file.')) { input.value=''; return; }
-      if (Array.isArray(d.quotes)) state.quotes = d.quotes;
-      if (d.overhead) state.overhead = { ...state.overhead, ...d.overhead };
-      if (Array.isArray(d.materialsDB) && d.materialsDB.length) state.materialsDB = d.materialsDB;
-      if (Array.isArray(d.templates)) state.templates = d.templates;
-      saveState();
-      recalcOverhead(); renderOverhead(); renderMaterialsDB(); renderHistory(); renderOverview(); renderUserTemplates();
-      document.getElementById('quoteCounter').textContent = state.quotes.length + ' jobs';
-      alert('Backup restored — '+state.quotes.length+' job(s) loaded.');
+      var doRestore = function() {
+        if (Array.isArray(d.quotes)) state.quotes = d.quotes;
+        if (d.overhead) state.overhead = { ...state.overhead, ...d.overhead };
+        if (Array.isArray(d.materialsDB) && d.materialsDB.length) state.materialsDB = d.materialsDB;
+        if (Array.isArray(d.templates)) state.templates = d.templates;
+        saveState();
+        recalcOverhead(); renderOverhead(); renderMaterialsDB(); renderHistory(); renderOverview(); renderUserTemplates();
+        document.getElementById('quoteCounter').textContent = state.quotes.length + ' jobs';
+        showToast('Backup restored — '+state.quotes.length+' job(s) loaded.', 'success');
+        input.value = '';
+      };
+      showConfirm('Restore this backup? It will REPLACE your current jobs, overhead and materials with what\'s in the file.', doRestore, function() { input.value = ''; });
     } catch(err) {
-      alert('Could not read that file.\n\n'+err.message);
+      showToast('Could not read that file. '+err.message, 'error');
+      input.value = '';
     }
-    input.value = '';
   };
   reader.readAsText(file);
 }
@@ -1460,8 +1546,9 @@ function friendlyAuthError(e) {
 }
 function doLogout() {
   if (!cloud.enabled || !cloud.auth) return;
-  if (!confirm('Log out? Your data is saved in the cloud and will be here next time you log in.')) return;
-  cloud.auth.signOut();
+  showConfirm('Log out? Your data is saved in the cloud and will be here next time you log in.', function() {
+    cloud.auth.signOut();
+  });
 }
 
 // Everyone on ALLOWED_EMAILS shares this one document — same data on every
@@ -1519,6 +1606,49 @@ renderOverview();
 renderUserTemplates();
 loadJobTemplate();
 document.getElementById('quoteCounter').textContent = state.quotes.length + ' jobs';
+
+// Mobile info-tip toggle (touch devices don't have hover)
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('info-tip')) {
+    if (e.target._infoTipTimer) { clearTimeout(e.target._infoTipTimer); e.target._infoTipTimer = null; }
+    e.target.classList.toggle('show');
+    e.target._infoTipTimer = setTimeout(function() { e.target.classList.remove('show'); e.target._infoTipTimer = null; }, 2500);
+  }
+});
+
+// Deep-link to tab via URL hash (e.g. #overhead, #newquote)
+(function() {
+  var h = location.hash.replace('#', '');
+  if (h && document.getElementById('tab-' + h)) {
+    document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+    document.querySelectorAll('nav button').forEach(function(b) { b.classList.remove('active'); });
+    var tab = document.getElementById('tab-' + h); if (tab) tab.classList.add('active');
+    var btn = document.querySelector('nav button[data-tab="' + h + '"]'); if (btn) btn.classList.add('active');
+    if (h === 'overview') renderOverview();
+    else if (h === 'history') renderHistory();
+    else if (h === 'overhead') renderOverhead();
+    else if (h === 'materials') renderMaterialsDB();
+  }
+  window.addEventListener('hashchange', function() {
+    var h2 = location.hash.replace('#', '');
+    if (h2) {
+      var btn2 = document.querySelector('nav button[data-tab="' + h2 + '"]');
+      if (btn2) btn2.click();
+    }
+  });
+})();
+
+// First-run welcome banner (show if overhead never saved)
+(function() {
+  if (!state.overhead.configured) {
+    var card = document.getElementById('chargingCheckCard');
+    if (card) {
+      var div = document.getElementById('chargingCheck');
+      div.innerHTML = '<div style="background:#fef9e7;border-left:4px solid #f0c040;padding:14px 16px;border-radius:0 8px 8px 0;font-size:13px;color:#7d6608;"><strong>👋 Welcome Kevin!</strong> Start by setting up your <a href="javascript:void(0)" onclick="switchTab(\'overhead\')" style="color:var(--green);font-weight:700;">overhead costs →</a> so the tool knows your business expenses. It takes 2 minutes and you only do it once.</div>';
+    }
+  }
+})();
+
 initCloud();
 </script>
 </body>
