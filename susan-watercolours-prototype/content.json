@@ -1,0 +1,137 @@
+{
+  "artist": {
+    "name": "Susan Czermak",
+    "tagline": "Watercolours of light, place and remembered moments",
+    "subtitle": "Painted from landscapes encountered across Australia, Europe and beyond",
+    "bio": "Susan Czermak is a watercolourist with a style that is colourful and bold. Her love of environments and their hues can be seen in her mood-filled paintings that capture everyday moments of interest. A lover of travelling, Susan has lived in Scotland, New Zealand, England, USA, France and Australia. A realist painter inspired by the impressionists, her artworks capture her observations from around the globe. With a focus on land and streetscapes and interest in exploring light and shade, her paintings reflect on places and moments of delight.",
+    "bioShort": "Born on a small Scottish island where her father worked as a marine biologist, Susan has since lived in New Zealand, England, the United States, France and Australia. She worked as a computer programmer, farmer and teacher before devoting herself to watercolour over twenty-five years ago. She lived for ten years in a village in south-west France and has held regular solo exhibitions since 2001, mainly in France. Her work is held in private collections across France, Italy, Germany, Holland, Belgium, Switzerland, the UK, USA, Canada, New Zealand and Australia. In 2022 she received the People's Choice Award at the Peninsula Studio Trail exhibition. Susan's studio is located in the Melbourne area of Victoria where she lives with her partner and two small dogs.",
+    "exhibitions": [
+      "Peninsula Studio Trail Open Studios (annual, since 2022)",
+      "Regular solo exhibitions since 2001, mainly in France"
+    ]
+  },
+  "curatorialStatement": "Susan paints places she has stood within — tidal flats, quiet farms, village streets and working landscapes — preserving less the exact detail than the light and feeling that remained.",
+  "collections": [
+    { "id": "by-the-water", "name": "By the Water", "description": "Coastlines, harbours, tidal waterways and boats" },
+    { "id": "fields-country", "name": "Fields & Working Country", "description": "Farmland, vineyards and rural landscapes" },
+    { "id": "villages-roads", "name": "Villages & Roads", "description": "Street scenes, markets and quiet lanes" },
+    { "id": "people", "name": "People Encountered", "description": "Figures and moments from daily life" },
+    { "id": "quiet-weather", "name": "Quiet Weather", "description": "Atmosphere, light and the feeling of weather" },
+    { "id": "from-france", "name": "From France", "description": "Works from Susan's decade in south-west France" },
+    { "id": "travels", "name": "Travels Further Away", "description": "Europe, New Zealand and beyond" }
+  ],
+  "artworks": [
+    {
+      "id": "lake-hawea",
+      "title": "Lake Hawea, New Zealand",
+      "image": "/images/artworks/Czermak-LakeHawea-NewZealand.jpg",
+      "collection": "travels",
+      "year": null,
+      "medium": "Watercolour on paper",
+      "dimensionsMm": "560 × 400",
+      "priceAud": null,
+      "availability": "available",
+      "featured": true,
+      "story": "The mountains rose abruptly from the lake's edge, their reflections doubling the world in the still water. Susan spent the afternoon watching the light move across the ranges, the blues deepening and shifting as cloud shadows raced across the peaks. She worked quickly, knowing the moment would not hold.",
+      "prototypeStory": true
+    },
+    {
+      "id": "two-dinghies",
+      "title": "Two Dinghies, Portugal",
+      "image": "/images/artworks/CzermakDinghiesPortugal.jpeg",
+      "collection": "by-the-water",
+      "year": null,
+      "medium": "Watercolour on paper",
+      "dimensionsMm": null,
+      "priceAud": null,
+      "availability": "print-only",
+      "featured": true,
+      "story": "The brilliant turquoise of Portuguese fishing boats is somehow very uplifting and cannot fail to catch the watercolourist's eye. The dinghies sat side by side as though in quiet conversation, their painted hulls glowing against the pale sand.",
+      "prototypeStory": true
+    },
+    {
+      "id": "shepherd",
+      "title": "The Shepherd, France",
+      "image": "/images/artworks/CzermakShepherd1000.jpeg",
+      "collection": "from-france",
+      "year": null,
+      "medium": "Watercolour on paper",
+      "dimensionsMm": null,
+      "priceAud": null,
+      "availability": "available",
+      "featured": true,
+      "story": "The shepherd stood with his flock beneath a wide sky, the dogs circling with the quiet efficiency of long practice. Susan was drawn less to the figure than to the quality of light on the grasses — the particular gold of late afternoon in the Aubrac.",
+      "prototypeStory": true
+    },
+    {
+      "id": "water-trough",
+      "title": "Medieval Water Trough, Aubrac",
+      "image": "/images/artworks/water-trough.jpg",
+      "collection": "from-france",
+      "year": null,
+      "medium": "Watercolour on paper",
+      "dimensionsMm": "285 × 192",
+      "priceAud": null,
+      "availability": "sold",
+      "featured": false,
+      "story": "I found the wide Aubrac landscape mesmerising and its historical traces spoke to its history. The ancient stone trough had served travellers for centuries. Susan painted it not as a relic but as something still present — still holding water, still catching the morning light.",
+      "prototypeStory": true
+    },
+    {
+      "id": "friends-arcade",
+      "title": "Friends in the Arcade, SW France",
+      "image": "/images/artworks/friends-arcade.jpg",
+      "collection": "from-france",
+      "year": 2023,
+      "medium": "Watercolour on paper",
+      "dimensionsMm": "355 × 265",
+      "priceAud": null,
+      "availability": "sold",
+      "featured": true,
+      "story": "What a joy to find these friends playing together in a village, one Sunday afternoon. The arcade framed them perfectly — the deep shadow of the stone arch giving way to the sunlit courtyard beyond. Susan captured the easy companionship of the moment, the way their bodies leaned together in the game.",
+      "prototypeStory": true
+    },
+    {
+      "id": "frostie",
+      "title": "Frostie",
+      "image": "/images/artworks/Frostie0488w.jpg",
+      "collection": "quiet-weather",
+      "year": 2025,
+      "medium": "Watercolour on paper",
+      "dimensionsMm": null,
+      "priceAud": null,
+      "availability": "available",
+      "featured": true,
+      "story": "The frost had settled deep overnight, turning the paddocks to silver. Susan worked from the warmth of the kitchen window, watching the light change as the sun rose higher and the frost began its slow retreat to the fence lines. The painting captures that brief, crystalline hour before the world warms.",
+      "prototypeStory": true
+    },
+    {
+      "id": "lakehouse",
+      "title": "Lakehouse",
+      "image": "/images/artworks/Lakehouse5897w.jpg",
+      "collection": "quiet-weather",
+      "year": 2025,
+      "medium": "Watercolour on paper",
+      "dimensionsMm": null,
+      "priceAud": null,
+      "availability": "available",
+      "featured": false,
+      "story": "The house sat low against the water's edge, its modest form nearly absorbed by the surrounding trees. What held Susan's attention was the stillness of the lake surface and the way the house seemed to belong to the landscape as much as the rocks and reeds.",
+      "prototypeStory": true
+    },
+    {
+      "id": "chambert",
+      "title": "Chambert, France",
+      "image": "/images/artworks/SusanChambert.jpeg",
+      "collection": "from-france",
+      "year": null,
+      "medium": "Watercolour on paper",
+      "dimensionsMm": null,
+      "priceAud": null,
+      "availability": "available",
+      "featured": false,
+      "story": "The vines stood dark and bare beneath the winter ridge, their repeated shapes carrying the eye towards the pale distance. Susan was drawn less to the vineyard itself than to the cold blue light gathering between the rows — the brief hour when the land seemed to lose its colour yet become more intensely itself.",
+      "prototypeStory": true
+    }
+  ]
+}

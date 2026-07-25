@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Susan Czermak — Watercolours</title>
+<meta name="description" content="Watercolours of light, place and remembered moments by Susan Czermak — painted from landscapes encountered across Australia, Europe and beyond.">
+<meta property="og:title" content="Susan Czermak — Watercolours">
+<meta property="og:description" content="Watercolours of light, place and remembered moments.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #F4F0E7;
+  --gallery: #FAF9F5;
+  --charcoal: #252925;
+  --marine: #19394A;
+  --mist: #AAB8B5;
+  --olive: #858A72;
+  --terracotta: #A5573E;
+  --warm-grey: #8A8578;
+  --spacing-sm: clamp(1rem, 2vw, 2rem);
+  --spacing-md: clamp(2rem, 5vw, 5rem);
+  --spacing-lg: clamp(3rem, 8vw, 8rem);
+  --serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --max-width: 1200px;
+  --content-width: 720px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:17px}
+body{font-family:var(--sans);background:var(--gallery);color:var(--charcoal);line-height:1.7;font-weight:300}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+/* Typography */
+h1,h2,h3,h4{font-family:var(--serif);font-weight:500;line-height:1.2;color:var(--marine)}
+h1{font-size:clamp(2.2rem,5vw,3.6rem);font-weight:600}
+h2{font-size:clamp(1.8rem,4vw,2.8rem);margin-bottom:var(--spacing-sm)}
+h3{font-size:clamp(1.3rem,2.5vw,1.6rem)}
+.editorial{font-family:var(--serif);font-size:clamp(1.15rem,2.5vw,1.5rem);font-style:italic;line-height:1.6;color:var(--marine)}
+.label{font-family:var(--sans);font-size:.75rem;text-transform:uppercase;letter-spacing:.12em;color:var(--warm-grey);font-weight:500}
+/* Nav */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.25rem var(--spacing-sm);transition:background .4s,padding .4s}
+nav.scrolled{background:rgba(250,249,245,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:.8rem var(--spacing-sm);border-bottom:1px solid rgba(0,0,0,.04)}
+.nav-inner{max-width:var(--max-width);margin:0 auto;display:flex;justify-content:space-between;align-items:center}
+.nav-brand{font-family:var(--serif);font-size:1.35rem;font-weight:600;color:var(--marine);text-decoration:none;letter-spacing:.02em}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{text-decoration:none;color:var(--charcoal);font-size:.82rem;font-weight:400;letter-spacing:.03em;transition:color .3s}
+.nav-links a:hover{color:var(--terracotta)}
+/* Hero */
+.hero{position:relative;height:100vh;min-height:600px;display:flex;align-items:center;overflow:hidden}
+.hero-bg{position:absolute;inset:0}
+.hero-bg img{width:100%;height:100%;object-fit:cover;object-position:center 55%}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(to right,rgba(25,57,74,.35) 0%,rgba(25,57,74,.15) 40%,rgba(25,57,74,0) 70%)}
+.hero-content{position:relative;z-index:1;max-width:var(--max-width);margin:0 auto;padding:0 var(--spacing-sm);width:100%}
+.hero-content h1{color:#fff;margin-bottom:.5rem;text-shadow:0 1px 20px rgba(0,0,0,.2)}
+.hero-content .editorial{color:rgba(255,255,255,.85);font-size:clamp(1rem,2vw,1.25rem);font-style:normal;margin-bottom:.25rem}
+.hero-content .sub{color:rgba(255,255,255,.7);font-size:.9rem;margin-bottom:2.5rem}
+.hero-actions{display:flex;gap:1rem;flex-wrap:wrap}
+.btn{padding:.85rem 2rem;font-family:var(--sans);font-size:.82rem;text-decoration:none;border-radius:2px;transition:all .3s;cursor:pointer;border:none;letter-spacing:.03em;font-weight:400;display:inline-block}
+.btn-primary{background:var(--terracotta);color:#fff}
+.btn-primary:hover{background:#8a4632}
+.btn-outline{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.4)}
+.btn-outline:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.6)}
+.btn-secondary{background:transparent;color:var(--marine);border:1px solid var(--marine)}
+.btn-secondary:hover{background:var(--marine);color:#fff}
+/* Sections */
+.section{padding:var(--spacing-lg) var(--spacing-sm)}
+.section-inner{max-width:var(--max-width);margin:0 auto}
+.section-narrow{max-width:var(--content-width);margin:0 auto}
+/* Curatorial */
+.curatorial{background:var(--paper)}
+.curatorial p{font-family:var(--serif);font-size:clamp(1.3rem,3vw,1.7rem);font-style:italic;line-height:1.55;color:var(--marine)}
+/* Featured works */
+.works-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:2.5rem;margin-top:var(--spacing-md)}
+.work-card{position:relative}
+.work-card img{width:100%;height:auto;display:block;transition:transform .5s ease;cursor:pointer}
+.work-card:hover img{transform:scale(1.02)}
+.work-card.tall{grid-row:span 2}
+.work-card.wide{grid-column:span 2}
+@media(max-width:768px){.work-card.wide{grid-column:span 1}}
+.work-meta{padding-top:1rem}
+.work-meta h3{font-size:1.15rem;margin-bottom:.15rem}
+.work-meta .label{display:block}
+.availability{display:inline-block;font-size:.7rem;padding:.2rem .6rem;border-radius:1px;margin-top:.3rem;letter-spacing:.04em}
+.av-available{background:#e8f0e8;color:#3d6b3d}
+.av-sold{background:#f0e8e8;color:#8b3d3d}
+.av-print{background:#e8ecf0;color:#3d5b8b}
+/* Feature story */
+.feature-story{display:grid;grid-template-columns:1fr 1fr;gap:var(--spacing-md);align-items:center}
+@media(max-width:768px){.feature-story{grid-template-columns:1fr}}
+.feature-image img{width:100%;height:auto;display:block}
+.feature-text h2{margin-bottom:1rem}
+.feature-text .detail-crop{margin:1.5rem 0}
+.feature-text .detail-crop img{width:100%;max-width:300px}
+.feature-text blockquote{font-family:var(--serif);font-style:italic;font-size:1.15rem;color:var(--marine);padding:1rem 0;margin:1.5rem 0;border-left:3px solid var(--terracotta);padding-left:1.5rem}
+/* Journey */
+.journey{background:var(--paper)}
+.timeline{max-width:var(--content-width);margin:var(--spacing-md) auto 0}
+.timeline-item{display:grid;grid-template-columns:auto 1fr;gap:1.5rem;padding:1.25rem 0;border-bottom:1px solid rgba(0,0,0,.06)}
+.timeline-dot{width:10px;height:10px;background:var(--terracotta);border-radius:50%;margin-top:.45rem}
+.timeline-text h4{font-family:var(--sans);font-size:.95rem;font-weight:500;color:var(--charcoal);margin-bottom:.2rem}
+.timeline-text p{font-size:.85rem;color:var(--warm-grey);line-height:1.5}
+/* Collections */
+.collections-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1.5rem;margin-top:var(--spacing-md)}
+.coll-card{position:relative;aspect-ratio:3/4;overflow:hidden;cursor:pointer;border-radius:2px}
+.coll-card img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.coll-card:hover img{transform:scale(1.04)}
+.coll-label{position:absolute;bottom:0;left:0;right:0;padding:1.5rem 1rem;background:linear-gradient(transparent,rgba(0,0,0,.6));color:#fff}
+.coll-label h4{color:#fff;font-size:1rem;margin-bottom:.2rem}
+.coll-label span{font-size:.75rem;opacity:.8}
+/* About */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--spacing-md);align-items:start}
+@media(max-width:768px){.about-grid{grid-template-columns:1fr}}
+.about-image img{width:100%;height:auto;display:block}
+/* Contact */
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--spacing-md)}
+@media(max-width:768px){.contact-grid{grid-template-columns:1fr}}
+.form-group{margin-bottom:1.25rem}
+.form-group label{display:block;font-size:.8rem;font-weight:500;margin-bottom:.3rem;color:var(--charcoal)}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:.75rem 1rem;border:1px solid rgba(0,0,0,.12);border-radius:2px;font-family:var(--sans);font-size:.9rem;background:var(--gallery);transition:border-color .3s}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{outline:none;border-color:var(--marine)}
+.form-group textarea{min-height:120px;resize:vertical}
+/* Footer */
+footer{background:var(--marine);color:rgba(255,255,255,.7);padding:var(--spacing-md) var(--spacing-sm);font-size:.82rem}
+.footer-inner{max-width:var(--max-width);margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+footer a{color:rgba(255,255,255,.9);text-decoration:none}
+footer a:hover{color:#fff}
+/* Prototype banner */
+.prototype-note{position:fixed;bottom:0;left:0;right:0;background:var(--marine);color:rgba(255,255,255,.8);text-align:center;padding:.5rem;font-size:.7rem;z-index:200;letter-spacing:.04em}
+/* Scroll reveal */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .8s ease,transform .8s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+/* Misc */
+.artwork-details{font-size:.85rem;color:var(--warm-grey);margin-top:.5rem}
+.artwork-details span{display:block}
+.text-center{text-align:center}
+.mt-md{margin-top:var(--spacing-md)}
+.mb-sm{margin-bottom:var(--spacing-sm)}
+/* Image placeholder fallback */
+img{background:var(--paper)}
+</style>
+</head>
+<body>
+
+<!-- Prototype Banner -->
+<div class="prototype-note">PROTOTYPE — Illustrative draft for review. Some artwork narratives are not yet confirmed by Susan.</div>
+
+<!-- Navigation -->
+<nav id="nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-brand">Susan Czermak</a>
+    <ul class="nav-links">
+      <li><a href="#work">Work</a></li>
+      <li><a href="#collections">Collections</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#visit">Visit</a></li>
+      <li><a href="#enquire">Enquire</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- SECTION 1: Hero -->
+<section class="hero" id="home">
+  <div class="hero-bg">
+    <img src="images/artworks/Czermak-LakeHawea-NewZealand.jpg" alt="Lake Hawea landscape watercolour by Susan Czermak"
+         onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg, #19394A, #AAB8B5)'">
+  </div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <p class="editorial">Light, Place &amp; Memory</p>
+    <h1>Susan Czermak</h1>
+    <p class="sub">Painted from landscapes encountered across Australia, Europe and beyond.</p>
+    <div class="hero-actions">
+      <a href="#work" class="btn btn-primary">View available works</a>
+      <a href="#about" class="btn btn-outline">Meet Susan</a>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 2: Curatorial Statement -->
+<section class="section curatorial" id="statement">
+  <div class="section-inner section-narrow reveal">
+    <p>&ldquo;Susan paints places she has stood within&thinsp;&mdash;&thinsp;tidal flats, quiet farms, village streets and working landscapes&thinsp;&mdash;&thinsp;preserving less the exact detail than the light and feeling that remained.&rdquo;</p>
+  </div>
+</section>
+
+<!-- SECTION 3: Featured Works -->
+<section class="section" id="work">
+  <div class="section-inner">
+    <div class="label reveal">Selected works</div>
+    <h2 class="reveal">Featured Paintings</h2>
+    <div class="works-grid">
+      <!-- Friends in the Arcade -->
+      <div class="work-card wide reveal">
+        <img src="images/artworks/friends-arcade.jpg" alt="Friends in the Arcade, SW France — watercolour painting by Susan Czermak" loading="lazy">
+        <div class="work-meta">
+          <h3>Friends in the Arcade</h3>
+          <span class="label">SW France &middot; 355×265 mm &middot; Watercolour</span>
+          <span class="availability av-sold">Sold</span>
+        </div>
+      </div>
+      <!-- Frostie -->
+      <div class="work-card reveal">
+        <img src="images/artworks/Frostie0488w.jpg" alt="Frostie — winter landscape watercolour by Susan Czermak" loading="lazy">
+        <div class="work-meta">
+          <h3>Frostie</h3>
+          <span class="label">Quiet Weather &middot; 2025 &middot; Watercolour</span>
+          <span class="availability av-available">Available</span>
+        </div>
+      </div>
+      <!-- Two Dinghies -->
+      <div class="work-card reveal">
+        <img src="images/artworks/CzermakDinghiesPortugal.jpeg" alt="Two Dinghies, Portugal — watercolour painting by Susan Czermak" loading="lazy">
+        <div class="work-meta">
+          <h3>Two Dinghies, Portugal</h3>
+          <span class="label">By the Water &middot; Watercolour</span>
+          <span class="availability av-print">Print only</span>
+        </div>
+      </div>
+      <!-- Shepherd -->
+      <div class="work-card wide reveal">
+        <img src="images/artworks/CzermakShepherd1000.jpeg" alt="The Shepherd, France — watercolour painting by Susan Czermak" loading="lazy">
+        <div class="work-meta">
+          <h3>The Shepherd, France</h3>
+          <span class="label">From France &middot; Watercolour</span>
+          <span class="availability av-available">Available</span>
+        </div>
+      </div>
+      <!-- Lakehouse -->
+      <div class="work-card reveal">
+        <img src="images/artworks/Lakehouse5897w.jpg" alt="Lakehouse — watercolour painting by Susan Czermak" loading="lazy">
+        <div class="work-meta">
+          <h3>Lakehouse</h3>
+          <span class="label">Quiet Weather &middot; 2025 &middot; Watercolour</span>
+          <span class="availability av-available">Available</span>
+        </div>
+      </div>
+      <!-- Chambert -->
+      <div class="work-card reveal">
+        <img src="images/artworks/SusanChambert.jpeg" alt="Chambert, France — watercolour painting by Susan Czermak" loading="lazy">
+        <div class="work-meta">
+          <h3>Chambert, France</h3>
+          <span class="label">From France &middot; Watercolour</span>
+          <span class="availability av-available">Available</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 4: Feature Artwork Story -->
+<section class="section curatorial" id="story">
+  <div class="section-inner">
+    <div class="feature-story reveal">
+      <div class="feature-image">
+        <img src="images/artworks/friends-arcade.jpg" alt="Friends in the Arcade, SW France" loading="lazy">
+      </div>
+      <div class="feature-text">
+        <div class="label">The story behind</div>
+        <h2>Friends in the Arcade</h2>
+        <p>What a joy to find these friends playing together in a village, one Sunday afternoon. The arcade framed them perfectly — the deep shadow of the stone arch giving way to the sunlit courtyard beyond.</p>
+        <blockquote>&ldquo;Susan captured the easy companionship of the moment, the way their bodies leaned together in the game.&rdquo;</blockquote>
+        <div class="artwork-details">
+          <span>SW France &middot; 2023</span>
+          <span>Watercolour on paper &middot; 355 × 265 mm</span>
+          <span>Private collection — Sold</span>
+        </div>
+        <a href="#enquire" class="btn btn-secondary" style="margin-top:1.5rem">Enquire about similar works</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 5: Journey -->
+<section class="section journey" id="journey">
+  <div class="section-inner">
+    <div class="label reveal">From island shores to village lanes</div>
+    <h2 class="reveal">A life spent noticing places</h2>
+    <div class="timeline reveal">
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-text"><h4>Childhood on a small Scottish island</h4><p>Born to a marine biologist father, Susan grew up surrounded by water, weather and the changing light of the Hebrides.</p></div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-text"><h4>New Zealand, England, USA, Australia</h4><p>A life of movement and observation — living across continents, absorbing landscapes and cultures.</p></div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-text"><h4>From programming to painting</h4><p>Worked as a computer programmer, farmer and teacher before devoting herself fully to watercolour over twenty-five years ago.</p></div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-text"><h4>A decade in south-west France</h4><p>Lived for ten years in a French village, holding regular solo exhibitions since 2001.</p></div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-text"><h4>Internationally collected</h4><p>Work held in private collections across France, Italy, Germany, Holland, Belgium, Switzerland, the UK, USA, Canada, New Zealand and Australia.</p></div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-text"><h4>People's Choice Award, 2022</h4><p>Received at the Peninsula Studio Trail exhibition. Based now in the Melbourne area with her partner and two small dogs.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 6: Collections -->
+<section class="section" id="collections">
+  <div class="section-inner">
+    <div class="label reveal">Browse by theme</div>
+    <h2 class="reveal">Collections</h2>
+    <div class="collections-grid reveal">
+      <div class="coll-card"><img src="images/artworks/CzermakDinghiesPortugal.jpeg" alt="By the Water" loading="lazy"><div class="coll-label"><h4>By the Water</h4><span>Coastlines &amp; harbours</span></div></div>
+      <div class="coll-card"><img src="images/artworks/SusanChambert.jpeg" alt="Fields & Working Country" loading="lazy"><div class="coll-label"><h4>Fields &amp; Country</h4><span>Farmland &amp; vineyards</span></div></div>
+      <div class="coll-card"><img src="images/artworks/friends-arcade.jpg" alt="Villages & Roads" loading="lazy"><div class="coll-label"><h4>Villages &amp; Roads</h4><span>Markets &amp; lanes</span></div></div>
+      <div class="coll-card"><img src="images/artworks/CzermakShepherd1000.jpeg" alt="From France" loading="lazy"><div class="coll-label"><h4>From France</h4><span>The Aubrac &amp; beyond</span></div></div>
+      <div class="coll-card"><img src="images/artworks/Frostie0488w.jpg" alt="Quiet Weather" loading="lazy"><div class="coll-label"><h4>Quiet Weather</h4><span>Atmosphere &amp; light</span></div></div>
+      <div class="coll-card"><img src="images/artworks/Czermak-LakeHawea-NewZealand.jpg" alt="Travels Further Away" loading="lazy"><div class="coll-label"><h4>Travels Further</h4><span>New Zealand &amp; beyond</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 7: About -->
+<section class="section curatorial" id="about">
+  <div class="section-inner">
+    <div class="about-grid reveal">
+      <div class="about-image">
+        <div style="background:var(--mist);aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;border-radius:2px">
+          <span style="font-family:var(--serif);font-size:2rem;color:var(--marine);font-style:italic">SC</span>
+        </div>
+        <p class="label" style="margin-top:.5rem">Portrait photograph to be provided by Susan</p>
+      </div>
+      <div>
+        <div class="label">About the artist</div>
+        <h2>A life spent noticing places</h2>
+        <p>Susan Czermak is a watercolourist with a style that is colourful and bold. Her love of environments and their hues can be seen in her mood-filled paintings that capture everyday moments of interest.</p>
+        <p style="margin-top:1rem">A lover of travelling, Susan has lived in Scotland, New Zealand, England, USA, France and Australia. A realist painter inspired by the impressionists, her artworks capture her observations from around the globe. With a focus on land and streetscapes and interest in exploring light and shade, her paintings reflect on places and moments of delight.</p>
+        <p style="margin-top:1rem">She has exhibited extensively in France and Australia. Her art is internationally collected and can be found in private collections across Europe, the UK, USA, Canada, New Zealand and Australia.</p>
+        <p style="margin-top:1rem">Susan's studio is located in the Melbourne area of Victoria where she lives with her partner and two small dogs.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 8: Contact / Studio Visit -->
+<section class="section" id="visit">
+  <div class="section-inner">
+    <div class="label reveal">Get in touch</div>
+    <h2 class="reveal" id="enquire">Visit Susan's studio or ask about a painting</h2>
+    <div class="contact-grid reveal">
+      <div>
+        <h3>Enquire about a work</h3>
+        <p style="margin-bottom:1.5rem;font-size:.9rem">No obligation — just a conversation about a painting you're drawn to.</p>
+        <form id="enquiry-form">
+          <div class="form-group"><label for="name">Name</label><input type="text" id="name" required></div>
+          <div class="form-group"><label for="email">Email</label><input type="email" id="email" required></div>
+          <div class="form-group"><label for="artwork">Artwork you're interested in</label><input type="text" id="artwork" placeholder="e.g. Frostie, Lakehouse..."></div>
+          <div class="form-group"><label for="message">Message</label><textarea id="message"></textarea></div>
+          <div class="form-group"><label><input type="checkbox" style="width:auto;margin-right:.5rem">I'd like framing or delivery information</label></div>
+          <button type="submit" class="btn btn-primary">Send enquiry</button>
+        </form>
+        <div id="form-success" style="display:none;padding:2rem;text-align:center">
+          <p style="font-family:var(--serif);font-size:1.3rem;color:var(--marine)">Thank you. Susan will respond personally.</p>
+          <p style="font-size:.9rem;color:var(--warm-grey);margin-top:.5rem">Enquiries are always welcome and carry no obligation.</p>
+        </div>
+      </div>
+      <div>
+        <h3>Studio visits</h3>
+        <p style="margin-bottom:1rem;font-size:.9rem">Susan opens her Melbourne-area studio during the annual Peninsula Studio Trail and by appointment.</p>
+        <div class="artwork-details">
+          <span>Melbourne area, Victoria, Australia</span>
+          <span style="margin-top:.5rem">Studio visits by arrangement</span>
+          <span>Occasional studio notes available by request</span>
+        </div>
+        <div style="margin-top:2rem;padding:1.5rem;background:var(--paper);border-radius:2px">
+          <p style="font-family:var(--serif);font-style:italic;font-size:1.1rem;color:var(--marine)">&ldquo;Please don't hesitate to ask about a painting. I'm always happy to discuss the work.&rdquo;</p>
+          <p style="font-size:.8rem;color:var(--warm-grey);margin-top:.5rem">&mdash; Susan</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <p>&copy; Susan Czermak Watercolours</p>
+      <p style="font-size:.7rem;margin-top:.25rem"><a href="https://www.instagram.com/susanczermakartist/">Instagram</a> &middot; <a href="https://www.peninsulastudiotrailinc.org/artists/susan-czermak">Peninsula Studio Trail</a></p>
+    </div>
+    <div style="text-align:right">
+      <p><a href="#home">Home</a> &middot; <a href="#work">Work</a> &middot; <a href="#about">About</a> &middot; <a href="#visit">Contact</a></p>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Scroll reveal
+const observer=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')})},{threshold:.15});
+document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+
+// Nav scroll effect
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>{nav.classList.toggle('scrolled',window.scrollY>50)});
+
+// Form handling (prototype only — does not send)
+document.getElementById('enquiry-form').addEventListener('submit',e=>{
+  e.preventDefault();
+  document.getElementById('enquiry-form').style.display='none';
+  document.getElementById('form-success').style.display='block';
+});
+
+// Smooth reveal on load
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelector('.hero-content').style.opacity='1';
+});
+</script>
+
+</body>
+</html>
