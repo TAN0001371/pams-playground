@@ -20,7 +20,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
   }
   canvas {
     border-radius: 12px;
@@ -39,17 +39,21 @@
     border-radius: 10px;
     min-width: 100px;
   }
-  .score-left { background: #e94560; }
-  .score-right { background: #0f3460; }
-  .score-label { font-size: 12px; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; }
+  .score-left { background: #00e676; }
+  .score-right { background: #ff6d00; }
+  .score-label { font-size: 12px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; }
   .score-num { font-size: 36px; line-height: 1.2; }
-  .key-hint { color: #888; font-size: 12px; margin-top: 4px; }
+  .key-hint { color: #888; font-size: 12px; }
   #message {
     color: #ffd700;
     font-size: 18px;
     min-height: 28px;
     text-align: center;
     font-weight: 600;
+  }
+  #speed-display {
+    color: #aaa;
+    font-size: 11px;
   }
 </style>
 </head>
@@ -67,7 +71,8 @@
   </div>
   <canvas id="game" width="800" height="450"></canvas>
   <div id="message">Press SPACE to start!</div>
-  <div class="key-hint">Leo: W / S &nbsp;|&nbsp; Nate: ↑ / ↓</div>
+  <div class="key-hint">Leo: W / S &nbsp;|&nbsp; Nate: ↑ / ↓ &nbsp;|&nbsp; Scroll to change speed</div>
+  <div id="speed-display">Speed: 1.0x</div>
 </div>
 
 <script>
@@ -76,19 +81,34 @@ const ctx = canvas.getContext('2d');
 const msgEl = document.getElementById('message');
 const scoreLeftEl = document.getElementById('score-left');
 const scoreRightEl = document.getElementById('score-right');
+const speedDisplay = document.getElementById('speed-display');
 
 const WIN_SCORE = 5;
 
-// Paddles
+// Paddles — Nate's is twice as tall
 const PADDLE_W = 16;
-const PADDLE_H = 110;
+const LEFT_PADDLE_H = 90;
+const RIGHT_PADDLE_H = 180;
 const PADDLE_SPEED = 6;
 
 // Ball
 const BALL_R = 12;
 const INITIAL_BALL_SPEED = 4.5;
-const MAX_BALL_SPEED = 12;
+const MAX_BALL_SPEED = 14;
 const SPEED_INC = 0.4;
+
+// Bomb
+const BOMB_R = 14;
+const BOMB_MIN_INTERVAL = 6000;  // ms between bomb spawns
+const BOMB_MAX_INTERVAL = 14000;
+const BOMB_LIFETIME = 5000;      // ms before bomb disappears
+
+// Colors
+const LEO_COLOR = '#00e676';
+const NATE_COLOR = '#ff6d00';
+const LEO_GLOW = '#00ff7b';
+const NATE_GLOW = '#ff9100';
+const BOMB_COLOR = '#ff1744';
 
 // State
 let leftY, rightY;
@@ -99,24 +119,29 @@ let gameOver = false;
 let keys = {};
 let particles = [];
 let hitFlash = 0;
+let speedMultiplier = 1.0;
+let bomb = null;
+let nextBombTime = 0;
 
 function resetBall(direction) {
   ballX = canvas.width / 2;
   ballY = canvas.height / 2;
-  const speed = INITIAL_BALL_SPEED;
-  const angle = (Math.random() * 0.8 - 0.4); // -0.4 to 0.4 radians
+  const speed = INITIAL_BALL_SPEED * speedMultiplier;
+  const angle = (Math.random() * 0.8 - 0.4);
   ballDX = direction * speed * Math.cos(angle);
   ballDY = speed * Math.sin(angle);
 }
 
 function resetGame() {
-  leftY = canvas.height / 2 - PADDLE_H / 2;
-  rightY = canvas.height / 2 - PADDLE_H / 2;
+  leftY = canvas.height / 2 - LEFT_PADDLE_H / 2;
+  rightY = canvas.height / 2 - RIGHT_PADDLE_H / 2;
   scoreLeft = 0;
   scoreRight = 0;
   gameOver = false;
   particles = [];
   hitFlash = 0;
+  bomb = null;
+  nextBombTime = performance.now() + 3000;
   updateScore();
   resetBall(Math.random() > 0.5 ? 1 : -1);
 }
@@ -126,27 +151,44 @@ function updateScore() {
   scoreRightEl.textContent = scoreRight;
 }
 
-function spawnParticles(x, y, color) {
-  for (let i = 0; i < 12; i++) {
+function spawnParticles(x, y, color, count, spread) {
+  count = count || 12;
+  spread = spread || 5;
+  for (let i = 0; i < count; i++) {
     particles.push({
       x, y,
-      vx: (Math.random() - 0.5) * 5,
-      vy: (Math.random() - 0.5) * 5,
+      vx: (Math.random() - 0.5) * spread * 2,
+      vy: (Math.random() - 0.5) * spread * 2,
       life: 1,
-      decay: 0.02 + Math.random() * 0.04,
+      decay: 0.015 + Math.random() * 0.04,
       color,
-      size: 2 + Math.random() * 4
+      size: 2 + Math.random() * 5
     });
   }
 }
 
-function drawPaddle(x, y, color) {
-  // Glow
-  ctx.shadowColor = color;
+function spawnBomb() {
+  const margin = 80;
+  bomb = {
+    x: margin + Math.random() * (canvas.width - margin * 2),
+    y: margin + Math.random() * (canvas.height - margin * 2),
+    born: performance.now(),
+    pulse: 0
+  };
+}
+
+function drawPaddle(x, y, h, color, glowColor) {
+  ctx.shadowColor = glowColor;
   ctx.shadowBlur = 15;
+  // Main body
   ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.roundRect(x, y, PADDLE_W, PADDLE_H, 8);
+  ctx.roundRect(x, y, PADDLE_W, h, 8);
+  ctx.fill();
+  // Highlight
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.beginPath();
+  ctx.roundRect(x + 3, y + 4, PADDLE_W - 6, h - 8, 6);
   ctx.fill();
   ctx.shadowBlur = 0;
 }
@@ -165,8 +207,71 @@ function drawBall(x, y) {
   ctx.shadowBlur = 0;
 }
 
+function drawBomb() {
+  if (!bomb) return;
+  const age = performance.now() - bomb.born;
+  const lifeLeft = 1 - age / BOMB_LIFETIME;
+
+  // Pulsing
+  bomb.pulse += 0.08;
+  const scale = 1 + Math.sin(bomb.pulse) * 0.15;
+
+  // Fuse spark
+  const sparkAngle = performance.now() * 0.01;
+  const sparkX = bomb.x + BOMB_R * 0.7;
+  const sparkY = bomb.y - BOMB_R * 0.7;
+
+  // Flicker warning when about to expire
+  if (lifeLeft < 0.3 && Math.floor(performance.now() / 150) % 2 === 0) return;
+
+  // Glow
+  ctx.shadowColor = BOMB_COLOR;
+  ctx.shadowBlur = 20;
+
+  // Bomb body
+  const r = BOMB_R * scale;
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath();
+  ctx.arc(bomb.x, bomb.y, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Skull-ish face
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#ff5252';
+  // Eyes
+  ctx.beginPath();
+  ctx.arc(bomb.x - r * 0.35, bomb.y - r * 0.1, r * 0.2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(bomb.x + r * 0.35, bomb.y - r * 0.1, r * 0.2, 0, Math.PI * 2);
+  ctx.fill();
+  // Mouth
+  ctx.strokeStyle = '#ff5252';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(bomb.x, bomb.y + r * 0.4, r * 0.25, 0, Math.PI);
+  ctx.stroke();
+
+  // Fuse
+  ctx.strokeStyle = '#8d6e63';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(bomb.x + r * 0.5, bomb.y - r * 0.5);
+  ctx.quadraticCurveTo(bomb.x + r * 0.8, bomb.y - r * 0.9, sparkX, sparkY);
+  ctx.stroke();
+
+  // Spark
+  ctx.fillStyle = `hsl(${Math.random() * 40 + 15}, 100%, ${Math.random() * 30 + 50}%)`;
+  ctx.beginPath();
+  ctx.arc(sparkX, sparkY, 2 + Math.random() * 3, 0, Math.PI * 2);
+  ctx.fill();
+}
+
 function drawCenterLine() {
-  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
   ctx.setLineDash([10, 15]);
   ctx.lineWidth = 3;
   ctx.beginPath();
@@ -190,6 +295,9 @@ function draw() {
 
   drawCenterLine();
 
+  // Bomb
+  drawBomb();
+
   // Particles
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
@@ -206,21 +314,21 @@ function draw() {
   ctx.globalAlpha = 1;
 
   // Paddles
-  drawPaddle(0, leftY, '#e94560');
-  drawPaddle(canvas.width - PADDLE_W, rightY, '#0f3460');
+  drawPaddle(0, leftY, LEFT_PADDLE_H, LEO_COLOR, LEO_GLOW);
+  drawPaddle(canvas.width - PADDLE_W, rightY, RIGHT_PADDLE_H, NATE_COLOR, NATE_GLOW);
 
   // Ball
   drawBall(ballX, ballY);
 }
 
-function update() {
+function update(now) {
   if (!gameRunning || gameOver) return;
 
   // Paddle movement
   if (keys['w'] || keys['W']) leftY = Math.max(0, leftY - PADDLE_SPEED);
-  if (keys['s'] || keys['S']) leftY = Math.min(canvas.height - PADDLE_H, leftY + PADDLE_SPEED);
+  if (keys['s'] || keys['S']) leftY = Math.min(canvas.height - LEFT_PADDLE_H, leftY + PADDLE_SPEED);
   if (keys['ArrowUp']) rightY = Math.max(0, rightY - PADDLE_SPEED);
-  if (keys['ArrowDown']) rightY = Math.min(canvas.height - PADDLE_H, rightY + PADDLE_SPEED);
+  if (keys['ArrowDown']) rightY = Math.min(canvas.height - RIGHT_PADDLE_H, rightY + PADDLE_SPEED);
 
   // Ball movement
   ballX += ballDX;
@@ -236,48 +344,92 @@ function update() {
     ballDY = -Math.abs(ballDY);
   }
 
+  // Bomb spawn
+  if (!bomb && now >= nextBombTime) {
+    spawnBomb();
+    nextBombTime = now + BOMB_MIN_INTERVAL + Math.random() * (BOMB_MAX_INTERVAL - BOMB_MIN_INTERVAL);
+  }
+
+  // Bomb lifetime
+  if (bomb && now - bomb.born > BOMB_LIFETIME) {
+    bomb = null;
+  }
+
+  // Bomb collision
+  if (bomb) {
+    const dx = ballX - bomb.x;
+    const dy = ballY - bomb.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < BALL_R + BOMB_R) {
+      // BOOM! Launch ball toward opponent
+      const towardRight = ballDX > 0;
+      const angle = (Math.random() * 0.6 - 0.3);
+      const speed = (INITIAL_BALL_SPEED + 3) * speedMultiplier;
+      if (towardRight) {
+        // Ball was going right — knock it left (toward Leo)
+        ballDX = -speed * Math.cos(angle);
+        ballDY = speed * Math.sin(angle);
+      } else {
+        // Ball was going left — knock it right (toward Nate)
+        ballDX = speed * Math.cos(angle);
+        ballDY = speed * Math.sin(angle);
+      }
+      // Push ball outside bomb
+      const pushAngle = Math.atan2(dy, dx);
+      ballX = bomb.x + Math.cos(pushAngle) * (BALL_R + BOMB_R + 2);
+      ballY = bomb.y + Math.sin(pushAngle) * (BALL_R + BOMB_R + 2);
+
+      // Big explosion
+      spawnParticles(bomb.x, bomb.y, '#ff1744', 40, 8);
+      spawnParticles(bomb.x, bomb.y, '#ff9100', 25, 6);
+      spawnParticles(bomb.x, bomb.y, '#ffd700', 15, 4);
+      hitFlash = 1.5;
+
+      bomb = null;
+    }
+  }
+
   // Left paddle hit
   if (ballX - BALL_R <= PADDLE_W &&
-      ballY >= leftY && ballY <= leftY + PADDLE_H &&
+      ballY >= leftY && ballY <= leftY + LEFT_PADDLE_H &&
       ballDX < 0) {
     ballX = PADDLE_W + BALL_R;
     ballDX = Math.abs(ballDX);
-    // Adjust angle based on where ball hits paddle
-    const hitPos = (ballY - leftY) / PADDLE_H; // 0 to 1
+    const hitPos = (ballY - leftY) / LEFT_PADDLE_H;
     const maxAngle = 0.8;
     ballDY = (hitPos - 0.5) * 2 * maxAngle * ballDX;
-    // Speed up
     const currentSpeed = Math.sqrt(ballDX * ballDX + ballDY * ballDY);
-    const newSpeed = Math.min(currentSpeed + SPEED_INC, MAX_BALL_SPEED);
+    const newSpeed = Math.min(currentSpeed + SPEED_INC, MAX_BALL_SPEED * speedMultiplier);
     const scale = newSpeed / currentSpeed;
     ballDX *= scale;
     ballDY *= scale;
-    spawnParticles(ballX + BALL_R, ballY, '#e94560');
-    hitFlash = 1;
+    spawnParticles(ballX + BALL_R, ballY, LEO_COLOR, 10, 4);
+    hitFlash = 0.8;
   }
 
   // Right paddle hit
   if (ballX + BALL_R >= canvas.width - PADDLE_W &&
-      ballY >= rightY && ballY <= rightY + PADDLE_H &&
+      ballY >= rightY && ballY <= rightY + RIGHT_PADDLE_H &&
       ballDX > 0) {
     ballX = canvas.width - PADDLE_W - BALL_R;
     ballDX = -Math.abs(ballDX);
-    const hitPos = (ballY - rightY) / PADDLE_H;
+    const hitPos = (ballY - rightY) / RIGHT_PADDLE_H;
     const maxAngle = 0.8;
     ballDY = (hitPos - 0.5) * 2 * maxAngle * Math.abs(ballDX);
     const currentSpeed = Math.sqrt(ballDX * ballDX + ballDY * ballDY);
-    const newSpeed = Math.min(currentSpeed + SPEED_INC, MAX_BALL_SPEED);
+    const newSpeed = Math.min(currentSpeed + SPEED_INC, MAX_BALL_SPEED * speedMultiplier);
     const scale = newSpeed / currentSpeed;
     ballDX *= scale;
     ballDY *= scale;
-    spawnParticles(ballX - BALL_R, ballY, '#0f3460');
-    hitFlash = 1;
+    spawnParticles(ballX - BALL_R, ballY, NATE_COLOR, 10, 4);
+    hitFlash = 0.8;
   }
 
   // Scoring
   if (ballX < -BALL_R * 2) {
     scoreRight++;
     updateScore();
+    bomb = null;
     if (scoreRight >= WIN_SCORE) {
       gameOver = true;
       gameRunning = false;
@@ -290,6 +442,7 @@ function update() {
   if (ballX > canvas.width + BALL_R * 2) {
     scoreLeft++;
     updateScore();
+    bomb = null;
     if (scoreLeft >= WIN_SCORE) {
       gameOver = true;
       gameRunning = false;
@@ -301,8 +454,8 @@ function update() {
   }
 }
 
-function gameLoop() {
-  update();
+function gameLoop(now) {
+  update(now);
   draw();
   requestAnimationFrame(gameLoop);
 }
@@ -317,13 +470,14 @@ window.addEventListener('keydown', e => {
       resetGame();
       gameRunning = true;
       msgEl.textContent = 'Go!';
+      nextBombTime = performance.now() + 3000;
     } else if (!gameRunning) {
       gameRunning = true;
       msgEl.textContent = 'Go!';
+      nextBombTime = performance.now() + 3000;
     }
   }
 
-  // Prevent arrow scrolling
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
     e.preventDefault();
   }
@@ -333,9 +487,32 @@ window.addEventListener('keyup', e => {
   keys[e.key] = false;
 });
 
+window.addEventListener('wheel', e => {
+  e.preventDefault();
+  speedMultiplier = Math.max(0.5, Math.min(3.0, speedMultiplier - e.deltaY * 0.002));
+  speedMultiplier = Math.round(speedMultiplier * 10) / 10;
+  speedDisplay.textContent = `Speed: ${speedMultiplier.toFixed(1)}x`;
+
+  // Update ball speed proportionally
+  if (gameRunning && !gameOver) {
+    const currentSpeed = Math.sqrt(ballDX * ballDX + ballDY * ballDY);
+    const targetSpeed = Math.min(currentSpeed, MAX_BALL_SPEED * speedMultiplier);
+    if (currentSpeed > 0) {
+      const scale = targetSpeed / currentSpeed;
+      ballDX *= scale;
+      ballDY *= scale;
+    }
+  }
+}, { passive: false });
+
+// Prevent page zoom on wheel
+document.addEventListener('wheel', e => {
+  if (e.ctrlKey || e.metaKey) e.preventDefault();
+}, { passive: false });
+
 // reset initial
 resetGame();
-gameLoop();
+requestAnimationFrame(gameLoop);
 </script>
 </body>
 </html>
