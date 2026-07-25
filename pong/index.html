@@ -385,8 +385,8 @@ function upd(now){
 
 function paddleHit(side){
   combo++;
-  const col=side==='left'?LC:NC;
-  spawn(side==='left'?PW+br:800-PW-br,by,col,14,6);spawn(side==='left'?PW+br:800-PW-br,by,'#fff',8,4);
+  const brr=ballR(), col=side==='left'?LC:NC;
+  spawn(side==='left'?PW+brr:800-PW-brr,by,col,14,6);spawn(side==='left'?PW+brr:800-PW-brr,by,'#fff',8,4);
   if(side==='left'){lp=-8;}else{rp=-8;if(nsml<.3)nsml=.5;}
   flash=.6;
 
@@ -399,10 +399,10 @@ function paddleHit(side){
 
   // Physics
   if(side==='left'){
-    bx=PW+br;bdx=Math.abs(bdx);const hp=(by-ly)/LPH;bdy=(hp-.5)*2*.8*bdx;
+    bx=PW+brr;bdx=Math.abs(bdx);const hp=(by-ly)/LPH;bdy=(hp-.5)*2*.8*bdx;
     const cs=Math.sqrt(bdx*bdx+bdy*bdy),ns=Math.min(cs+SI,MBS*smul);const sc=ns/cs;bdx*=sc;bdy*=sc;
   }else{
-    bx=800-PW-br;bdx=-Math.abs(bdx);const hp=(by-ry)/RPH;bdy=(hp-.5)*2*.8*Math.abs(bdx);
+    bx=800-PW-brr;bdx=-Math.abs(bdx);const hp=(by-ry)/RPH;bdy=(hp-.5)*2*.8*Math.abs(bdx);
     const cs=Math.sqrt(bdx*bdx+bdy*bdy),ns=Math.min(cs+SI,MBS*smul);const sc=ns/cs;bdx*=sc;bdy*=sc;
   }
 }
