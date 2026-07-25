@@ -55,7 +55,7 @@ let combo=0,lastScorer=null,streak=0,bgHue=240;
 let lastLeftMiss=false,lastRightMiss=false;
 
 // CHAOS MODE
-let chaos=false,portals=[],ghostBalls=[],wobbleNext=0,ghostNext=0;
+let chaos=false,portals=[],ghostBalls=[],wobbleNext=0,ghostNext=0,portalCd=0;
 const GRAV_X=400,GRAV_Y=225;
 
 const stars=Array.from({length:40},()=>({x:Math.random()*800,y:Math.random()*450,r:Math.random()*1.3+.4,ph:Math.random()*PI2,sp:Math.random()*.02+.005}));
@@ -283,7 +283,7 @@ function applyChaosBall(now){
     if(Math.random()<.3)spawn(bx,by,'#ff00ff',5,3);
   }
   // Portal teleport
-  if(portals.length===2){
+  if(portals.length===2&&now>portalCd){
     for(let i=0;i<2;i++){
       const p=portals[i],dx=bx-p.x,dy=by-p.y;
       if(Math.sqrt(dx*dx+dy*dy)<PORTAL_R+ballR()){
@@ -293,7 +293,7 @@ function applyChaosBall(now){
         bdx=Math.cos(a)*sp;bdy=Math.sin(a)*sp;
         spawn(p.x,p.y,'#aa00ff',20,6);spawn(dest.x,dest.y,'#aa00ff',20,6);
         sft(bx,by,'🌀 TELEPORT!','#aa00ff',32);
-        flash=.6;break;
+        portalCd=now+800;flash=.6;break;
       }
     }
   }
