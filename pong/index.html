@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pong!</title>
+<title>PONG BLAST!</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    background: #1a1a2e;
+    background: #0d0d2b;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -15,16 +15,17 @@
     font-family: 'Segoe UI', system-ui, sans-serif;
     overflow: hidden;
     user-select: none;
+    cursor: default;
   }
   #game-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
   }
   canvas {
-    border-radius: 12px;
-    box-shadow: 0 0 40px rgba(100, 100, 255, 0.3);
+    border-radius: 14px;
+    box-shadow: 0 0 50px rgba(120, 80, 255, 0.35);
   }
   #scoreboard {
     display: flex;
@@ -36,42 +37,49 @@
   .score-box {
     text-align: center;
     padding: 10px 24px;
-    border-radius: 10px;
+    border-radius: 12px;
     min-width: 100px;
+    transition: transform 0.2s;
   }
   .score-left { background: #00e676; }
   .score-right { background: #ff6d00; }
+  .score-bump { transform: scale(1.2); }
   .score-label { font-size: 12px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; }
-  .score-num { font-size: 36px; line-height: 1.2; }
-  .key-hint { color: #888; font-size: 12px; }
+  .score-num { font-size: 38px; line-height: 1.2; }
+  .key-hint { color: #888; font-size: 11px; }
   #message {
     color: #ffd700;
-    font-size: 18px;
-    min-height: 28px;
+    font-size: 16px;
+    min-height: 24px;
     text-align: center;
     font-weight: 600;
   }
-  #speed-display {
-    color: #aaa;
-    font-size: 11px;
+  #speed-display { color: #888; font-size: 10px; }
+  #powerup-indicator {
+    font-size: 18px;
+    min-height: 24px;
+    text-align: center;
+    color: #ffd700;
+    font-weight: 700;
   }
 </style>
 </head>
 <body>
 <div id="game-wrapper">
   <div id="scoreboard">
-    <div class="score-box score-left">
+    <div class="score-box score-left" id="score-box-left">
       <div class="score-label">Leo</div>
       <div class="score-num" id="score-left">0</div>
     </div>
-    <div class="score-box score-right">
+    <div class="score-box score-right" id="score-box-right">
       <div class="score-label">Nate</div>
       <div class="score-num" id="score-right">0</div>
     </div>
   </div>
   <canvas id="game" width="800" height="450"></canvas>
+  <div id="powerup-indicator"></div>
   <div id="message">Press SPACE to start!</div>
-  <div class="key-hint">Leo: W / S &nbsp;|&nbsp; Nate: ↑ / ↓ &nbsp;|&nbsp; Scroll to change speed</div>
+  <div class="key-hint">Leo: W / S &nbsp;|&nbsp; Nate: ↑ / ↓ &nbsp;|&nbsp; Scroll: speed</div>
   <div id="speed-display">Speed: 1.0x</div>
 </div>
 
@@ -81,69 +89,79 @@ const ctx = canvas.getContext('2d');
 const msgEl = document.getElementById('message');
 const scoreLeftEl = document.getElementById('score-left');
 const scoreRightEl = document.getElementById('score-right');
+const scoreBoxLeft = document.getElementById('score-box-left');
+const scoreBoxRight = document.getElementById('score-box-right');
 const speedDisplay = document.getElementById('speed-display');
+const powerupInd = document.getElementById('powerup-indicator');
 
 const WIN_SCORE = 5;
-
-// Paddles — Nate's is twice as tall
 const PADDLE_W = 16;
 const LEFT_PADDLE_H = 90;
 const RIGHT_PADDLE_H = 180;
 const PADDLE_SPEED = 6;
-
-// Ball
-const BALL_R = 12;
+const BALL_R = 14;
 const INITIAL_BALL_SPEED = 4.5;
 const MAX_BALL_SPEED = 14;
-const SPEED_INC = 0.4;
-
-// Bomb
+const SPEED_INC = 0.35;
 const BOMB_R = 14;
-const BOMB_MIN_INTERVAL = 6000;  // ms between bomb spawns
-const BOMB_MAX_INTERVAL = 14000;
-const BOMB_LIFETIME = 5000;      // ms before bomb disappears
-
-// Colors
+const BOMB_MIN_IVL = 7000;
+const BOMB_MAX_IVL = 15000;
+const BOMB_LIFE = 5000;
 const LEO_COLOR = '#00e676';
 const NATE_COLOR = '#ff6d00';
 const LEO_GLOW = '#00ff7b';
 const NATE_GLOW = '#ff9100';
-const BOMB_COLOR = '#ff1744';
 
 // State
-let leftY, rightY;
-let ballX, ballY, ballDX, ballDY;
-let scoreLeft, scoreRight;
-let gameRunning = false;
-let gameOver = false;
-let keys = {};
-let particles = [];
-let hitFlash = 0;
-let speedMultiplier = 1.0;
-let bomb = null;
-let nextBombTime = 0;
-let nateSmiley = 0;
-let nateTargetY = 0;
+let leftY, rightY, ballX, ballY, ballDX, ballDY, scoreLeft, scoreRight;
+let gameRunning = false, gameOver = false, keys = {};
+let particles = [], confetti = [], floatTexts = [], trail = [];
+let hitFlash = 0, shakeX = 0, shakeY = 0;
+let speedMul = 1.0;
+let bomb = null, nextBomb = 0;
+let nateSmiley = 0, nateTargetY = null;
+let leftPulse = 0, rightPulse = 0;
 
-function resetBall(direction) {
+// Power-up
+let powerup = null, nextPowerup = 0;
+let powerupActive = null, powerupEnd = 0;
+let ballFaceHappy = 0;
+
+// Background stars
+const bgStars = [];
+for (let i = 0; i < 60; i++) {
+  bgStars.push({
+    x: Math.random() * 800,
+    y: Math.random() * 450,
+    r: Math.random() * 1.8 + 0.5,
+    phase: Math.random() * Math.PI * 2,
+    speed: Math.random() * 0.02 + 0.005
+  });
+}
+
+function resetBall(d) {
   ballX = canvas.width / 2;
   ballY = canvas.height / 2;
-  const speed = INITIAL_BALL_SPEED * speedMultiplier;
-  const angle = (Math.random() * 0.8 - 0.4);
-  ballDX = direction * speed * Math.cos(angle);
-  ballDY = speed * Math.sin(angle);
+  const s = INITIAL_BALL_SPEED * speedMul;
+  const a = (Math.random() * 0.6 - 0.3);
+  ballDX = d * s * Math.cos(a);
+  ballDY = s * Math.sin(a);
+  trail = [];
+  ballFaceHappy = 0;
 }
 
 function resetGame() {
   leftY = canvas.height / 2 - LEFT_PADDLE_H / 2;
   rightY = canvas.height / 2 - RIGHT_PADDLE_H / 2;
-  scoreLeft = 0;
-  scoreRight = 0;
+  scoreLeft = 0; scoreRight = 0;
   gameOver = false;
-  particles = [];
-  hitFlash = 0;
-  bomb = null;
-  nextBombTime = performance.now() + 3000;
+  particles = []; confetti = []; floatTexts = []; trail = [];
+  hitFlash = 0; shakeX = 0; shakeY = 0;
+  bomb = null; powerup = null; powerupActive = null; powerupEnd = 0;
+  nextBomb = performance.now() + 4000;
+  nextPowerup = performance.now() + 8000;
+  nateSmiley = 0; nateTargetY = null;
+  leftPulse = 0; rightPulse = 0; ballFaceHappy = 0;
   updateScore();
   resetBall(Math.random() > 0.5 ? 1 : -1);
 }
@@ -153,56 +171,85 @@ function updateScore() {
   scoreRightEl.textContent = scoreRight;
 }
 
+// Particles - general
 function spawnParticles(x, y, color, count, spread) {
-  count = count || 12;
-  spread = spread || 5;
   for (let i = 0; i < count; i++) {
     particles.push({
-      x, y,
-      vx: (Math.random() - 0.5) * spread * 2,
-      vy: (Math.random() - 0.5) * spread * 2,
-      life: 1,
-      decay: 0.015 + Math.random() * 0.04,
-      color,
-      size: 2 + Math.random() * 5
+      x, y, vx: (Math.random() - 0.5) * spread * 2, vy: (Math.random() - 0.5) * spread * 2,
+      life: 1, decay: 0.012 + Math.random() * 0.04, color,
+      size: 2 + Math.random() * (color === '#ffd700' ? 7 : 5)
     });
   }
 }
 
+// Confetti - big colorful shapes
+const CONFETTI_COLORS = ['#ff0','#f0f','#0ff','#f00','#0f0','#00f','#ff8c00','#ff1493','#7fff00','#ffd700'];
+function spawnConfetti(x, y) {
+  for (let i = 0; i < 30; i++) {
+    confetti.push({
+      x, y, vx: (Math.random() - 0.5) * 10, vy: -6 - Math.random() * 8,
+      life: 1, decay: 0.008 + Math.random() * 0.02, color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+      w: 6 + Math.random() * 8, h: 4 + Math.random() * 6,
+      rot: Math.random() * Math.PI * 2, rotV: (Math.random() - 0.5) * 0.2
+    });
+  }
+}
+
+// Floating text
+function spawnFloatText(x, y, text, color) {
+  floatTexts.push({ x, y, text, color, life: 1, vy: -1.5 });
+}
+
+// Rainbow trail
+function addTrail() {
+  const hue = (performance.now() * 0.2) % 360;
+  trail.push({ x: ballX, y: ballY, hue, life: 1 });
+  if (trail.length > 15) trail.shift();
+}
+
 function spawnBomb() {
-  const margin = 80;
-  bomb = {
-    x: margin + Math.random() * (canvas.width - margin * 2),
-    y: margin + Math.random() * (canvas.height - margin * 2),
-    born: performance.now(),
+  bomb = { x: 100 + Math.random() * 600, y: 60 + Math.random() * 330, born: performance.now(), pulse: 0 };
+}
+
+function spawnPowerup() {
+  const types = ['big_ball', 'speed_boost', 'confetti_burst', 'tiny_ball'];
+  powerup = {
+    x: 150 + Math.random() * 500, y: -30, vy: 1.2 + Math.random(),
+    type: types[Math.floor(Math.random() * types.length)], born: performance.now(),
     pulse: 0
   };
 }
 
-function drawPaddle(x, y, h, color, glowColor) {
-  ctx.shadowColor = glowColor;
-  ctx.shadowBlur = 15;
-  // Main body
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.roundRect(x, y, PADDLE_W, h, 8);
-  ctx.fill();
-  // Highlight
-  ctx.fillStyle = 'rgba(255,255,255,0.3)';
-  ctx.beginPath();
-  ctx.roundRect(x + 3, y + 4, PADDLE_W - 6, h - 8, 6);
-  ctx.fill();
-  ctx.shadowBlur = 0;
+function activatePowerup(type) {
+  powerupActive = type;
+  powerupEnd = performance.now() + 4000;
+  ballFaceHappy = 1.5;
+  const msgs = {
+    big_ball: '🟡 BIG BALL!',
+    speed_boost: '⚡ ZOOM!',
+    confetti_burst: '🎉 PARTY!',
+    tiny_ball: '🔵 TINY BALL!'
+  };
+  powerupInd.textContent = msgs[type] || '';
+  spawnFloatText(400, 200, msgs[type], '#ffd700');
+}
+
+function getBallRadius() {
+  if (powerupActive === 'big_ball') return BALL_R * 2.5;
+  if (powerupActive === 'tiny_ball') return BALL_R * 0.45;
+  return BALL_R;
+}
+
+function getBallSpeed() {
+  if (powerupActive === 'speed_boost') return 1.6;
+  return 1;
 }
 
 function predictNateTarget() {
-  if (ballDX <= 0) return null;
-  let x = ballX;
-  let y = ballY;
-  let dy = ballDY;
+  if (ballDX <= 0 || gameOver || !gameRunning) return null;
+  let x = ballX, y = ballY, dy = ballDY;
   while (x < canvas.width - PADDLE_W) {
-    x += ballDX;
-    y += dy;
+    x += ballDX; y += dy;
     if (y - BALL_R <= 0) { y = BALL_R; dy = Math.abs(dy); }
     if (y + BALL_R >= canvas.height) { y = canvas.height - BALL_R; dy = -Math.abs(dy); }
     if (x >= canvas.width - PADDLE_W) return y;
@@ -210,331 +257,454 @@ function predictNateTarget() {
   return y;
 }
 
-function drawNateGuide(targetY) {
-  if (targetY === null) return;
-  const zoneH = RIGHT_PADDLE_H * 0.7;
-  const zoneTop = targetY - zoneH / 2;
-  const zoneX = canvas.width - PADDLE_W - 8;
+// === DRAWING ===
 
-  // Pulsing glow
-  const pulse = Math.sin(performance.now() * 0.005) * 0.15 + 0.35;
-  ctx.globalAlpha = pulse;
-
-  // Outer glow
-  const grad = ctx.createLinearGradient(zoneX, 0, canvas.width, 0);
-  grad.addColorStop(0, 'rgba(255, 109, 0, 0)');
-  grad.addColorStop(1, `rgba(255, 109, 0, ${pulse + 0.1})`);
-  ctx.fillStyle = grad;
-  ctx.fillRect(zoneX, zoneTop, PADDLE_W + 30, zoneH);
-
-  // Inner target box
-  ctx.strokeStyle = `rgba(255, 200, 100, ${pulse + 0.3})`;
-  ctx.lineWidth = 3;
-  ctx.setLineDash([6, 4]);
-  ctx.beginPath();
-  ctx.roundRect(zoneX + 2, zoneTop + 2, PADDLE_W + 26, zoneH - 4, 8);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  // Arrow hint
-  const paddleCenter = rightY + RIGHT_PADDLE_H / 2;
-  if (Math.abs(paddleCenter - targetY) > 20) {
-    const arrowY = zoneX + 18;
-    ctx.fillStyle = '#ffd700';
-    ctx.font = '22px sans-serif';
-    ctx.textAlign = 'center';
-    if (paddleCenter > targetY) {
-      ctx.fillText('▲', arrowY, targetY - 18);
-    } else {
-      ctx.fillText('▼', arrowY, targetY + zoneH / 2 + 22);
-    }
+function drawBgStars() {
+  for (const s of bgStars) {
+    s.phase += s.speed;
+    const alpha = 0.3 + Math.sin(s.phase) * 0.3;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fill();
   }
-
   ctx.globalAlpha = 1;
 }
 
-function drawNateSmiley() {
-  if (nateSmiley <= 0) return;
-  const sx = canvas.width - PADDLE_W - 20;
-  const sy = Math.max(20, rightY - 30);
-  ctx.globalAlpha = Math.min(1, nateSmiley);
-  ctx.font = '36px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('😊', sx, sy);
+function drawTrail() {
+  for (let i = 0; i < trail.length; i++) {
+    const t = trail[i];
+    t.life -= 0.03;
+    if (t.life <= 0) continue;
+    ctx.globalAlpha = t.life * 0.5;
+    ctx.fillStyle = `hsl(${t.hue}, 100%, 60%)`;
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, getBallRadius() * 0.7 * t.life, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  trail = trail.filter(t => t.life > 0);
   ctx.globalAlpha = 1;
 }
 
-function drawBall(x, y) {
-  const gradient = ctx.createRadialGradient(x - 2, y - 2, 2, x, y, BALL_R);
+function drawPaddle(x, y, h, color, glow, pulse) {
+  const ph = h + pulse;
+  const py = y - pulse / 2;
+  ctx.shadowColor = glow;
+  ctx.shadowBlur = 15 + Math.abs(pulse) * 0.5;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.roundRect(x, Math.max(0, py), PADDLE_W, Math.min(canvas.height, ph), 8);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.beginPath();
+  ctx.roundRect(x + 3, Math.max(0, py) + 4, PADDLE_W - 6, Math.min(canvas.height, ph) - 8, 6);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+function drawBallFace(r) {
+  // Eyes
+  const eyeR = r * 0.22;
+  const eyeY = -r * 0.15;
+  ctx.fillStyle = '#222';
+  ctx.beginPath();
+  ctx.arc(-r * 0.35, eyeY, eyeR, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(r * 0.35, eyeY, eyeR, 0, Math.PI * 2);
+  ctx.fill();
+  // Eye shine
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(-r * 0.3, eyeY - eyeR * 0.3, eyeR * 0.35, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(r * 0.4, eyeY - eyeR * 0.3, eyeR * 0.35, 0, Math.PI * 2);
+  ctx.fill();
+  // Mouth
+  if (ballFaceHappy > 0) {
+    // Big happy smile
+    ctx.strokeStyle = '#222';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, r * 0.05, r * 0.5, 0.2, Math.PI - 0.2);
+    ctx.stroke();
+  } else {
+    // Neutral/small smile
+    ctx.strokeStyle = '#222';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(0, r * 0.1, r * 0.35, 0.1, Math.PI - 0.1);
+    ctx.stroke();
+  }
+}
+
+function drawBall() {
+  const r = getBallRadius();
+  const gradient = ctx.createRadialGradient(ballX - 2, ballY - 2, r * 0.15, ballX, ballY, r);
   gradient.addColorStop(0, '#ffffff');
   gradient.addColorStop(0.6, '#ffd700');
   gradient.addColorStop(1, '#ff8c00');
   ctx.shadowColor = '#ffd700';
-  ctx.shadowBlur = 20;
+  ctx.shadowBlur = 22;
   ctx.fillStyle = gradient;
   ctx.beginPath();
-  ctx.arc(x, y, BALL_R, 0, Math.PI * 2);
+  ctx.arc(ballX, ballY, r, 0, Math.PI * 2);
   ctx.fill();
   ctx.shadowBlur = 0;
+
+  // Face (only if ball is normal-ish size)
+  if (r >= BALL_R * 0.5) {
+    ctx.save();
+    ctx.translate(ballX, ballY);
+    drawBallFace(r);
+    ctx.restore();
+  }
+
+  // Powerup glow
+  if (powerupActive) {
+    const age = (powerupEnd - performance.now()) / 4000;
+    ctx.strokeStyle = `rgba(255,255,255,${age * 0.5})`;
+    ctx.lineWidth = 3;
+    ctx.setLineDash([5, 5]);
+    ctx.lineDashOffset = -performance.now() * 0.1;
+    ctx.beginPath();
+    ctx.arc(ballX, ballY, r + 6, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
 }
 
 function drawBomb() {
   if (!bomb) return;
   const age = performance.now() - bomb.born;
-  const lifeLeft = 1 - age / BOMB_LIFETIME;
-
-  // Pulsing
+  const lifeLeft = 1 - age / BOMB_LIFE;
   bomb.pulse += 0.08;
-  const scale = 1 + Math.sin(bomb.pulse) * 0.15;
-
-  // Fuse spark
-  const sparkAngle = performance.now() * 0.01;
-  const sparkX = bomb.x + BOMB_R * 0.7;
-  const sparkY = bomb.y - BOMB_R * 0.7;
-
-  // Flicker warning when about to expire
+  const s = 1 + Math.sin(bomb.pulse) * 0.15;
   if (lifeLeft < 0.3 && Math.floor(performance.now() / 150) % 2 === 0) return;
-
-  // Glow
-  ctx.shadowColor = BOMB_COLOR;
-  ctx.shadowBlur = 20;
-
-  // Bomb body
-  const r = BOMB_R * scale;
+  const r = BOMB_R * s;
+  ctx.shadowColor = '#ff1744'; ctx.shadowBlur = 22;
+  // Body
   ctx.fillStyle = '#1a1a1a';
-  ctx.beginPath();
-  ctx.arc(bomb.x, bomb.y, r, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#333';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
-  // Skull-ish face
+  ctx.beginPath(); ctx.arc(bomb.x, bomb.y, r, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
   ctx.shadowBlur = 0;
+  // Face
   ctx.fillStyle = '#ff5252';
-  // Eyes
-  ctx.beginPath();
-  ctx.arc(bomb.x - r * 0.35, bomb.y - r * 0.1, r * 0.2, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(bomb.x + r * 0.35, bomb.y - r * 0.1, r * 0.2, 0, Math.PI * 2);
-  ctx.fill();
-  // Mouth
-  ctx.strokeStyle = '#ff5252';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(bomb.x, bomb.y + r * 0.4, r * 0.25, 0, Math.PI);
-  ctx.stroke();
-
+  ctx.beginPath(); ctx.arc(bomb.x - r * 0.35, bomb.y - r * 0.1, r * 0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(bomb.x + r * 0.35, bomb.y - r * 0.1, r * 0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#ff5252'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(bomb.x, bomb.y + r * 0.4, r * 0.25, 0, Math.PI); ctx.stroke();
   // Fuse
-  ctx.strokeStyle = '#8d6e63';
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = '#8d6e63'; ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(bomb.x + r * 0.5, bomb.y - r * 0.5);
-  ctx.quadraticCurveTo(bomb.x + r * 0.8, bomb.y - r * 0.9, sparkX, sparkY);
+  ctx.quadraticCurveTo(bomb.x + r * 0.8, bomb.y - r * 0.9, bomb.x + r * 0.8, bomb.y - r * 0.8);
   ctx.stroke();
-
   // Spark
   ctx.fillStyle = `hsl(${Math.random() * 40 + 15}, 100%, ${Math.random() * 30 + 50}%)`;
-  ctx.beginPath();
-  ctx.arc(sparkX, sparkY, 2 + Math.random() * 3, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(bomb.x + r * 0.8, bomb.y - r * 0.8, 2 + Math.random() * 3, 0, Math.PI * 2); ctx.fill();
 }
 
-function drawCenterLine() {
-  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
-  ctx.setLineDash([10, 15]);
-  ctx.lineWidth = 3;
+function drawPowerup() {
+  if (!powerup) return;
+  powerup.pulse += 0.06;
+  const s = 1 + Math.sin(powerup.pulse) * 0.2;
+  const r = 13 * s;
+  const x = powerup.x, y = powerup.y;
+
+  ctx.shadowColor = {big_ball:'#ffd700',speed_boost:'#00bfff',confetti_burst:'#ff69b4',tiny_ball:'#7b68ee'}[powerup.type];
+  ctx.shadowBlur = 25;
+
+  // Star shape
+  ctx.fillStyle = '#ffd700';
   ctx.beginPath();
-  ctx.moveTo(canvas.width / 2, 0);
-  ctx.lineTo(canvas.width / 2, canvas.height);
-  ctx.stroke();
-  ctx.setLineDash([]);
-}
-
-function draw() {
-  // Background
-  ctx.fillStyle = '#16213e';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // Hit flash
-  if (hitFlash > 0) {
-    ctx.fillStyle = `rgba(255, 255, 150, ${hitFlash * 0.15})`;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    hitFlash -= 0.03;
+  for (let i = 0; i < 5; i++) {
+    const angle = (i * Math.PI * 2) / 5 - Math.PI / 2;
+    const outX = x + Math.cos(angle) * r;
+    const outY = y + Math.sin(angle) * r;
+    const inAngle = angle + Math.PI / 5;
+    const inX = x + Math.cos(inAngle) * r * 0.45;
+    const inY = y + Math.sin(inAngle) * r * 0.45;
+    if (i === 0) ctx.moveTo(outX, outY);
+    else ctx.lineTo(outX, outY);
+    ctx.lineTo(inX, inY);
   }
+  ctx.closePath(); ctx.fill();
+  ctx.shadowBlur = 0;
 
-  drawCenterLine();
+  // Icon inside
+  ctx.fillStyle = '#fff';
+  ctx.font = '13px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const icons = {big_ball:'⬆',speed_boost:'⚡',confetti_burst:'🎉',tiny_ball:'🔹'};
+  ctx.fillText(icons[powerup.type], x, y + 1);
+}
 
-  // Bomb
-  drawBomb();
-
-  // Particles
-  for (let i = particles.length - 1; i >= 0; i--) {
-    const p = particles[i];
-    p.x += p.vx;
-    p.y += p.vy;
-    p.life -= p.decay;
-    if (p.life <= 0) { particles.splice(i, 1); continue; }
-    ctx.globalAlpha = p.life;
-    ctx.fillStyle = p.color;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-    ctx.fill();
+function drawNateGuide(targetY) {
+  if (targetY === null) return;
+  const zh = RIGHT_PADDLE_H;
+  const zt = Math.max(0, Math.min(canvas.height - zh, targetY - zh / 2));
+  const zx = canvas.width - PADDLE_W - 8;
+  const pulse = Math.sin(performance.now() * 0.005) * 0.2 + 0.4;
+  ctx.globalAlpha = pulse;
+  const grad = ctx.createLinearGradient(zx, 0, canvas.width, 0);
+  grad.addColorStop(0, 'rgba(255,109,0,0)');
+  grad.addColorStop(1, 'rgba(255,109,0,0.5)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(zx, zt, PADDLE_W + 30, zh);
+  ctx.strokeStyle = `rgba(255,200,100,${pulse + 0.2})`;
+  ctx.lineWidth = 3; ctx.setLineDash([6,4]);
+  ctx.beginPath(); ctx.roundRect(zx + 2, zt + 2, PADDLE_W + 26, zh - 4, 8); ctx.stroke();
+  ctx.setLineDash([]);
+  const pc = rightY + RIGHT_PADDLE_H / 2;
+  if (Math.abs(pc - targetY) > 20) {
+    ctx.fillStyle = '#ffd700'; ctx.font = '24px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(pc > targetY ? '▲' : '▼', zx + 18, pc > targetY ? zt - 10 : zt + zh + 22);
   }
   ctx.globalAlpha = 1;
-
-  // Nate's guide highlight
-  if (gameRunning && !gameOver) drawNateGuide(nateTargetY);
-
-  // Paddles
-  drawPaddle(0, leftY, LEFT_PADDLE_H, LEO_COLOR, LEO_GLOW);
-  drawPaddle(canvas.width - PADDLE_W, rightY, RIGHT_PADDLE_H, NATE_COLOR, NATE_GLOW);
-
-  // Smiley on Nate's paddle
-  drawNateSmiley();
-
-  // Ball
-  drawBall(ballX, ballY);
 }
+
+function drawNateSmiley() {
+  if (nateSmiley <= 0) return;
+  const sx = canvas.width - PADDLE_W - 16;
+  const sy = Math.max(26, rightY - 30);
+  ctx.globalAlpha = Math.min(1, nateSmiley);
+  ctx.font = '40px sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText('😊', sx, sy);
+  ctx.globalAlpha = 1;
+}
+
+function drawConfetti() {
+  for (let i = confetti.length - 1; i >= 0; i--) {
+    const c = confetti[i];
+    c.x += c.vx; c.y += c.vy; c.vy += 0.15; c.life -= c.decay; c.rot += c.rotV;
+    if (c.life <= 0) { confetti.splice(i, 1); continue; }
+    ctx.save();
+    ctx.globalAlpha = c.life;
+    ctx.translate(c.x, c.y); ctx.rotate(c.rot);
+    ctx.fillStyle = c.color;
+    ctx.fillRect(-c.w / 2, -c.h / 2, c.w, c.h);
+    ctx.restore();
+  }
+}
+
+function drawFloatTexts() {
+  for (let i = floatTexts.length - 1; i >= 0; i--) {
+    const t = floatTexts[i];
+    t.y += t.vy; t.life -= 0.015;
+    if (t.life <= 0) { floatTexts.splice(i, 1); continue; }
+    ctx.globalAlpha = t.life;
+    ctx.fillStyle = t.color;
+    ctx.font = 'bold 28px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(t.text, t.x, t.y);
+  }
+  ctx.globalAlpha = 1;
+}
+
+// === UPDATE ===
 
 function update(now) {
   if (!gameRunning || gameOver) return;
 
-  // Paddle movement
+  // Paddles
   if (keys['w'] || keys['W']) leftY = Math.max(0, leftY - PADDLE_SPEED);
   if (keys['s'] || keys['S']) leftY = Math.min(canvas.height - LEFT_PADDLE_H, leftY + PADDLE_SPEED);
   if (keys['ArrowUp']) rightY = Math.max(0, rightY - PADDLE_SPEED);
   if (keys['ArrowDown']) rightY = Math.min(canvas.height - RIGHT_PADDLE_H, rightY + PADDLE_SPEED);
 
-  // Decay smiley
-  if (nateSmiley > 0) nateSmiley -= 0.02;
+  // Decay
+  if (nateSmiley > 0) nateSmiley -= 0.018;
+  if (leftPulse !== 0) leftPulse *= 0.85;
+  if (rightPulse !== 0) rightPulse *= 0.85;
+  if (ballFaceHappy > 0) ballFaceHappy -= 0.01;
+  if (powerupActive && now > powerupEnd) { powerupActive = null; powerupInd.textContent = ''; }
 
-  // Update Nate's target guide
+  // Shake decay
+  if (shakeX !== 0) { shakeX *= -0.7; if (Math.abs(shakeX) < 0.5) shakeX = 0; }
+  if (shakeY !== 0) { shakeY *= -0.7; if (Math.abs(shakeY) < 0.5) shakeY = 0; }
+
+  // Guide
   nateTargetY = predictNateTarget();
 
-  // Ball movement
-  ballX += ballDX;
-  ballY += ballDY;
+  // Ball
+  const speedMod = getBallSpeed();
+  ballX += ballDX * speedMod;
+  ballY += ballDY * speedMod;
+  addTrail();
 
-  // Top/bottom bounce
-  if (ballY - BALL_R <= 0) {
-    ballY = BALL_R;
-    ballDY = Math.abs(ballDY);
-  }
-  if (ballY + BALL_R >= canvas.height) {
-    ballY = canvas.height - BALL_R;
-    ballDY = -Math.abs(ballDY);
-  }
+  // Top/bottom
+  if (ballY - getBallRadius() <= 0) { ballY = getBallRadius(); ballDY = Math.abs(ballDY); }
+  if (ballY + getBallRadius() >= canvas.height) { ballY = canvas.height - getBallRadius(); ballDY = -Math.abs(ballDY); }
 
   // Bomb spawn
-  if (!bomb && now >= nextBombTime) {
+  if (!bomb && !powerupActive && now >= nextBomb) {
     spawnBomb();
-    nextBombTime = now + BOMB_MIN_INTERVAL + Math.random() * (BOMB_MAX_INTERVAL - BOMB_MIN_INTERVAL);
+    nextBomb = now + BOMB_MIN_IVL + Math.random() * (BOMB_MAX_IVL - BOMB_MIN_IVL);
   }
+  if (bomb && now - bomb.born > BOMB_LIFE) bomb = null;
 
-  // Bomb lifetime
-  if (bomb && now - bomb.born > BOMB_LIFETIME) {
-    bomb = null;
+  // Powerup spawn
+  if (!powerup && !bomb && !powerupActive && now >= nextPowerup) {
+    spawnPowerup();
+    nextPowerup = now + 12000 + Math.random() * 15000;
+  }
+  if (powerup && powerup.y > canvas.height + 40) powerup = null;
+  if (powerup) powerup.y += powerup.vy;
+
+  // Powerup catch
+  if (powerup) {
+    const r = getBallRadius();
+    const dx = ballX - powerup.x, dy = ballY - powerup.y;
+    if (Math.sqrt(dx * dx + dy * dy) < r + 13) {
+      activatePowerup(powerup.type);
+      spawnParticles(powerup.x, powerup.y, '#ffd700', 25, 6);
+      if (powerup.type === 'confetti_burst') {
+        spawnConfetti(canvas.width / 2, canvas.height / 2);
+        spawnFloatText(400, 180, '🎊', '#ff69b4');
+      }
+      powerup = null;
+    }
   }
 
   // Bomb collision
   if (bomb) {
-    const dx = ballX - bomb.x;
-    const dy = ballY - bomb.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist < BALL_R + BOMB_R) {
-      // BOOM! Launch ball toward opponent
+    const r = getBallRadius();
+    const dx = ballX - bomb.x, dy = ballY - bomb.y;
+    if (Math.sqrt(dx * dx + dy * dy) < r + BOMB_R) {
       const towardRight = ballDX > 0;
-      const angle = (Math.random() * 0.6 - 0.3);
-      const speed = (INITIAL_BALL_SPEED + 3) * speedMultiplier;
-      if (towardRight) {
-        // Ball was going right — knock it left (toward Leo)
-        ballDX = -speed * Math.cos(angle);
-        ballDY = speed * Math.sin(angle);
-      } else {
-        // Ball was going left — knock it right (toward Nate)
-        ballDX = speed * Math.cos(angle);
-        ballDY = speed * Math.sin(angle);
-      }
-      // Push ball outside bomb
-      const pushAngle = Math.atan2(dy, dx);
-      ballX = bomb.x + Math.cos(pushAngle) * (BALL_R + BOMB_R + 2);
-      ballY = bomb.y + Math.sin(pushAngle) * (BALL_R + BOMB_R + 2);
-
-      // Big explosion
-      spawnParticles(bomb.x, bomb.y, '#ff1744', 40, 8);
-      spawnParticles(bomb.x, bomb.y, '#ff9100', 25, 6);
-      spawnParticles(bomb.x, bomb.y, '#ffd700', 15, 4);
-      hitFlash = 1.5;
-
+      const speed = (INITIAL_BALL_SPEED + 3.5) * speedMul;
+      const a = (Math.random() * 0.6 - 0.3);
+      ballDX = towardRight ? -speed * Math.cos(a) : speed * Math.cos(a);
+      ballDY = speed * Math.sin(a);
+      const pa = Math.atan2(dy, dx);
+      ballX = bomb.x + Math.cos(pa) * (r + BOMB_R + 3);
+      ballY = bomb.y + Math.sin(pa) * (r + BOMB_R + 3);
+      spawnParticles(bomb.x, bomb.y, '#ff1744', 45, 9);
+      spawnParticles(bomb.x, bomb.y, '#ff9100', 25, 7);
+      spawnParticles(bomb.x, bomb.y, '#ffd700', 15, 5);
+      spawnFloatText(bomb.x, bomb.y, '💥', '#ff0');
+      hitFlash = 1.8;
+      shakeX = 6; shakeY = 6;
       bomb = null;
     }
   }
 
   // Left paddle hit
-  if (ballX - BALL_R <= PADDLE_W &&
-      ballY >= leftY && ballY <= leftY + LEFT_PADDLE_H &&
-      ballDX < 0) {
-    ballX = PADDLE_W + BALL_R;
+  if (ballX - getBallRadius() <= PADDLE_W && ballY >= leftY && ballY <= leftY + LEFT_PADDLE_H && ballDX < 0) {
+    ballX = PADDLE_W + getBallRadius();
     ballDX = Math.abs(ballDX);
-    const hitPos = (ballY - leftY) / LEFT_PADDLE_H;
-    const maxAngle = 0.8;
-    ballDY = (hitPos - 0.5) * 2 * maxAngle * ballDX;
-    const currentSpeed = Math.sqrt(ballDX * ballDX + ballDY * ballDY);
-    const newSpeed = Math.min(currentSpeed + SPEED_INC, MAX_BALL_SPEED * speedMultiplier);
-    const scale = newSpeed / currentSpeed;
-    ballDX *= scale;
-    ballDY *= scale;
-    spawnParticles(ballX + BALL_R, ballY, LEO_COLOR, 10, 4);
-    hitFlash = 0.8;
+    const hp = (ballY - leftY) / LEFT_PADDLE_H;
+    ballDY = (hp - 0.5) * 2 * 0.8 * ballDX;
+    const cs = Math.sqrt(ballDX * ballDX + ballDY * ballDY);
+    const ns = Math.min(cs + SPEED_INC, MAX_BALL_SPEED * speedMul);
+    const sc = ns / cs; ballDX *= sc; ballDY *= sc;
+    spawnParticles(ballX + getBallRadius(), ballY, LEO_COLOR, 12, 5);
+    spawnParticles(ballX + getBallRadius(), ballY, '#fff', 6, 3);
+    leftPulse = -8; hitFlash = 0.7;
   }
 
   // Right paddle hit
-  if (ballX + BALL_R >= canvas.width - PADDLE_W &&
-      ballY >= rightY && ballY <= rightY + RIGHT_PADDLE_H &&
-      ballDX > 0) {
-    ballX = canvas.width - PADDLE_W - BALL_R;
+  if (ballX + getBallRadius() >= canvas.width - PADDLE_W && ballY >= rightY && ballY <= rightY + RIGHT_PADDLE_H && ballDX > 0) {
+    ballX = canvas.width - PADDLE_W - getBallRadius();
     ballDX = -Math.abs(ballDX);
-    const hitPos = (ballY - rightY) / RIGHT_PADDLE_H;
-    const maxAngle = 0.8;
-    ballDY = (hitPos - 0.5) * 2 * maxAngle * Math.abs(ballDX);
-    const currentSpeed = Math.sqrt(ballDX * ballDX + ballDY * ballDY);
-    const newSpeed = Math.min(currentSpeed + SPEED_INC, MAX_BALL_SPEED * speedMultiplier);
-    const scale = newSpeed / currentSpeed;
-    ballDX *= scale;
-    ballDY *= scale;
-    spawnParticles(ballX - BALL_R, ballY, NATE_COLOR, 10, 4);
-    hitFlash = 0.8;
+    const hp = (ballY - rightY) / RIGHT_PADDLE_H;
+    ballDY = (hp - 0.5) * 2 * 0.8 * Math.abs(ballDX);
+    const cs = Math.sqrt(ballDX * ballDX + ballDY * ballDY);
+    const ns = Math.min(cs + SPEED_INC, MAX_BALL_SPEED * speedMul);
+    const sc = ns / cs; ballDX *= sc; ballDY *= sc;
+    spawnParticles(ballX - getBallRadius(), ballY, NATE_COLOR, 12, 5);
+    spawnParticles(ballX - getBallRadius(), ballY, '#fff', 6, 3);
+    rightPulse = -8; hitFlash = 0.7;
+    if (nateSmiley < 0.3) nateSmiley = 0.4; // small reward for hitting
   }
 
   // Scoring
-  if (ballX < -BALL_R * 2) {
-    scoreRight++;
-    updateScore();
-    bomb = null;
+  if (ballX < -getBallRadius() * 3) {
+    scoreRight++; updateScore();
+    spawnConfetti(canvas.width / 2, canvas.height / 2);
+    spawnFloatText(canvas.width / 2, canvas.height / 2 - 20, 'Point Nate!', '#ff6d00');
+    scoreBoxRight.classList.add('score-bump');
+    setTimeout(() => scoreBoxRight.classList.remove('score-bump'), 300);
+    shakeX = 5; shakeY = 4;
+    bomb = null; powerup = null;
     if (scoreRight >= WIN_SCORE) {
-      gameOver = true;
-      gameRunning = false;
-      msgEl.textContent = '🎉 NATE WINS! 🎉  Press SPACE to play again';
+      gameOver = true; gameRunning = false;
+      spawnConfetti(canvas.width / 2, canvas.height / 3);
+      spawnFloatText(canvas.width / 2, canvas.height / 2, '🏆 NATE WINS! 🏆', '#ffd700');
+      msgEl.textContent = 'Press SPACE to play again!';
     } else {
-      msgEl.textContent = `Point Nate! ${WIN_SCORE - scoreRight} to go`;
+      msgEl.textContent = `Nate scores! ${WIN_SCORE - scoreRight} to win`;
       resetBall(1);
     }
   }
-  if (ballX > canvas.width + BALL_R * 2) {
-    scoreLeft++;
-    updateScore();
-    bomb = null;
+  if (ballX > canvas.width + getBallRadius() * 3) {
+    scoreLeft++; updateScore();
+    spawnConfetti(canvas.width / 2, canvas.height / 2);
+    spawnFloatText(canvas.width / 2, canvas.height / 2 - 20, 'Point Leo!', '#00e676');
+    scoreBoxLeft.classList.add('score-bump');
+    setTimeout(() => scoreBoxLeft.classList.remove('score-bump'), 300);
+    shakeX = 5; shakeY = 4;
+    bomb = null; powerup = null;
     if (scoreLeft >= WIN_SCORE) {
-      gameOver = true;
-      gameRunning = false;
-      msgEl.textContent = '🎉 LEO WINS! 🎉  Press SPACE to play again';
+      gameOver = true; gameRunning = false;
+      spawnConfetti(canvas.width / 2, canvas.height / 3);
+      spawnFloatText(canvas.width / 2, canvas.height / 2, '🏆 LEO WINS! 🏆', '#ffd700');
+      msgEl.textContent = 'Press SPACE to play again!';
     } else {
-      msgEl.textContent = `Point Leo! ${WIN_SCORE - scoreLeft} to go`;
+      msgEl.textContent = `Leo scores! ${WIN_SCORE - scoreLeft} to win`;
       resetBall(-1);
     }
   }
+}
+
+function draw() {
+  ctx.save();
+  ctx.translate(shakeX, shakeY);
+
+  ctx.fillStyle = '#111133';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  drawBgStars();
+
+  if (hitFlash > 0) {
+    ctx.fillStyle = `rgba(255,255,200,${hitFlash * 0.12})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    hitFlash -= 0.025;
+  }
+
+  // Center line
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.setLineDash([10, 18]); ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(400, 0); ctx.lineTo(400, 450); ctx.stroke();
+  ctx.setLineDash([]);
+
+  drawTrail();
+  drawBomb();
+  drawPowerup();
+  drawConfetti();
+
+  // Particles
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx; p.y += p.vy; p.life -= p.decay;
+    if (p.life <= 0) { particles.splice(i, 1); continue; }
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  if (gameRunning && !gameOver) drawNateGuide(nateTargetY);
+  drawPaddle(0, leftY, LEFT_PADDLE_H, LEO_COLOR, LEO_GLOW, leftPulse);
+  drawPaddle(canvas.width - PADDLE_W, rightY, RIGHT_PADDLE_H, NATE_COLOR, NATE_GLOW, rightPulse);
+  drawNateSmiley();
+  drawBall();
+  drawFloatTexts();
+
+  ctx.restore();
 }
 
 function gameLoop(now) {
@@ -546,63 +716,37 @@ function gameLoop(now) {
 // Input
 window.addEventListener('keydown', e => {
   keys[e.key] = true;
-
   if (e.key === ' ') {
     e.preventDefault();
-    if (gameOver) {
-      resetGame();
-      gameRunning = true;
-      msgEl.textContent = 'Go!';
-      nextBombTime = performance.now() + 3000;
-    } else if (!gameRunning) {
-      gameRunning = true;
-      msgEl.textContent = 'Go!';
-      nextBombTime = performance.now() + 3000;
+    if (gameOver) { resetGame(); gameRunning = true; msgEl.textContent = 'Go!'; nextBomb = performance.now() + 4000; nextPowerup = performance.now() + 8000; }
+    else if (!gameRunning) { gameRunning = true; msgEl.textContent = 'Go!'; nextBomb = performance.now() + 4000; nextPowerup = performance.now() + 8000; }
+  }
+  if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && gameRunning && !gameOver) {
+    const pc = rightY + RIGHT_PADDLE_H / 2;
+    const coming = ballDX > 0;
+    if ((coming && ballY < pc && e.key === 'ArrowUp') || (coming && ballY > pc && e.key === 'ArrowDown')) {
+      nateSmiley = 1.3;
     }
   }
-
-  // Smiley for Nate pressing correct key
-  if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && gameRunning && !gameOver) {
-    const paddleCenter = rightY + RIGHT_PADDLE_H / 2;
-    const ballComing = ballDX > 0;
-    const correctUp = ballComing && ballY < paddleCenter && e.key === 'ArrowUp';
-    const correctDown = ballComing && ballY > paddleCenter && e.key === 'ArrowDown';
-    if (correctUp || correctDown) nateSmiley = 1.2;
-  }
-
-  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
-    e.preventDefault();
-  }
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
 });
 
-window.addEventListener('keyup', e => {
-  keys[e.key] = false;
-});
+window.addEventListener('keyup', e => { keys[e.key] = false; });
 
 window.addEventListener('wheel', e => {
   e.preventDefault();
-  speedMultiplier = Math.max(0.5, Math.min(3.0, speedMultiplier - e.deltaY * 0.002));
-  speedMultiplier = Math.round(speedMultiplier * 10) / 10;
-  speedDisplay.textContent = `Speed: ${speedMultiplier.toFixed(1)}x`;
-
-  // Update ball speed proportionally
+  speedMul = Math.max(0.3, Math.min(3.5, speedMul - e.deltaY * 0.002));
+  speedMul = Math.round(speedMul * 10) / 10;
+  speedDisplay.textContent = `Speed: ${speedMul.toFixed(1)}x`;
   if (gameRunning && !gameOver) {
-    const currentSpeed = Math.sqrt(ballDX * ballDX + ballDY * ballDY);
-    const targetSpeed = Math.min(currentSpeed, MAX_BALL_SPEED * speedMultiplier);
-    if (currentSpeed > 0) {
-      const scale = targetSpeed / currentSpeed;
-      ballDX *= scale;
-      ballDY *= scale;
-    }
+    const cs = Math.sqrt(ballDX * ballDX + ballDY * ballDY);
+    const ts = Math.min(cs, MAX_BALL_SPEED * speedMul);
+    if (cs > 0) { const sc = ts / cs; ballDX *= sc; ballDY *= sc; }
   }
 }, { passive: false });
 
-// Prevent page zoom on wheel
-document.addEventListener('wheel', e => {
-  if (e.ctrlKey || e.metaKey) e.preventDefault();
-}, { passive: false });
+document.addEventListener('wheel', e => { if (e.ctrlKey || e.metaKey) e.preventDefault(); }, { passive: false });
 
-// reset initial
 resetGame();
 requestAnimationFrame(gameLoop);
 </script>
