@@ -525,6 +525,22 @@ document.addEventListener('DOMContentLoaded',function(){
   // Nav scroll
   var nav=document.getElementById('nav');
   window.addEventListener('scroll',function(){nav.classList.toggle('scrolled',window.scrollY>50)});
+
+  // Active nav tracking
+  var navLinks=document.querySelectorAll('.nav-links a');
+  var sections={};
+  navLinks.forEach(function(a){var href=a.getAttribute('href');if(href&&href.startsWith('#'))sections[href.substring(1)]=a});
+  var sectionObs=new IntersectionObserver(function(entries){
+    var best=null,bestRatio=0;
+    entries.forEach(function(e){if(e.isIntersecting&&e.intersectionRatio>bestRatio){bestRatio=e.intersectionRatio;best=e.target.id}});
+    if(best){
+      navLinks.forEach(function(a){a.classList.remove('active')});
+      var link=sections[best];if(link)link.classList.add('active');
+    }
+  },{threshold:[0,.2,.4,.6,.8]});
+  ['work','all-works','collections','about','visit'].forEach(function(id){
+    var el=document.getElementById(id);if(el)sectionObs.observe(el);
+  });
   // Form
   document.getElementById('enquiry-form').addEventListener('submit',function(e){
     e.preventDefault();
