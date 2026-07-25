@@ -122,6 +122,8 @@ let hitFlash = 0;
 let speedMultiplier = 1.0;
 let bomb = null;
 let nextBombTime = 0;
+let nateSmiley = 0;
+let nateTargetY = 0;
 
 function resetBall(direction) {
   ballX = canvas.width / 2;
@@ -191,6 +193,75 @@ function drawPaddle(x, y, h, color, glowColor) {
   ctx.roundRect(x + 3, y + 4, PADDLE_W - 6, h - 8, 6);
   ctx.fill();
   ctx.shadowBlur = 0;
+}
+
+function predictNateTarget() {
+  if (ballDX <= 0) return null;
+  let x = ballX;
+  let y = ballY;
+  let dy = ballDY;
+  while (x < canvas.width - PADDLE_W) {
+    x += ballDX;
+    y += dy;
+    if (y - BALL_R <= 0) { y = BALL_R; dy = Math.abs(dy); }
+    if (y + BALL_R >= canvas.height) { y = canvas.height - BALL_R; dy = -Math.abs(dy); }
+    if (x >= canvas.width - PADDLE_W) return y;
+  }
+  return y;
+}
+
+function drawNateGuide(targetY) {
+  if (targetY === null) return;
+  const zoneH = RIGHT_PADDLE_H * 0.7;
+  const zoneTop = targetY - zoneH / 2;
+  const zoneX = canvas.width - PADDLE_W - 8;
+
+  // Pulsing glow
+  const pulse = Math.sin(performance.now() * 0.005) * 0.15 + 0.35;
+  ctx.globalAlpha = pulse;
+
+  // Outer glow
+  const grad = ctx.createLinearGradient(zoneX, 0, canvas.width, 0);
+  grad.addColorStop(0, 'rgba(255, 109, 0, 0)');
+  grad.addColorStop(1, `rgba(255, 109, 0, ${pulse + 0.1})`);
+  ctx.fillStyle = grad;
+  ctx.fillRect(zoneX, zoneTop, PADDLE_W + 30, zoneH);
+
+  // Inner target box
+  ctx.strokeStyle = `rgba(255, 200, 100, ${pulse + 0.3})`;
+  ctx.lineWidth = 3;
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath();
+  ctx.roundRect(zoneX + 2, zoneTop + 2, PADDLE_W + 26, zoneH - 4, 8);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Arrow hint
+  const paddleCenter = rightY + RIGHT_PADDLE_H / 2;
+  if (Math.abs(paddleCenter - targetY) > 20) {
+    const arrowY = zoneX + 18;
+    ctx.fillStyle = '#ffd700';
+    ctx.font = '22px sans-serif';
+    ctx.textAlign = 'center';
+    if (paddleCenter > targetY) {
+      ctx.fillText('▲', arrowY, targetY - 18);
+    } else {
+      ctx.fillText('▼', arrowY, targetY + zoneH / 2 + 22);
+    }
+  }
+
+  ctx.globalAlpha = 1;
+}
+
+function drawNateSmiley() {
+  if (nateSmiley <= 0) return;
+  const sx = canvas.width - PADDLE_W - 20;
+  const sy = Math.max(20, rightY - 30);
+  ctx.globalAlpha = Math.min(1, nateSmiley);
+  ctx.font = '36px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('😊', sx, sy);
+  ctx.globalAlpha = 1;
 }
 
 function drawBall(x, y) {
@@ -313,9 +384,15 @@ function draw() {
   }
   ctx.globalAlpha = 1;
 
+  // Nate's guide highlight
+  if (gameRunning && !gameOver) drawNateGuide(nateTargetY);
+
   // Paddles
   drawPaddle(0, leftY, LEFT_PADDLE_H, LEO_COLOR, LEO_GLOW);
   drawPaddle(canvas.width - PADDLE_W, rightY, RIGHT_PADDLE_H, NATE_COLOR, NATE_GLOW);
+
+  // Smiley on Nate's paddle
+  drawNateSmiley();
 
   // Ball
   drawBall(ballX, ballY);
@@ -329,6 +406,12 @@ function update(now) {
   if (keys['s'] || keys['S']) leftY = Math.min(canvas.height - LEFT_PADDLE_H, leftY + PADDLE_SPEED);
   if (keys['ArrowUp']) rightY = Math.max(0, rightY - PADDLE_SPEED);
   if (keys['ArrowDown']) rightY = Math.min(canvas.height - RIGHT_PADDLE_H, rightY + PADDLE_SPEED);
+
+  // Decay smiley
+  if (nateSmiley > 0) nateSmiley -= 0.02;
+
+  // Update Nate's target guide
+  nateTargetY = predictNateTarget();
 
   // Ball movement
   ballX += ballDX;
@@ -476,6 +559,15 @@ window.addEventListener('keydown', e => {
       msgEl.textContent = 'Go!';
       nextBombTime = performance.now() + 3000;
     }
+  }
+
+  // Smiley for Nate pressing correct key
+  if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && gameRunning && !gameOver) {
+    const paddleCenter = rightY + RIGHT_PADDLE_H / 2;
+    const ballComing = ballDX > 0;
+    const correctUp = ballComing && ballY < paddleCenter && e.key === 'ArrowUp';
+    const correctDown = ballComing && ballY > paddleCenter && e.key === 'ArrowDown';
+    if (correctUp || correctDown) nateSmiley = 1.2;
   }
 
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
