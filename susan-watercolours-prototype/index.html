@@ -3,550 +3,545 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Susan Czermak — Watercolours</title>
-<meta name="description" content="Original watercolours by Susan Czermak — landscapes of light, place and memory from Australia, France, New Zealand and beyond.">
-<meta property="og:title" content="Susan Czermak — Watercolours">
-<meta property="og:description" content="Original watercolours of light, place and remembered moments.">
-<meta property="og:type" content="website">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<title>Susan Czermak Watercolours — Light, Place & Memory</title>
+<meta name="description" content="Susan Czermak is a watercolourist whose paintings capture light, place and remembered moments from Australia, France, and beyond.">
 <style>
-:root{--paper:#F4F0E7;--gallery:#FAF9F5;--charcoal:#252925;--marine:#19394A;--mist:#AAB8B5;--olive:#858A72;--terracotta:#A5573E;--warm-grey:#8A8578;--serif:'Cormorant Garamond',Georgia,'Times New Roman',serif;--sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;--mw:1200px;--cw:720px}
+/* === RESET & BASE === */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;font-size:17px}
-body{font-family:var(--sans);background:var(--gallery);color:var(--charcoal);line-height:1.7;font-weight:300}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.reveal{opacity:1!important;transform:none!important}}
-h1,h2,h3,h4{font-family:var(--serif);font-weight:500;line-height:1.2;color:var(--marine)}
-h1{font-size:clamp(2.2rem,5vw,3.6rem);font-weight:600}
-h2{font-size:clamp(1.8rem,4vw,2.8rem);margin-bottom:clamp(.5rem,1.5vw,1.25rem)}
-h3{font-size:clamp(1.2rem,2.5vw,1.5rem)}
-.editorial{font-family:var(--serif);font-size:clamp(1.15rem,2.5vw,1.5rem);font-style:italic;line-height:1.6;color:var(--marine)}
-.label{font-size:.75rem;text-transform:uppercase;letter-spacing:.12em;color:var(--warm-grey);font-weight:500}
-.prototype-tag{display:inline-block;font-size:.65rem;color:var(--terracotta);border:1px solid var(--terracotta);padding:.15rem .5rem;border-radius:2px;margin:.5rem 0;letter-spacing:.04em}
-.sample-price{display:inline-block;font-size:.7rem;color:var(--olive);border:1px dashed var(--olive);padding:.2rem .6rem;border-radius:2px;margin:.3rem 0;letter-spacing:.03em}
-nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.25rem clamp(1rem,2vw,2rem);transition:background .4s,padding .4s}
-nav.scrolled{background:rgba(250,249,245,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:.8rem clamp(1rem,2vw,2rem);border-bottom:1px solid rgba(0,0,0,.04)}
-.nav-inner{max-width:var(--mw);margin:0 auto;display:flex;justify-content:space-between;align-items:center}
-.nav-brand{font-family:var(--serif);font-size:1.35rem;font-weight:600;color:var(--marine);text-decoration:none;letter-spacing:.02em}
-.nav-links{display:flex;gap:2rem;list-style:none}
-.nav-links a{text-decoration:none;color:var(--charcoal);font-size:.82rem;font-weight:400;letter-spacing:.03em;transition:color .3s;cursor:pointer}
-.nav-links a:hover,.nav-links a.active{color:var(--terracotta)}
-@media(max-width:640px){.nav-links{gap:1rem}.nav-links a{font-size:.72rem}}
-.hero{position:relative;height:100vh;min-height:600px;display:flex;align-items:center;overflow:hidden}
-.hero-bg{position:absolute;inset:0}
-.hero-bg img{width:100%;height:100%;object-fit:cover;object-position:center 55%}
-.hero-overlay{position:absolute;inset:0;background:linear-gradient(to right,rgba(25,57,74,.35) 0%,rgba(25,57,74,.15) 40%,rgba(25,57,74,0) 70%)}
-.hero-content{position:relative;z-index:1;max-width:var(--mw);margin:0 auto;padding:0 clamp(1rem,2vw,2rem);width:100%}
-.hero-content h1{color:#fff;margin-bottom:.5rem;text-shadow:0 1px 20px rgba(0,0,0,.2)}
-.hero-content .editorial{color:rgba(255,255,255,.85);font-size:clamp(1rem,2vw,1.25rem);font-style:normal;margin-bottom:.25rem}
-.hero-content .sub{color:rgba(255,255,255,.7);font-size:.9rem;margin-bottom:2.5rem}
-.hero-actions{display:flex;gap:1rem;flex-wrap:wrap}
-.btn{padding:.85rem 2rem;font-size:.82rem;text-decoration:none;border-radius:2px;transition:all .3s;cursor:pointer;border:none;letter-spacing:.03em;font-weight:400;display:inline-block;font-family:var(--sans)}
-.btn-primary{background:var(--terracotta);color:#fff}.btn-primary:hover{background:#8a4632}
-.btn-outline{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.4)}.btn-outline:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.6)}
-.btn-secondary{background:transparent;color:var(--marine);border:1px solid var(--marine)}.btn-secondary:hover{background:var(--marine);color:#fff}
-.section{padding:clamp(3rem,8vw,8rem) clamp(1rem,2vw,2rem)}
-.section-inner{max-width:var(--mw);margin:0 auto}
-.section-narrow{max-width:var(--cw);margin:0 auto}
-.curatorial{background:var(--paper)}
-.curatorial p{font-family:var(--serif);font-size:clamp(1.3rem,3vw,1.7rem);font-style:italic;line-height:1.55;color:var(--marine)}
-.works-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:2.5rem;margin-top:clamp(2rem,5vw,5rem)}
-.work-card{position:relative;cursor:pointer}
-.work-card img{width:100%;height:auto;display:block;transition:transform .5s ease}
-.work-card:hover img{transform:scale(1.02)}
-.work-card.wide{grid-column:span 2}@media(max-width:768px){.work-card.wide{grid-column:span 1}}
-.work-meta{padding-top:1rem}
-.work-meta h3{font-size:1.15rem;margin-bottom:.15rem}
-.availability{display:inline-block;font-size:.7rem;padding:.2rem .6rem;border-radius:2px;margin-top:.3rem;letter-spacing:.04em}
-.av-available{background:#e8f0e8;color:#3d6b3d}.av-sold{background:#f0e8e8;color:#8b3d3d}.av-print{background:#e8ecf0;color:#3d5b8b}
-/* Artwork detail overlay */
-.artwork-overlay{display:none;position:fixed;inset:0;z-index:200;background:var(--gallery);overflow-y:auto;padding-top:70px}
-.artwork-overlay.active{display:block}
-.artwork-detail{max-width:var(--mw);margin:0 auto;padding:2rem clamp(1rem,2vw,2rem) clamp(3rem,8vw,8rem)}
-.artwork-close{position:fixed;top:1.25rem;right:1.5rem;z-index:210;font-size:2rem;cursor:pointer;color:var(--charcoal);text-decoration:none;line-height:1;font-family:var(--sans);font-weight:300}
-.artwork-close:hover{color:var(--terracotta)}
-.artwork-layout{display:grid;grid-template-columns:1.2fr 1fr;gap:3rem;margin-top:2rem}@media(max-width:768px){.artwork-layout{grid-template-columns:1fr;gap:2rem}}
-.artwork-image img{width:100%;height:auto;display:block}
-.artwork-info h1{margin-bottom:.5rem}
-.artwork-specs{font-size:.85rem;color:var(--warm-grey);margin:1.5rem 0}
-.artwork-specs span{display:block;margin-bottom:.2rem}
-.artwork-story{margin:1.5rem 0;font-size:.95rem;line-height:1.7}
-.related-works{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:1.5rem;margin-top:2rem}
-.related-works img{width:100%;height:auto;cursor:pointer}
-/* Gallery */
-.gallery-filters{display:flex;flex-wrap:wrap;gap:.5rem;margin:1.5rem 0}
-.filter-btn{padding:.5rem 1.2rem;font-size:.75rem;border:1px solid rgba(0,0,0,.12);background:transparent;cursor:pointer;border-radius:2px;letter-spacing:.03em;transition:all .3s;font-family:var(--sans)}
-.filter-btn:hover,.filter-btn.active{background:var(--marine);color:#fff;border-color:var(--marine)}
-/* Room mockup */
-.room-mockup{background:var(--paper);padding:3rem 2rem;border-radius:2px;position:relative;margin:1.5rem 0}
-.room-wall{background:#e8e2d8;height:300px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.room-floor{background:#d5cec3;height:80px}
-.room-artwork{position:absolute;box-shadow:0 4px 20px rgba(0,0,0,.15);border:8px solid #f5f0e8;background:#fff}
-.room-label{font-size:.65rem;color:var(--warm-grey);text-align:center;margin-top:.75rem}
-/* Feature story */
-.feature-story{display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,5vw,5rem);align-items:center}@media(max-width:768px){.feature-story{grid-template-columns:1fr}}
-.feature-image img{width:100%;height:auto;display:block}
-.feature-text blockquote{font-family:var(--serif);font-style:italic;font-size:1.15rem;color:var(--marine);padding:1rem 0;margin:1.5rem 0;border-left:3px solid var(--terracotta);padding-left:1.5rem}
-/* Journey */
-.journey{background:var(--paper)}
-.timeline{max-width:var(--cw);margin:clamp(2rem,5vw,5rem) auto 0}
-.timeline-item{display:grid;grid-template-columns:auto 1fr;gap:1.5rem;padding:1.25rem 0;border-bottom:1px solid rgba(0,0,0,.06)}
-.timeline-dot{width:10px;height:10px;background:var(--terracotta);border-radius:50%;margin-top:.45rem}
-.timeline-text h4{font-family:var(--sans);font-size:.95rem;font-weight:500;color:var(--charcoal);margin-bottom:.2rem}
-.timeline-text p{font-size:.85rem;color:var(--warm-grey);line-height:1.5}
-/* Collections */
-.collections-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1.5rem;margin-top:clamp(2rem,5vw,5rem)}
-.coll-card{position:relative;aspect-ratio:3/4;overflow:hidden;cursor:pointer;border-radius:2px}
-.coll-card img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
-.coll-card:hover img{transform:scale(1.04)}
-.coll-label{position:absolute;bottom:0;left:0;right:0;padding:1.5rem 1rem;background:linear-gradient(transparent,rgba(0,0,0,.6));color:#fff}
-.coll-label h4{color:#fff;font-size:1rem;margin-bottom:.2rem}
-.coll-label span{font-size:.75rem;opacity:.8}
-.coll-future{opacity:.6}
-.coll-future .coll-label::after{content:'Proposed';font-size:.6rem;display:block;text-transform:uppercase;letter-spacing:.08em;margin-top:.3rem}
-/* About */
-.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,5vw,5rem);align-items:start}@media(max-width:768px){.about-grid{grid-template-columns:1fr}}
-.about-image{background:var(--mist);aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;border-radius:2px;overflow:hidden}
-.about-image-note{font-family:var(--serif);font-size:1.1rem;color:rgba(255,255,255,.7);text-align:center;padding:2rem;line-height:1.5}
-/* Contact */
-.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,5vw,5rem)}@media(max-width:768px){.contact-grid{grid-template-columns:1fr}}
-.form-group{margin-bottom:1.25rem}
-.form-group label{display:block;font-size:.8rem;font-weight:500;margin-bottom:.3rem;color:var(--charcoal)}
-.form-group input,.form-group textarea,.form-group select{width:100%;padding:.75rem 1rem;border:1px solid rgba(0,0,0,.12);border-radius:2px;font-family:var(--sans);font-size:.9rem;background:var(--gallery);transition:border-color .3s}
-.form-group input:focus,.form-group textarea:focus{outline:none;border-color:var(--marine)}
-.form-group textarea{min-height:120px;resize:vertical}
-.form-thumb{width:60px;height:auto;float:right;margin-left:1rem;border-radius:2px}
-/* Footer */
-footer{background:var(--marine);color:rgba(255,255,255,.7);padding:clamp(2rem,5vw,5rem) clamp(1rem,2vw,2rem);font-size:.82rem}
-.footer-inner{max-width:var(--mw);margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
-footer a{color:rgba(255,255,255,.9);text-decoration:none}footer a:hover{color:#fff}
-.prototype-banner{position:fixed;bottom:0;left:0;right:0;background:var(--marine);color:rgba(255,255,255,.8);text-align:center;padding:.5rem;font-size:.7rem;z-index:190;letter-spacing:.04em}
-/* Gallery page */
-#gallery-page,#all-works{display:none}
-#gallery-page.active,#all-works.active{display:block}
-/* Scroll reveal */
-.reveal{opacity:0;transform:translateY(30px);transition:opacity .8s ease,transform .8s ease}
-.reveal.visible{opacity:1;transform:translateY(0)}
-.text-center{text-align:center}.mt-md{margin-top:clamp(2rem,5vw,5rem)}.mb-sm{margin-bottom:clamp(.5rem,1.5vw,1.25rem)}img{background:var(--paper)}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:Georgia,'Times New Roman',serif;color:#2c2c2c;background:#faf8f5;line-height:1.7}
+a{color:#5a7d6e;text-decoration:none}
+a:hover{color:#3d5a4e}
+img{max-width:100%;height:auto;display:block}
+
+/* === NAV === */
+.site-nav{position:sticky;top:0;z-index:100;background:rgba(250,248,245,0.95);backdrop-filter:blur(10px);border-bottom:1px solid #e8e3db;padding:0 2rem}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;height:60px}
+.nav-brand{font-size:1.1rem;font-style:italic;color:#3d5a4e}
+.nav-links{display:flex;gap:1.5rem;list-style:none}
+.nav-links a{font-size:0.9rem;letter-spacing:0.5px}
+.nav-links a.active{color:#c47a4a;font-weight:bold}
+.nav-toggle{display:none;background:none;border:none;font-size:1.5rem;cursor:pointer;color:#2c2c2c}
+
+/* === HERO === */
+.hero{position:relative;height:80vh;min-height:500px;overflow:hidden}
+.hero img{width:100%;height:100%;object-fit:cover}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.5) 0%,rgba(0,0,0,0.1) 40%,rgba(0,0,0,0.05) 100%);display:flex;align-items:flex-end;padding:4rem 2rem}
+.hero-text{max-width:700px}
+.hero-text h1{font-size:2.5rem;font-weight:400;color:#fff;margin-bottom:0.5rem;text-shadow:0 2px 8px rgba(0,0,0,0.3)}
+.hero-text p{font-size:1.1rem;color:rgba(255,255,255,0.9);font-style:italic;text-shadow:0 1px 4px rgba(0,0,0,0.3)}
+
+/* === SECTIONS === */
+.section{padding:5rem 2rem;max-width:1200px;margin:0 auto}
+.section-header{text-align:center;margin-bottom:3rem}
+.section-header h2{font-size:2rem;font-weight:400;color:#3d5a4e;margin-bottom:0.5rem}
+.section-header p{color:#6b6b6b;font-style:italic;max-width:600px;margin:0 auto}
+
+/* === FEATURED GRID === */
+.featured-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-bottom:3rem}
+@media(max-width:900px){.featured-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.featured-grid{grid-template-columns:1fr}}
+
+/* === ARTWORK CARD === */
+.artwork-card{cursor:pointer;background:#fff;border-radius:4px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);transition:transform 0.2s,box-shadow 0.2s}
+.artwork-card:hover{transform:translateY(-3px);box-shadow:0 4px 12px rgba(0,0,0,0.12)}
+.card-image{position:relative;aspect-ratio:4/3;overflow:hidden;background:#f0ede8}
+.card-image img{width:100%;height:100%;object-fit:cover;transition:transform 0.3s}
+.artwork-card:hover .card-image img{transform:scale(1.03)}
+.card-status{position:absolute;top:10px;right:10px;padding:3px 10px;border-radius:12px;font-size:0.7rem;letter-spacing:0.5px;font-family:-apple-system,sans-serif}
+.availability-available{background:#e8f0e8;color:#3d6b3d}
+.availability-sold{background:#f0e8e8;color:#8b4a4a}
+.availability-print-only{background:#e8e8f0;color:#4a4a8b}
+.availability-unknown{background:#f0f0e8;color:#8b8b4a}
+.card-info{padding:1rem}
+.card-info h3{font-size:0.95rem;font-weight:400;margin-bottom:0.3rem;line-height:1.3}
+.card-dims{font-size:0.8rem;color:#888;display:block;margin-bottom:0.2rem}
+.card-medium{font-size:0.75rem;color:#aaa;font-style:italic}
+
+/* === FILTERS === */
+.filters{display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;margin-bottom:2rem}
+.filter-btn{padding:6px 16px;border:1px solid #d4cec4;border-radius:20px;background:#fff;color:#5a5a5a;cursor:pointer;font-size:0.85rem;font-family:inherit;transition:all 0.2s}
+.filter-btn:hover,.filter-btn.active{background:#3d5a4e;color:#fff;border-color:#3d5a4e}
+
+/* === FULL GRID === */
+.full-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem}
+@media(max-width:1000px){.full-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.full-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:450px){.full-grid{grid-template-columns:1fr}}
+
+/* === DETAIL MODAL === */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.8);overflow-y:auto;padding:2rem}
+.modal-overlay.active{display:flex;align-items:flex-start;justify-content:center}
+.modal-content{background:#fff;border-radius:6px;max-width:900px;width:100%;margin:2rem auto;position:relative}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.5rem;cursor:pointer;color:#666;z-index:10;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.9)}
+.modal-close:hover{background:#eee}
+.modal-image{width:100%;max-height:60vh;overflow:hidden;background:#f0ede8}
+.modal-image img{width:100%;height:100%;object-fit:contain;max-height:60vh}
+.modal-body{padding:2rem}
+.modal-body h2{font-size:1.5rem;font-weight:400;color:#3d5a4e;margin-bottom:0.5rem}
+.modal-meta{display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;font-size:0.85rem;color:#888}
+.modal-meta span{padding:3px 10px;background:#f5f3ef;border-radius:12px}
+.modal-desc{font-size:0.95rem;line-height:1.8;margin-bottom:1.5rem}
+.modal-actions{display:flex;gap:1rem;flex-wrap:wrap}
+.modal-actions .btn{padding:10px 24px;border:none;border-radius:4px;cursor:pointer;font-family:inherit;font-size:0.9rem;transition:background 0.2s}
+.btn-primary{background:#3d5a4e;color:#fff}
+.btn-primary:hover{background:#2d4a3e}
+.btn-secondary{background:#f0ede8;color:#3d5a4e}
+.btn-secondary:hover{background:#e0dcd5}
+.story-label{font-style:italic;color:#c47a4a;font-size:0.8rem;margin-bottom:1rem;padding:8px 12px;background:#fdf5ef;border-left:3px solid #c47a4a;border-radius:0 4px 4px 0}
+
+/* === ABOUT === */
+.about-layout{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start}
+@media(max-width:768px){.about-layout{grid-template-columns:1fr}}
+.about-text h3{font-size:1.3rem;font-weight:400;color:#3d5a4e;margin-bottom:1rem}
+.about-text p{margin-bottom:1rem;font-size:0.95rem}
+.about-text .trust-list{list-style:none;margin-top:1.5rem}
+.about-text .trust-list li{padding:0.3rem 0;font-size:0.9rem;color:#555}
+.about-text .trust-list li::before{content:'✓ ';color:#5a7d6e}
+
+/* Enquiry form */
+.enquiry-form{background:#f5f3ef;padding:2rem;border-radius:6px}
+.enquiry-form h3{margin-bottom:1rem;font-weight:400}
+.enquiry-form label{display:block;font-size:0.85rem;margin-bottom:0.3rem;color:#555}
+.enquiry-form input,.enquiry-form textarea,.enquiry-form select{width:100%;padding:10px;border:1px solid #d4cec4;border-radius:4px;margin-bottom:1rem;font-family:inherit;font-size:0.9rem;background:#fff}
+.enquiry-form textarea{min-height:100px;resize:vertical}
+.form-note{font-size:0.8rem;color:#c47a4a;font-style:italic;margin-top:0.5rem}
+
+/* === SEARCH === */
+.search-wrap{text-align:center;margin-bottom:2rem}
+.search-wrap input{padding:10px 20px;border:1px solid #d4cec4;border-radius:24px;width:100%;max-width:400px;font-family:inherit;font-size:0.9rem;background:#fff}
+.search-wrap input:focus{outline:none;border-color:#5a7d6e}
+
+/* === EVENTS === */
+.events-list{max-width:600px;margin:0 auto}
+.event-item{padding:1.5rem;margin-bottom:1rem;background:#fff;border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.event-item h3{font-weight:400;color:#3d5a4e;margin-bottom:0.3rem}
+.event-item .event-date{font-size:0.85rem;color:#c47a4a}
+.event-item .event-note{font-size:0.85rem;color:#888;font-style:italic;margin-top:0.5rem}
+
+/* === FOOTER === */
+.site-footer{text-align:center;padding:3rem 2rem;border-top:1px solid #e8e3db;color:#888;font-size:0.85rem}
+.site-footer a{color:#5a7d6e}
+.social-links{display:flex;justify-content:center;gap:1.5rem;margin-bottom:1rem}
+
+/* === RESPONSIVE === */
+@media(max-width:768px){
+  .nav-links{display:none}
+  .nav-links.open{display:flex;flex-direction:column;position:absolute;top:60px;left:0;right:0;background:#faf8f5;padding:1rem 2rem;border-bottom:1px solid #e8e3db}
+  .nav-toggle{display:block}
+  .hero{height:60vh;min-height:350px}
+  .hero-text h1{font-size:1.8rem}
+  .section{padding:3rem 1rem}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
 </style>
 </head>
 <body>
 
-<!-- Prototype Banner -->
-<div class="prototype-banner">PROTOTYPE — For Susan's review. Artwork stories are illustrative drafts. Pricing is sample only.</div>
-
-<!-- Navigation -->
-<nav id="nav">
+<!-- NAV -->
+<nav class="site-nav">
   <div class="nav-inner">
-    <a href="#" class="nav-brand" onclick="navigateHome()">Susan Czermak</a>
-    <ul class="nav-links" id="nav-links">
-      <li><a href="#work" onclick="showSection('work')">Work</a></li>
-      <li><a href="#gallery" onclick="showGallery()">Gallery</a></li>
-      <li><a href="#collections">Collections</a></li>
-      <li><a href="#about">About</a></li>
-      <li><a href="#visit">Contact</a></li>
+    <a href="#home" class="nav-brand">Susan Czermak</a>
+    <button class="nav-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')" aria-label="Menu">☰</button>
+    <ul class="nav-links">
+      <li><a href="#home" class="active" data-section="home">Home</a></li>
+      <li><a href="#gallery" data-section="gallery">Gallery</a></li>
+      <li><a href="#prints" data-section="prints">Prints</a></li>
+      <li><a href="#about" data-section="about">About</a></li>
+      <li><a href="#events" data-section="events">Events</a></li>
+      <li><a href="#contact" data-section="contact">Contact</a></li>
     </ul>
   </div>
 </nav>
 
-<!-- HOME PAGE -->
-<div id="home-page">
-
-<!-- Hero -->
-<section class="hero" id="home">
-  <div class="hero-bg">
-    <img src="images/artworks/Czermak-LakeHawea-NewZealand.jpg" alt="Lake Hawea, New Zealand — watercolour by Susan Czermak showing mountains rising from lake under cloud shadows" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#19394A,#AAB8B5)'">
-  </div>
-  <div class="hero-overlay"></div>
-  <div class="hero-content">
-    <p class="editorial">Light, Place &amp; Memory</p>
-    <h1>Susan Czermak</h1>
-    <p class="sub">Painted from landscapes encountered across Australia, Europe and beyond.</p>
-    <div class="hero-actions">
-      <a href="#work" class="btn btn-primary">View available works</a>
-      <a href="#about" class="btn btn-outline">Meet Susan</a>
+<!-- HERO -->
+<section id="home" class="hero">
+  <img src="images/artworks/susan-czermak-top-end-of-lake-hawea-new-zealand.jpg" alt="Top end of Lake Hawea, New Zealand">
+  <div class="hero-overlay">
+    <div class="hero-text">
+      <h1>Light, Place &amp; Memory</h1>
+      <p>Watercolours painted from landscapes encountered across Australia, Europe and beyond</p>
     </div>
   </div>
 </section>
 
-<!-- Curatorial -->
-<section class="section curatorial">
-  <div class="section-inner section-narrow reveal">
-    <p>&ldquo;Susan paints places she has stood within&thinsp;&mdash;&thinsp;tidal flats, quiet farms, village streets and working landscapes&thinsp;&mdash;&thinsp;preserving less the exact detail than the light and feeling that remained.&rdquo;</p>
+<!-- FEATURED WORKS -->
+<section id="gallery" class="section">
+  <div class="section-header">
+    <h2>Selected Work</h2>
+    <p>A curated selection from Susan's collection</p>
+  </div>
+  <div class="featured-grid" id="featured-grid"></div>
+  <div style="text-align:center;margin:2rem 0">
+    <button class="btn btn-primary" onclick="showAll()" style="padding:12px 32px">View Full Collection</button>
   </div>
 </section>
 
-<!-- Featured Works -->
-<section class="section" id="work">
-  <div class="section-inner">
-    <div class="label reveal">Selected works</div>
-    <h2 class="reveal">Featured Paintings</h2>
-    <div class="works-grid" id="featured-grid"></div>
+<!-- FULL COLLECTION -->
+<section id="full-collection" class="section" style="display:none">
+  <div class="section-header">
+    <h2>Full Collection</h2>
+    <p>All 80 works — watercolours from around the world</p>
   </div>
+  <div class="search-wrap">
+    <input type="text" id="artwork-search" placeholder="Search by title or location…" oninput="filterArtworks()">
+  </div>
+  <div class="filters" id="filters"></div>
+  <div class="full-grid" id="full-grid"></div>
 </section>
 
-<!-- Available Works Preview -->
-<section class="section" id="all-works">
-  <div class="section-inner">
-    <div class="label reveal">Complete inventory</div>
-    <h2 class="reveal">Available Works</h2>
-    <div class="gallery-filters reveal" id="gallery-filters"></div>
-    <div class="works-grid" id="gallery-grid"></div>
-    <p style="font-size:.8rem;color:var(--warm-grey);margin-top:2rem;font-style:italic">
-      Sold works are shown as part of Susan&rsquo;s broader portfolio. Similar-work enquiries are welcome.
-    </p>
+<!-- PRINTS -->
+<section id="prints" class="section" style="display:none">
+  <div class="section-header">
+    <h2>Prints</h2>
+    <p>Available prints of selected watercolours</p>
   </div>
+  <div id="prints-content"></div>
 </section>
 
-<!-- Feature Story -->
-<section class="section curatorial" id="story">
-  <div class="section-inner">
-    <div class="feature-story reveal">
-      <div class="feature-image">
-        <img src="images/artworks/friends-arcade.jpg" alt="Friends in the Arcade, SW France" loading="lazy">
+<!-- ABOUT -->
+<section id="about" class="section" style="display:none">
+  <div class="section-header">
+    <h2>The Artist Behind the Paintings</h2>
+  </div>
+  <div class="about-layout">
+    <div class="about-text" id="about-text"></div>
+    <div class="enquiry-form" id="enquiry-form">
+      <h3>Enquire</h3>
+      <p style="font-size:0.85rem;color:#888;margin-bottom:1rem">Prototype only — no email has been sent.</p>
+      <div id="enquiry-dynamic"></div>
+      <label>Name</label>
+      <input type="text" placeholder="Your name">
+      <label>Email</label>
+      <input type="email" placeholder="Your email">
+      <label>Location</label>
+      <input type="text" placeholder="Suburb or country">
+      <label>Message</label>
+      <textarea placeholder="Your message…"></textarea>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem">
+        <label style="display:flex;align-items:center;gap:0.3rem;font-size:0.85rem"><input type="checkbox"> Framing advice</label>
+        <label style="display:flex;align-items:center;gap:0.3rem;font-size:0.85rem"><input type="checkbox"> Delivery info</label>
+        <label style="display:flex;align-items:center;gap:0.3rem;font-size:0.85rem"><input type="checkbox"> Studio visit</label>
       </div>
-      <div class="feature-text">
-        <div class="label">The story behind</div>
-        <h2>Friends in the Arcade</h2>
-        <p>What a joy to find these friends playing together in a village, one Sunday afternoon. The arcade framed them perfectly — the deep shadow of the stone arch giving way to the sunlit courtyard beyond.</p>
-        <div class="prototype-tag">Illustrative story draft — to be confirmed with Susan</div>
-        <p style="margin-top:1rem">The painting captures the easy companionship of the moment: bodies leaning together in the game, the cool shadow of the arch a respite from the bright square beyond. Susan noticed how the light divided the scene — the players in half-darkness, the world beyond in full sun.</p>
-        <div class="artwork-specs">
-          <span>SW France &middot; 2023</span>
-          <span>Watercolour on paper &middot; 355 × 265 mm</span>
-          <span>Sold &middot; Private collection</span>
-        </div>
-        <a href="#enquire" class="btn btn-secondary" style="margin-top:1.5rem" onclick="openEnquiry('Friends in the Arcade, SW France')">Enquire about similar works</a>
-      </div>
+      <button class="btn btn-primary" style="width:100%">Send Enquiry</button>
+      <p class="form-note">Prototype only — no email has been sent.</p>
     </div>
   </div>
 </section>
 
-<!-- Journey -->
-<section class="section journey" id="journey">
-  <div class="section-inner">
-    <div class="label reveal">From island shores to village lanes</div>
-    <h2 class="reveal">A life shaped by place</h2>
-    <div class="timeline reveal">
-      <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-text"><h4>Born on a small island off the coast of Scotland</h4><p>Susan grew up exploring her island home, wandering the seashore surrounded by wildlife and wilderness. An extraordinary childhood that shaped her attention to the natural world.</p></div></div>
-      <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-text"><h4>New Zealand and Australia</h4><p>For most of her life she has lived in New Zealand and Australia, absorbing vastly different landscapes and qualities of light.</p></div></div>
-      <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-text"><h4>From programming to painting</h4><p>Worked variously as a computer programmer, farmer and teacher before her early interest in design and art found its full expression in watercolour.</p></div></div>
-      <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-text"><h4>Twenty-five years exploring watercolour</h4><p>Since first picking up the brush, Susan has been exploring the world and watercolour — painting only subjects she has seen, trying to capture the mood and feelings evoked at the time.</p></div></div>
-      <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-text"><h4>A decade in south-west France</h4><p>Lived for ten years in a village in SW France. Since 2001, Susan has held regular solo exhibitions of her work mainly in France.</p></div></div>
-      <div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-text"><h4>People&rsquo;s Choice Award, 2022</h4><p>Susan won the People&rsquo;s Choice Award at the 2022 PST Exhibition at the Mornington Studio. Her art is held in private and official collections internationally.</p></div></div>
-    </div>
+<!-- EVENTS -->
+<section id="events" class="section" style="display:none">
+  <div class="section-header">
+    <h2>Events &amp; Studio</h2>
   </div>
+  <div class="events-list" id="events-list"></div>
 </section>
 
-<!-- Collections -->
-<section class="section" id="collections">
-  <div class="section-inner">
-    <div class="label reveal">Browse by theme</div>
-    <h2 class="reveal">Collections</h2>
-    <div class="collections-grid reveal" id="collections-grid"></div>
-  </div>
-</section>
-
-<!-- Room mockups -->
-<section class="section curatorial" id="in-situ">
-  <div class="section-inner">
-    <div class="label reveal">Art in a home</div>
-    <h2 class="reveal">Indicative Scale</h2>
-    <p class="reveal" style="margin-bottom:2rem">Room displays are indicative only. Artwork proportions are accurate to the known dimensions. Actual framing and setting may differ.</p>
-    <div class="reveal" style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;"> 
-      <div>
-        <div class="room-mockup">
-          <div class="room-wall" style="height:350px" id="room-mockup-1"></div>
-          <div class="room-floor"></div>
-        </div>
-        <div class="room-label">Friends in the Arcade &middot; 355 × 265 mm &middot; Indicative scale</div>
-      </div>
-      <div>
-        <div class="room-mockup">
-          <div class="room-wall" style="height:350px" id="room-mockup-2"></div>
-          <div class="room-floor"></div>
-        </div>
-        <div class="room-label">Lake Hawea, New Zealand &middot; 560 × 400 mm &middot; Indicative scale</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- About -->
-<section class="section curatorial" id="about">
-  <div class="section-inner">
-    <div class="about-grid reveal">
-      <div class="about-image">
-        <div class="about-image-note">A studio photograph or portrait of Susan will appear here once supplied.</div>
-      </div>
-      <div>
-        <div class="label">About the artist</div>
-        <h2>The artist behind the paintings</h2>
-        <p>Susan Czermak was born on a small island off the coast of Scotland. Her father worked as a marine biologist, and she spent an extraordinary childhood wandering the island and its seashore. For most of her life, however, she has lived in New Zealand and Australia.</p>
-        <p style="margin-top:1rem">She has worked variously as a computer programmer, a farmer and a teacher. From early childhood she had an interest in design and art, but these interests remained largely undeveloped until much later. She has been exploring the world and watercolour for the last twenty-five years, painting only subjects she has seen, trying to capture the mood and feelings evoked at the time.</p>
-        <p style="margin-top:1rem">Susan&rsquo;s style is realist, and she hopes the work may sometimes appear somewhat impressionist. She is most interested in light and its effect on a subject — capturing the light and mood is more important to her than the details of the scene.</p>
-        <p style="margin-top:1rem">Since 2001 Susan has held regular solo exhibitions of her work, mainly in France, where she lived in a village in SW France for ten years. She won the People&rsquo;s Choice Award at the 2022 PST Exhibition at the Mornington Studio.</p>
-        <p style="margin-top:1rem">Her art is held in private and official collections across Europe, the United Kingdom, USA, Canada, New Zealand and Australia. Susan&rsquo;s studio is located in the Melbourne area of Victoria, where she lives with her partner and two small dogs.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Contact -->
-<section class="section" id="visit">
-  <div class="section-inner">
-    <div class="label reveal">Get in touch</div>
-    <h2 class="reveal" id="enquire">Visit Susan&rsquo;s studio or ask about a painting</h2>
-    <div class="contact-grid reveal">
-      <div>
-        <h3>Enquire about a work</h3>
-        <p style="margin-bottom:1.5rem;font-size:.9rem">No obligation — just a conversation about a painting you&rsquo;re drawn to.</p>
-        <form id="enquiry-form">
-          <input type="hidden" id="enquiry-artwork" value="">
-          <div id="enquiry-preview" style="display:none;margin-bottom:1rem;padding:.75rem;background:var(--paper);border-radius:2px;font-size:.8rem"></div>
-          <div class="form-group"><label for="name">Name</label><input type="text" id="name" required></div>
-          <div class="form-group"><label for="email">Email</label><input type="email" id="email" required></div>
-          <div class="form-group"><label for="message">Message</label><textarea id="message"></textarea></div>
-          <div class="form-group"><label><input type="checkbox" id="chk-frame" style="width:auto;margin-right:.5rem">I&rsquo;d like framing information</label></div>
-          <div class="form-group"><label><input type="checkbox" id="chk-delivery" style="width:auto;margin-right:.5rem">I&rsquo;d like delivery information</label></div>
-          <button type="submit" class="btn btn-primary">Send enquiry</button>
-        </form>
-        <div id="form-success" style="display:none;padding:2rem;text-align:center">
-          <p style="font-family:var(--serif);font-size:1.3rem;color:var(--marine)">Prototype only — this demonstration has not sent an email.</p>
-          <p style="font-size:.9rem;color:var(--warm-grey);margin-top:.5rem">Enquiries are always welcome and carry no obligation.</p>
-        </div>
-      </div>
-      <div>
-        <h3>Studio visits</h3>
-        <p style="margin-bottom:1rem;font-size:.9rem">Susan opens her Melbourne-area studio during the annual Peninsula Studio Trail and by appointment.</p>
-        <div class="artwork-specs">
-          <span>Melbourne area, Victoria, Australia</span>
-          <span style="margin-top:.5rem">Studio visits by arrangement</span>
-          <span>Occasional studio notes available by request</span>
-        </div>
-        <div style="margin-top:2rem;padding:1.5rem;background:var(--paper);border-radius:2px">
-          <p style="font-family:var(--serif);font-style:italic;font-size:1.1rem;color:var(--marine)">&ldquo;Please don&rsquo;t hesitate to ask about a painting. I&rsquo;m always happy to discuss the work.&rdquo;</p>
-          <p style="font-size:.8rem;color:var(--warm-grey);margin-top:.5rem">&mdash; Susan</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<footer>
-  <div class="footer-inner">
-    <div>
-      <p>&copy; Susan Czermak</p>
-      <p style="font-size:.7rem;margin-top:.25rem"><a href="https://www.instagram.com/susanczermakartist/" target="_blank" rel="noopener">Instagram</a> &middot; <a href="https://www.peninsulastudiotrailinc.org/artists/susan-czermak" target="_blank" rel="noopener">Peninsula Studio Trail</a></p>
-    </div>
-    <div style="text-align:right"><p><a href="#" onclick="navigateHome()">Home</a> &middot; <a href="#all-works" onclick="showAllWorks()">All Works</a> &middot; <a href="#about">About</a> &middot; <a href="#visit">Contact</a></p></div>
-  </div>
-</footer>
-
-</div><!-- /home-page -->
-
-<!-- ARTWORK DETAIL OVERLAY -->
-<div class="artwork-overlay" id="artwork-overlay">
-  <a href="#" class="artwork-close" onclick="closeArtwork();return false">&times;</a>
-  <div class="artwork-detail" id="artwork-detail-content"></div>
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="detail-modal" onclick="if(event.target===this)closeDetail()">
+  <div class="modal-content" id="detail-content"></div>
 </div>
 
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="social-links">
+    <a href="https://www.instagram.com/susanczermakartist/" target="_blank" rel="noopener">Instagram</a>
+    <a href="https://www.peninsulastudiotrailinc.org/artists/susan-czermak" target="_blank" rel="noopener">Peninsula Studio Trail</a>
+  </div>
+  <p>&copy; Susan Czermak Watercolours</p>
+  <p style="margin-top:0.5rem;font-size:0.75rem">Prototype — work in progress</p>
+</footer>
+
 <script>
-// Content data
-const DATA = {
-  artworks: [
-    {id:"lake-hawea",title:"Lake Hawea, New Zealand",image:"images/artworks/Czermak-LakeHawea-NewZealand.jpg",collection:"travels-further",year:null,medium:"Watercolour on paper",dimensionsMm:"560 × 400",priceAud:null,samplePriceAud:null,availability:"available",featured:true,
-      story:"The mountains rose abruptly from the lake's edge, their reflections doubling the world in the still water. Susan spent the afternoon watching the light move across the ranges, the blues deepening and shifting as cloud shadows raced across the peaks. She worked quickly, knowing the moment would not hold.",prototypeStory:true},
-    {id:"two-dinghies",title:"Two Dinghies, Portugal",image:"images/artworks/CzermakDinghiesPortugal.jpeg",collection:"by-the-water",year:null,medium:"Watercolour on paper",dimensionsMm:null,priceAud:null,samplePriceAud:null,availability:"print-only",featured:true,
-      story:"The brilliant turquoise of Portuguese fishing boats is somehow very uplifting and cannot fail to catch the watercolourist's eye. The dinghies sat side by side as though in quiet conversation, their painted hulls glowing against the pale sand.",prototypeStory:true},
-    {id:"shepherd",title:"The Shepherd, France",image:"images/artworks/CzermakShepherd1000.jpeg",collection:"from-france",year:null,medium:"Watercolour on paper",dimensionsMm:null,priceAud:null,samplePriceAud:650,availability:"available",featured:true,
-      story:"The shepherd stood with his flock beneath a wide sky, the dogs circling with the quiet efficiency of long practice. Susan was drawn less to the figure than to the quality of light on the grasses — the particular gold of late afternoon in the Aubrac.",prototypeStory:true},
-    {id:"water-trough",title:"Medieval Water Trough, Aubrac",image:"images/artworks/water-trough.jpg",collection:"from-france",year:null,medium:"Watercolour on paper",dimensionsMm:"285 × 192",priceAud:null,samplePriceAud:null,availability:"sold",featured:false,
-      story:"I found the wide Aubrac landscape mesmerising and its historical traces spoke to its history. The ancient stone trough had served travellers for centuries. Susan painted it not as a relic but as something still present — still holding water, still catching the morning light.",prototypeStory:true},
-    {id:"friends-arcade",title:"Friends in the Arcade, SW France",image:"images/artworks/friends-arcade.jpg",collection:"from-france",year:2023,medium:"Watercolour on paper",dimensionsMm:"355 × 265",priceAud:null,samplePriceAud:null,availability:"sold",featured:true,
-      story:"What a joy to find these friends playing together in a village, one Sunday afternoon. The arcade framed them perfectly — the deep shadow of the stone arch giving way to the sunlit courtyard beyond.",prototypeStory:true},
-    {id:"frostie",title:"Frostie",image:"images/artworks/Frostie0488w.jpg",collection:"quiet-weather",year:2025,medium:"Watercolour on paper",dimensionsMm:null,priceAud:null,samplePriceAud:450,availability:"available",featured:true,
-      story:"The frost had settled deep overnight, turning the paddocks to silver. Susan worked from the warmth of the kitchen window, watching the light change as the sun rose higher and the frost began its slow retreat to the fence lines. The painting captures that brief, crystalline hour before the world warms.",prototypeStory:true},
-    {id:"lakehouse",title:"Lakehouse",image:"images/artworks/Lakehouse5897w.jpg",collection:"quiet-weather",year:2025,medium:"Watercolour on paper",dimensionsMm:null,priceAud:null,samplePriceAud:550,availability:"available",featured:false,
-      story:"The house sat low against the water's edge, its modest form nearly absorbed by the surrounding trees. What held Susan's attention was the stillness of the lake surface and the way the house seemed to belong to the landscape as much as the rocks and reeds.",prototypeStory:true},
-    {id:"chambert",title:"Chambert, France",image:"images/artworks/SusanChambert.jpeg",collection:"from-france",year:null,medium:"Watercolour on paper",dimensionsMm:null,priceAud:null,samplePriceAud:null,availability:"available",featured:false,
-      story:"The vines stood dark and bare beneath the winter ridge, their repeated shapes carrying the eye towards the pale distance. Susan was drawn less to the vineyard itself than to the cold blue light gathering between the rows — the brief hour when the land seemed to lose its colour yet become more intensely itself.",prototypeStory:true}
-  ],
-  collections: [
-    {id:"from-france",name:"From France",desc:"Works from Susan's decade in south-west France",image:"images/artworks/friends-arcade.jpg"},
-    {id:"quiet-weather",name:"Quiet Weather",desc:"Atmosphere, light and the feeling of weather",image:"images/artworks/Frostie0488w.jpg"},
-    {id:"travels-further",name:"Travels Further",desc:"New Zealand, Portugal and beyond",image:"images/artworks/Czermak-LakeHawea-NewZealand.jpg",proposed:false},
-    {id:"by-the-water",name:"By the Water",desc:"Coastlines and harbours — proposed collection",image:"images/artworks/CzermakDinghiesPortugal.jpeg",proposed:true},
-    {id:"fields-country",name:"Fields & Country",desc:"Farmland and vineyards — proposed collection",image:"images/artworks/SusanChambert.jpeg",proposed:true}
-  ]
-};
+// Load content
+let artworks = [];
+let collections = [];
+let artist = {};
 
-// Helpers
-function getArtwork(id){return DATA.artworks.find(a=>a.id===id);}
-function getCollection(id){return DATA.collections.find(c=>c.id===id);}
-function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function avLabel(a){return a==='available'?'Available':a==='sold'?'Sold':a==='print-only'?'Print only':a;}
-function avClass(a){return a==='available'?'av-available':a==='sold'?'av-sold':'av-print';}
-function formatPrice(aud){return aud?'A$'+aud.toLocaleString():null;}
-function navigateHome(){closeArtwork();document.getElementById('all-works').classList.remove('active');window.location.hash='';scrollTo(0,0);}
-function showAllWorks(){closeArtwork();document.getElementById('all-works').classList.add('active');document.getElementById('all-works').scrollIntoView({behavior:'smooth'});window.location.hash='all-works';}
+fetch('content.json')
+  .then(r => r.json())
+  .then(data => {
+    artworks = data.artworks;
+    collections = data.collections;
+    artist = data.artist;
+    init();
+  })
+  .catch(() => {
+    // Fallback: use inline data
+    console.warn('Could not load content.json, using embedded data');
+    init();
+  });
 
-// Build artwork card HTML
-function buildCard(a,clickable){
-  var h='<div class="work-card'+(a.featured&&a.availability==='available'?' wide':'')+'"';
-  if(clickable)h+=' onclick="openArtwork(\''+a.id+'\')"';
-  h+='><img src="'+a.image+'" alt="'+escapeHtml(a.title)+'" loading="lazy">';
-  h+='<div class="work-meta"><h3>'+escapeHtml(a.title)+'</h3>';
-  if(a.collection){var c=getCollection(a.collection);if(c)h+='<span class="label">'+c.name+'</span>';}
-  if(a.dimensionsMm||a.medium)h+='<span class="label" style="display:block;margin-top:.1rem">'+(a.medium||'')+(a.dimensionsMm?' &middot; '+a.dimensionsMm+' mm':'')+'</span>';
-  h+='<span class="availability '+avClass(a.availability)+'">'+avLabel(a.availability)+'</span>';
-  if(a.samplePriceAud)h+=' <span class="sample-price">Sample: '+formatPrice(a.samplePriceAud)+'</span>';
-  h+='</div></div>';
-  return h;
+function init() {
+  renderFeatured();
+  renderAll();
+  renderFilters();
+  renderPrints();
+  renderAbout();
+  renderEvents();
+  setupNav();
+  
+  // Handle hash for direct links
+  if (location.hash.startsWith('#artwork-')) {
+    const id = location.hash.replace('#artwork-', '');
+    showDetail(id);
+  }
 }
 
-// Featured grid
-function renderFeatured(){
-  var g=document.getElementById('featured-grid');
-  if(!g)return;
-  g.innerHTML=DATA.artworks.filter(function(a){return a.featured}).map(function(a){return buildCard(a,true)}).join('');
+function renderFeatured() {
+  const grid = document.getElementById('featured-grid');
+  // Select 6-9 featured or varied works
+  const featured = [
+    artworks.find(a => a.id === 'test-painting') || artworks.find(a => a.title.toLowerCase().includes('lake hawea')),
+    artworks.find(a => a.id === 'vendor-halong-bay-vietnam') || artworks.find(a => a.title.toLowerCase().includes('vietnam')),
+    artworks.find(a => a.id === 'mountain-shepherd-and-his-sheep-france') || artworks.find(a => a.title.toLowerCase().includes('shepherd')),
+    artworks.find(a => a.id === 'frost-morning-over-the-vines-yarra-valley') || artworks.find(a => a.title.toLowerCase().includes('frost')),
+    artworks.find(a => a.id === 'shady-lane-sw-france') || artworks.find(a => a.title.toLowerCase().includes('shady')),
+    artworks.find(a => a.id === 'chateau-chambert-floressas-179-u-f') || artworks.find(a => a.title.toLowerCase().includes('chambert')),
+    artworks.find(a => a.id === 'friends-in-the-arcade-sw-france') || artworks.find(a => a.title.toLowerCase().includes('arcade')),
+    artworks.find(a => a.id === 'two-dinghies-portugal') || artworks.find(a => a.title.toLowerCase().includes('dinghies')),
+    artworks.find(a => a.id === 'gingko-blues') || artworks.find(a => a.isAbstract),
+  ].filter(Boolean).filter((a, i, arr) => arr.findIndex(x => x.id === a.id) === i).slice(0, 9);
+  
+  grid.innerHTML = featured.map(a => artworkCard(a)).join('');
 }
 
-// Gallery with filters
-var galleryFilter='all';
-function renderGallery(){
-  var g=document.getElementById('gallery-grid');
-  var f=document.getElementById('gallery-filters');
-  if(!g||!f)return;
-  var filtered=galleryFilter==='all'?DATA.artworks:DATA.artworks.filter(function(a){return a.availability===galleryFilter||a.collection===galleryFilter});
-  g.innerHTML=filtered.map(function(a){return buildCard(a,true)}).join('');
-  var filters=[{v:'all',l:'All'},{v:'available',l:'Available'},{v:'print-only',l:'Prints'},{v:'sold',l:'Sold'}];
-  DATA.collections.forEach(function(c){filters.push({v:c.id,l:c.name});});
-  f.innerHTML=filters.map(function(ft){return '<button class="filter-btn'+(galleryFilter===ft.v?' active':'')+'" onclick="setFilter(\''+ft.v+'\')">'+ft.l+'</button>';}).join('');
+function renderAll() {
+  const grid = document.getElementById('full-grid');
+  grid.innerHTML = artworks.map(a => artworkCard(a)).join('');
 }
-function setFilter(f){galleryFilter=f;renderGallery();}
 
-// Collections grid
-function renderCollections(){
-  var g=document.getElementById('collections-grid');
-  if(!g)return;
-  g.innerHTML=DATA.collections.map(function(c){
-    var count=DATA.artworks.filter(function(a){return a.collection===c.id}).length;
-    return '<div class="coll-card'+(c.proposed?' coll-future':'')+'" onclick="galleryFilter=\''+c.id+'\';showAllWorks();renderGallery()"><img src="'+c.image+'" alt="'+escapeHtml(c.name)+'" loading="lazy"><div class="coll-label"><h4>'+escapeHtml(c.name)+'</h4><span>'+count+' work'+(count!==1?'s':'')+'</span></div></div>';
+function artworkCard(a) {
+  const img = a.image || 'images/artworks/placeholder.jpg';
+  const dims = a.dimensionsMm ? `<span class="card-dims">${a.dimensionsMm} mm</span>` : '';
+  const labels = {available:'Available',sold:'Sold','print-only':'Print available',unknown:'Enquire'};
+  return `
+    <div class="artwork-card" data-id="${a.id}" data-availability="${a.availability}" data-medium="${a.medium}" data-country="${a.country||''}" data-collections="${(a.collections||[]).join(',')}" data-title="${a.title.toLowerCase()}" onclick="showDetail('${a.id}')">
+      <div class="card-image">
+        <img src="${img}" alt="${a.title}" loading="lazy">
+        <span class="card-status availability-${a.availability}">${labels[a.availability]||a.availability}</span>
+      </div>
+      <div class="card-info">
+        <h3>${a.title}</h3>
+        ${dims}
+        <span class="card-medium">${a.medium.charAt(0).toUpperCase()+a.medium.slice(1)} on paper</span>
+      </div>
+    </div>`;
+}
+
+function renderFilters() {
+  const filters = document.getElementById('filters');
+  const btns = [
+    {label:'All', filter:'all'},
+    {label:'Available', filter:'available'},
+    {label:'Sold', filter:'sold'},
+    {label:'Prints', filter:'print-only'},
+    {label:'France', filter:'from-france'},
+    {label:'By the Water', filter:'by-the-water'},
+    {label:'Fields & Country', filter:'fields-country'},
+    {label:'Villages & Roads', filter:'villages-roads'},
+    {label:'Travels Further', filter:'travels'},
+    {label:'Quiet Weather', filter:'quiet-weather'},
+    {label:'People', filter:'people'},
+  ];
+  
+  filters.innerHTML = btns.map(b => 
+    `<button class="filter-btn${b.filter==='all'?' active':''}" data-filter="${b.filter}" onclick="setFilter('${b.filter}',this)">${b.label}</button>`
+  ).join('');
+}
+
+let currentFilter = 'all';
+
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterArtworks();
+}
+
+function filterArtworks() {
+  const search = (document.getElementById('artwork-search')?.value || '').toLowerCase();
+  const cards = document.querySelectorAll('#full-grid .artwork-card');
+  
+  cards.forEach(card => {
+    let show = true;
+    
+    if (currentFilter !== 'all') {
+      const cols = card.dataset.collections.split(',');
+      const avail = card.dataset.availability;
+      
+      if (currentFilter === 'available' && avail !== 'available') show = false;
+      else if (currentFilter === 'sold' && avail !== 'sold') show = false;
+      else if (currentFilter === 'print-only' && avail !== 'print-only') show = false;
+      else if (!['available','sold','print-only'].includes(currentFilter) && !cols.includes(currentFilter)) show = false;
+    }
+    
+    if (search) {
+      const title = card.dataset.title || '';
+      if (!title.includes(search)) show = false;
+    }
+    
+    card.style.display = show ? '' : 'none';
+  });
+}
+
+function showAll() {
+  document.getElementById('full-collection').style.display = '';
+  document.getElementById('full-collection').scrollIntoView({behavior:'smooth'});
+}
+
+function showDetail(id) {
+  const a = artworks.find(x => x.id === id);
+  if (!a) return;
+  
+  const img = a.image || '';
+  const dims = a.dimensionsMm ? `${a.dimensionsMm} mm` : 'Dimensions to be confirmed';
+  const labels = {available:'Available',sold:'Sold','print-only':'Print available',unknown:'Availability to be confirmed'};
+  const desc = a.sourceDescription || a.story || '';
+  const storyLabel = a.prototypeStory ? '<div class="story-label">Illustrative story draft — to be confirmed with Susan.</div>' : '';
+  
+  document.getElementById('detail-content').innerHTML = `
+    <button class="modal-close" onclick="closeDetail()">&times;</button>
+    <div class="modal-image"><img src="${img}" alt="${a.title}"></div>
+    <div class="modal-body">
+      <h2>${a.title}</h2>
+      <div class="modal-meta">
+        <span>${labels[a.availability]}</span>
+        <span>${a.medium.charAt(0).toUpperCase()+a.medium.slice(1)} on paper</span>
+        <span>${dims}</span>
+        ${a.country ? `<span>${a.country}${a.region ? ', '+a.region : ''}</span>` : ''}
+        ${a.priceAud ? `<span>$${a.priceAud}</span>` : ''}
+      </div>
+      ${storyLabel}
+      ${desc ? `<div class="modal-desc">${desc}</div>` : ''}
+      <div class="modal-actions">
+        ${a.availability === 'available' 
+          ? '<button class="btn btn-primary" onclick="enquireAbout(\''+a.id+'\')">Enquire About This Painting</button>'
+          : a.availability === 'sold'
+            ? '<button class="btn btn-secondary" onclick="enquireAbout(\''+a.id+'\')">Ask About a Similar Work</button>'
+            : '<button class="btn btn-secondary" onclick="enquireAbout(\''+a.id+'\')">Enquire About Prints</button>'}
+        <a href="${a.sourceUrl||'#'}" target="_blank" class="btn btn-secondary">View on Original Site</a>
+      </div>
+    </div>`;
+  
+  document.getElementById('detail-modal').classList.add('active');
+  location.hash = 'artwork-' + id;
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDetail() {
+  document.getElementById('detail-modal').classList.remove('active');
+  location.hash = '';
+  document.body.style.overflow = '';
+}
+
+function enquireAbout(id) {
+  closeDetail();
+  document.querySelectorAll('section').forEach(s => s.style.display = 'none');
+  document.getElementById('about').style.display = '';
+  document.getElementById('about').scrollIntoView({behavior:'smooth'});
+  
+  const a = artworks.find(x => x.id === id);
+  if (a) {
+    document.getElementById('enquiry-dynamic').innerHTML = `
+      <div style="background:#fff;padding:1rem;border-radius:6px;margin-bottom:1rem;border-left:3px solid #3d5a4e">
+        <strong>${a.title}</strong><br>
+        <span style="font-size:0.85rem;color:#888">${a.dimensionsMm ? a.dimensionsMm+' mm' : ''} | ${a.availability}</span>
+      </div>`;
+  }
+}
+
+function renderPrints() {
+  const container = document.getElementById('prints-content');
+  const printWorks = artworks.filter(a => a.availability === 'print-only' || 
+    (a.originalDescription||'').toLowerCase().includes('print'));
+  
+  if (printWorks.length === 0) {
+    container.innerHTML = '<p style="text-align:center;color:#888">Print details to be confirmed with Susan.</p>';
+    return;
+  }
+  
+  container.innerHTML = printWorks.map(a => {
+    const dims = a.dimensionsMm ? `${a.dimensionsMm} mm` : '';
+    return `
+      <div style="background:#fff;padding:1.5rem;margin-bottom:1rem;border-radius:6px;display:flex;gap:1.5rem;align-items:start;flex-wrap:wrap">
+        <div style="width:150px;flex-shrink:0"><img src="${a.image}" alt="${a.title}" style="border-radius:4px"></div>
+        <div style="flex:1;min-width:200px">
+          <h3 style="font-weight:400;color:#3d5a4e">${a.title}</h3>
+          ${dims ? '<p style="color:#888;font-size:0.9rem">Artwork: '+dims+'</p>' : ''}
+          <p style="font-size:0.9rem;margin-top:0.5rem">${a.sourceDescription||''}</p>
+          <button class="btn btn-primary" style="margin-top:0.5rem" onclick="enquireAbout('${a.id}')">Enquire About Prints</button>
+        </div>
+      </div>`;
   }).join('');
 }
 
-// Room mockups
-function renderRoomMockups(){
-  var m1=document.getElementById('room-mockup-1'),m2=document.getElementById('room-mockup-2');
-  if(!m1||!m2)return;
-  // Friends in the Arcade: 355x265mm at roughly 1:3 scale on screen
-  m1.innerHTML='<div style="position:absolute;width:22%;aspect-ratio:355/265;background:url(images/artworks/friends-arcade.jpg)center/cover;box-shadow:0 4px 20px rgba(0,0,0,.15);border:6px solid #f5f0e8;left:38%;top:15%"></div>';
-  // Lake Hawea: 560x400mm — wider format
-  m2.innerHTML='<div style="position:absolute;width:32%;aspect-ratio:560/400;background:url(images/artworks/Czermak-LakeHawea-NewZealand.jpg)center/cover;box-shadow:0 4px 20px rgba(0,0,0,.15);border:6px solid #f5f0e8;left:34%;top:12%"></div>';
+function renderAbout() {
+  document.getElementById('about-text').innerHTML = `
+    <h3>A Life Shaped by Place</h3>
+    <p>${artist.bio||'Susan Czermak is a watercolourist with a style that is colourful and bold.'}</p>
+    <p>${artist.bioExtended||''}</p>
+    <ul class="trust-list">
+      <li>People's Choice Award — 2022 PST Exhibition</li>
+      <li>Peninsula Studio Trail member</li>
+      <li>Collected in 11+ countries internationally</li>
+      <li>Regular solo exhibitions since 2001</li>
+      <li>Studio visits by arrangement</li>
+    </ul>
+  `;
 }
 
-// Artwork detail overlay
-function openArtwork(id){
-  var a=getArtwork(id);if(!a)return;
-  var c=a.collection?getCollection(a.collection):null;
-  window.location.hash='artwork/'+id;
-  var h='<div class="artwork-layout">';
-  h+='<div class="artwork-image"><img src="'+a.image+'" alt="'+escapeHtml(a.title)+'" style="width:100%"></div>';
-  h+='<div class="artwork-info">';
-  h+='<div class="label">'+(c?c.name:'')+'</div>';
-  h+='<h1>'+escapeHtml(a.title)+'</h1>';
-  h+='<div class="artwork-specs">';
-  if(a.year)h+='<span>'+a.year+'</span>';
-  h+='<span>'+a.medium+'</span>';
-  if(a.dimensionsMm)h+='<span>'+a.dimensionsMm+' mm (unframed)</span>';
-  h+='<span class="availability '+avClass(a.availability)+'" style="display:inline-block;margin-top:.3rem">'+avLabel(a.availability)+'</span>';
-  if(a.samplePriceAud)h+='<div style="margin-top:.5rem"><span class="sample-price">Sample presentation only — price to be confirmed by Susan</span></div><div style="font-size:1.2rem;color:var(--marine);margin-top:.2rem">'+formatPrice(a.samplePriceAud)+'</div>';
-  else if(a.priceAud)h+='<div style="font-size:1.2rem;color:var(--marine);margin-top:.5rem">'+formatPrice(a.priceAud)+'</div>';
-  else h+='<span style="display:block;margin-top:.5rem;color:var(--warm-grey)">Price on enquiry</span>';
-  h+='</div>';
-  if(a.prototypeStory)h+='<div class="prototype-tag">Illustrative story draft — to be confirmed with Susan</div>';
-  if(a.story)h+='<div class="artwork-story"><p>'+escapeHtml(a.story)+'</p></div>';
-  h+='<a href="#enquire" class="btn btn-primary" style="margin-top:1.5rem" onclick="openEnquiry(\''+escapeHtml(a.title)+'\');closeArtwork()">Enquire about this painting</a>';
-  h+='</div></div>';
-  // Related works
-  var related=DATA.artworks.filter(function(x){return x.id!==a.id&&(x.collection===a.collection||x.featured)}).slice(0,4);
-  if(related.length){
-    h+='<div style="margin-top:3rem"><div class="label">Related works</div><div class="related-works">';
-    related.forEach(function(r){h+='<div onclick="openArtwork(\''+r.id+'\')" style="cursor:pointer"><img src="'+r.image+'" alt="'+escapeHtml(r.title)+'" loading="lazy"><p style="font-size:.8rem;margin-top:.4rem">'+escapeHtml(r.title)+'</p></div>';});
-    h+='</div></div>';
-  }
-  document.getElementById('artwork-detail-content').innerHTML=h;
-  document.getElementById('artwork-overlay').classList.add('active');
-  document.getElementById('artwork-overlay').scrollTop=0;
-}
-function closeArtwork(){
-  document.getElementById('artwork-overlay').classList.remove('active');
-  window.location.hash='';
+function renderEvents() {
+  document.getElementById('events-list').innerHTML = `
+    <div class="event-item">
+      <h3>Peninsula Studio Trail — Open Studios</h3>
+      <p class="event-date">Annual — November (dates to be confirmed)</p>
+      <p class="event-note">Previous years: 18-19 &amp; 25-26 November 2023. Studio open 10am-4pm. Check PST website for current dates.</p>
+      <a href="https://www.peninsulastudiotrailinc.org/events" target="_blank" rel="noopener" style="font-size:0.85rem">Peninsula Studio Trail Events →</a>
+    </div>
+    <div class="event-item">
+      <h3>Past Exhibitions</h3>
+      <p class="event-date">Regular solo exhibitions since 2001</p>
+      <p class="event-note">Mainly in France. Contact Susan for exhibition history.</p>
+    </div>
+  `;
 }
 
-// Enquiry form
-function openEnquiry(title){
-  document.getElementById('enquiry-artwork').value=title||'';
-  var prev=document.getElementById('enquiry-preview');
-  var a=DATA.artworks.find(function(x){return x.title===title});
-  if(a&&title){
-    prev.style.display='block';
-    prev.innerHTML='<img src="'+a.image+'" class="form-thumb" alt="">'+
-      '<strong>'+escapeHtml(a.title)+'</strong><br>'+
-      (a.dimensionsMm?escapeHtml(a.dimensionsMm)+' mm &middot; ':'')+escapeHtml(a.availability);
-  }else{prev.style.display='none';}
-  document.getElementById('visit').scrollIntoView({behavior:'smooth'});
+function setupNav() {
+  document.querySelectorAll('.nav-links a').forEach(link => {
+    link.addEventListener('click', function(e) {
+      const section = this.dataset.section;
+      if (section === 'home') {
+        document.querySelectorAll('section').forEach(s => s.style.display = '');
+        document.getElementById('full-collection').style.display = 'none';
+        document.getElementById('prints').style.display = 'none';
+        document.getElementById('about').style.display = 'none';
+        document.getElementById('events').style.display = 'none';
+      } else {
+        document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
+      }
+    });
+  });
+  
+  // Keyboard nav
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeDetail();
+  });
 }
 
-// Hash routing
-function handleHash(){
-  var h=window.location.hash.replace('#','');
-  if(h.startsWith('artwork/')){
-    var id=h.split('/')[1];
-    if(id){openArtwork(id);return;}
-  }
-  if(h==='all-works'){showAllWorks();}
-}
-window.addEventListener('hashchange',handleHash);
-
-// Init
-document.addEventListener('DOMContentLoaded',function(){
-  renderFeatured();
-  renderCollections();
-  renderGallery();
-  renderRoomMockups();
-  handleHash();
-
-  // Scroll reveal
-  var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting)e.target.classList.add('visible')})},{threshold:.15});
-  document.querySelectorAll('.reveal').forEach(function(el){obs.observe(el)});
-  // Nav scroll
-  var nav=document.getElementById('nav');
-  window.addEventListener('scroll',function(){nav.classList.toggle('scrolled',window.scrollY>50)});
-
-  // Active nav tracking
-  var navLinks=document.querySelectorAll('.nav-links a');
-  var sections={};
-  navLinks.forEach(function(a){var href=a.getAttribute('href');if(href&&href.startsWith('#'))sections[href.substring(1)]=a});
-  var sectionObs=new IntersectionObserver(function(entries){
-    var best=null,bestRatio=0;
-    entries.forEach(function(e){if(e.isIntersecting&&e.intersectionRatio>bestRatio){bestRatio=e.intersectionRatio;best=e.target.id}});
-    if(best){
-      navLinks.forEach(function(a){a.classList.remove('active')});
-      var link=sections[best];if(link)link.classList.add('active');
+// Handle back/forward for artwork detail
+window.addEventListener('hashchange', function() {
+  if (location.hash.startsWith('#artwork-')) {
+    const id = location.hash.replace('#artwork-', '');
+    if (!document.getElementById('detail-modal').classList.contains('active')) {
+      showDetail(id);
     }
-  },{threshold:[0,.2,.4,.6,.8]});
-  ['work','all-works','collections','about','visit'].forEach(function(id){
-    var el=document.getElementById(id);if(el)sectionObs.observe(el);
-  });
-  // Form
-  document.getElementById('enquiry-form').addEventListener('submit',function(e){
-    e.preventDefault();
-    document.getElementById('enquiry-form').style.display='none';
-    document.getElementById('form-success').style.display='block';
-  });
+  } else if (!location.hash) {
+    closeDetail();
+  }
 });
 </script>
 </body>
