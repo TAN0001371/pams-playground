@@ -720,6 +720,42 @@ const DEFAULT_MATERIALS_DB = [
   {cat:'Tiling', item:'Drainage grate linear', unit:'each', cost:65.00, markup:20},
 ];
 
+const PDF_MATERIALS_2026 = [
+  {cat:'Timber', item:'MGP10 Pine Framing 90x45 (up to 5.1m)', unit:'LM', cost:3.65, markup:25, supplier:'Bowens', sku:'P10F090045', priceDate:'2026-03-13', source:'Order 17627835'},
+  {cat:'Timber', item:'MGP10 Pine Framing 120x45 Structural', unit:'LM', cost:7.46, markup:25, supplier:'Bowens', sku:'P10F120045', priceDate:'2026-03-13', source:'Order 17627835'},
+  {cat:'Timber', item:'MGP10 Pine Framing 90x35 (5.4-6.0m)', unit:'LM', cost:2.97, markup:25, supplier:'Bowens', sku:'P10F090035L', priceDate:'2025-12-03', source:'Quote 17535262'},
+  {cat:'Timber', item:'Primed H3 LOSP Pine Fascia 190x30mm', unit:'LM', cost:15.41, markup:25, supplier:'Bowens', sku:'MLFPT190030', priceDate:'2026-03-13', source:'Order 17627835'},
+  {cat:'Timber', item:'Pine Batten 20x19 Standard grade', unit:'LM', cost:2.73, markup:20, supplier:'Bowens', sku:'0251585166', priceDate:'2025-12-03', source:'Quote 17535262'},
+  {cat:'Timber', item:'WRC VJ Paneling 86x9 P20-01', unit:'LM', cost:11.85, markup:30, supplier:'Timbeck Architectural', sku:'WRVJ086009', priceDate:'2026-04-29', source:'Quotation 141013'},
+  {cat:'Timber', item:'WRC Dressed DAR 90x17', unit:'LM', cost:19.02, markup:30, supplier:'Timbeck Architectural', sku:'WRSQ090017', priceDate:'2026-04-29', source:'Quotation 141013'},
+  {cat:'Timber', item:'WRC Dressed DAR 140x12 Fascia/Pelmet', unit:'LM', cost:23.77, markup:30, supplier:'Timbeck Architectural', sku:'WRSQ140012', priceDate:'2026-04-29', source:'Quotation 141013'},
+  {cat:'Timber', item:'Hemlock Shiplap Paneling 84x9 12mm Gap', unit:'LM', cost:7.20, markup:30, supplier:'Timbeck Architectural', sku:'HLSL084009B', priceDate:'2026-07-10', source:'Order Confirmation 141651'},
+  {cat:'Timber', item:'Hemlock Dressed DAR 90x17', unit:'LM', cost:10.90, markup:30, supplier:'Timbeck Architectural', sku:'HLSQ090017', priceDate:'2026-07-10', source:'Order Confirmation 141651'},
+  {cat:'Timber', item:'Baltic Pine Weatherboard Primed ex175mm', unit:'LM', cost:4.66, markup:25, supplier:'Bowens', sku:'MLWBSP175025', priceDate:'2026-03-13', source:'Order 17627835'},
+  {cat:'Timber', item:'QLD Spotted Gum Cladding 76x19 BAL29 Feature Grade', unit:'LM', cost:6.76, markup:30, supplier:'Bowens', sku:'0251541841', priceDate:'2025-07-08', source:'Quote 17363991'},
+  {cat:'Timber', item:'Lunawood Triple Shadow Cladding 140x32', unit:'LM', cost:24.08, markup:30, supplier:'WR Timbers', sku:'', priceDate:'2025-06-18', source:'QUO00012696'},
+  {cat:'Timber', item:'Lunawood Juan Clip Decking 118x26', unit:'LM', cost:15.21, markup:30, supplier:'WR Timbers', sku:'', priceDate:'2025-06-18', source:'QUO00012696'},
+  {cat:'Timber', item:'Lunawood SHP Solar Batten 42x42 square dressed', unit:'LM', cost:10.48, markup:25, supplier:'WR Timbers', sku:'', priceDate:'2025-06-18', source:'QUO00012696'},
+  {cat:'Timber', item:'Luna Wood DAR 142x42 (Bowens)', unit:'LM', cost:29.85, markup:30, supplier:'Bowens', sku:'0251585163', priceDate:'2025-12-03', source:'Quote 17535262'},
+  {cat:'Timber', item:'Cypress Pine 115x115 3.0m DAR Pencil Round', unit:'EA', cost:118.72, markup:25, supplier:'Bowens', sku:'YUGD11530', priceDate:'2026-03-13', source:'Order 17627835'},
+  {cat:'Cladding', item:'Hardies Scyon Axon 133 2450x1200x9mm', unit:'ST', cost:125.74, markup:20, supplier:'Bowens', sku:'AXH2412', priceDate:'2025-12-03', source:'Quote 17535262'},
+  {cat:'Cladding', item:'Hardies EasyLap Cladding Panel 3000x1200x8.5mm', unit:'ST', cost:116.46, markup:20, supplier:'Bowens', sku:'HEL3012', priceDate:'2026-03-13', source:'Order 17627835'},
+  {cat:'Flooring', item:'Magnum Board Flooring 2700x600x18mm T&G', unit:'ST', cost:116.44, markup:20, supplier:'Bowens', sku:'MBPFLOORING', priceDate:'2025-12-03', source:'Quote 17535262'},
+  {cat:'Insulation', item:'Pink Wall Batts R1.5 24pk (13.6m2)', unit:'PK', cost:60.22, markup:20, supplier:'Bowens', sku:'4006277', priceDate:'2025-12-03', source:'Quote 17535262'},
+  {cat:'Insulation', item:'Pink Ceiling Batts R2.5 16pk (8.86m2)', unit:'PK', cost:51.23, markup:20, supplier:'Bowens', sku:'4006098', priceDate:'2025-12-03', source:'Quote 17535262'},
+  {cat:'Concrete', item:'Dingo Fast Set 20kg Hi-Strength 40MPa', unit:'EA', cost:11.41, markup:20, supplier:'Bowens', sku:'800201', priceDate:'2026-03-13', source:'Order 17627835'},
+  {cat:'Membrane', item:'Airflo White Wall Wrap 1.5x30m VPM', unit:'EA', cost:129.28, markup:20, supplier:'Bowens', sku:'AFW5030', priceDate:'2026-03-13', source:'Order 17627835'},
+];
+
+function mergePdfMaterials() {
+  const existing = new Set(state.materialsDB.map(m => (m.sku || (m.cat + '|' + m.item)).toLowerCase()));
+  let added = 0;
+  PDF_MATERIALS_2026.forEach(item => {
+    const key = (item.sku || (item.cat + '|' + item.item)).toLowerCase();
+    if (!existing.has(key)) { state.materialsDB.push(deepClone(item)); existing.add(key); added++; }
+  });
+  return added;
+}
 const JOB_TEMPLATES = {
   'sauna': {
     materials: [
@@ -827,6 +863,7 @@ function loadState() {
       state.templates = Array.isArray(parsed.templates) ? parsed.templates : [];
     }
   } catch(e) { console.log('Load error', e); }
+  if (mergePdfMaterials() > 0) saveState();
 }
 function saveState() {
   localStorage.setItem('kevinBusinessNumbers', JSON.stringify({
@@ -1612,6 +1649,7 @@ function hydrateFromCloud(data) {
     state.quotes = Array.isArray(data.quotes) ? data.quotes : [];
     state.overhead = { ...state.overhead, ...(data.overhead || {}) };
     if (Array.isArray(data.materialsDB) && data.materialsDB.length) state.materialsDB = data.materialsDB;
+    mergePdfMaterials();
     state.templates = Array.isArray(data.templates) ? data.templates : [];
     localStorage.setItem('kevinBusinessNumbers', JSON.stringify({
       quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB, templates: state.templates,
