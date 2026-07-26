@@ -324,24 +324,39 @@ function observeReveals() {
 
 // ===== Scroll-spy: nav highlighting as user scrolls =====
 (function(){
-  const navSpyLinks = {};
-  document.querySelectorAll('.nav-links a').forEach(a => { navSpyLinks[a.dataset.section] = a; });
+  var navSpyLinks = {};
+  document.querySelectorAll('.nav-links a').forEach(function(a) { navSpyLinks[a.dataset.section] = a; });
+  console.log('[spy] nav links found:', Object.keys(navSpyLinks));
   
   function updateScrollSpy() {
-    const scrollY = window.scrollY + 100;
-    let active = 'home';
-    ['events','about','prints','full-collection','gallery','home'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el && el.offsetParent && el.offsetTop <= scrollY) {
+    var rawScrollY = window.scrollY;
+    var scrollY = rawScrollY + 100;
+    var active = 'home';
+    
+    ['events','about','prints','full-collection','gallery','home'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (!el) { console.log('[spy] element #'+id+' NOT FOUND'); return; }
+      var op = el.offsetParent;
+      var ot = el.offsetTop;
+      var visible = op !== null;
+      var matches = visible && ot <= scrollY;
+      console.log('[spy] #'+id+' offsetTop='+ot+' offsetParent='+(op?op.tagName:'NULL')+' visible='+visible+' matches='+matches+' scrollY='+scrollY);
+      if (matches) {
         active = id === 'full-collection' ? 'gallery' : id;
       }
     });
-    Object.values(navSpyLinks).forEach(l => l.classList.remove('active'));
-    if (navSpyLinks[active]) navSpyLinks[active].classList.add('active');
+    
+    console.log('[spy] active='+active);
+    Object.values(navSpyLinks).forEach(function(l) { l.classList.remove('active'); });
+    if (navSpyLinks[active]) {
+      navSpyLinks[active].classList.add('active');
+      console.log('[spy] set active on nav link:', active);
+    }
   }
   
   window.addEventListener('scroll', updateScrollSpy, {passive:true});
   updateScrollSpy();
+  console.log('[spy] scroll-spy initialized, listener attached');
 })();
 
 function init() {
