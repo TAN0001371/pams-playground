@@ -54,8 +54,8 @@
     $('simpleModeBtn') && $('simpleModeBtn').classList.toggle('active', !advanced);
     $('advancedModeBtn') && $('advancedModeBtn').classList.toggle('active', advanced);
     localStorage.setItem('kevinQuoteMode', advanced ? 'advanced' : 'simple');
-    if (advanced && $('body-adv')) $('body-adv').classList.add('open');
-    if (advanced && $('chevron-adv')) $('chevron-adv').classList.add('open');
+    if ($('quoteModeNote')) $('quoteModeNote').textContent = advanced ? 'Advanced pricing — customise every part of this quote' : 'Simple quote — using your standard business settings';
+    ['adv', 'sub', 'oth'].forEach(key => { const body = $('body-' + key), chevron = $('chevron-' + key); if (!body || !chevron) return; body.classList.toggle('open', advanced); chevron.classList.toggle('open', advanced); });
   };
   window.useBusinessDefaults = function () {
     input('nqContingency', '5'); input('nqProfit', '25'); input('nqOverheadPct', '100');
