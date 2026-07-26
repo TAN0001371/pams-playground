@@ -626,34 +626,27 @@ function setupNav() {
   });
   
   // Scroll-spy: highlight active nav section as user scrolls
-  const sections = [
-    {id:'home', nav:'home'},
-    {id:'gallery', nav:'gallery'},
-    {id:'prints', nav:'prints'},
-    {id:'about', nav:'about'},
-    {id:'events', nav:'events'}
-  ];
-  const navLinks = {};
-  document.querySelectorAll('.nav-links a').forEach(a => { navLinks[a.dataset.section] = a; });
+  const navSpyLinks = {};
+  document.querySelectorAll('.nav-links a').forEach(a => { navSpyLinks[a.dataset.section] = a; });
   
-  const spyObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
-        const navId = entry.target.dataset.spyNav;
-        if (navLinks[navId]) navLinks[navId].classList.add('active');
+  function updateScrollSpy() {
+    const scrollY = window.scrollY + 100; // offset for sticky nav
+    let activeSection = 'home';
+    
+    ['events','about','prints','full-collection','gallery','home'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.offsetParent !== null && el.offsetTop <= scrollY) {
+        // Map full-collection back to gallery
+        activeSection = id === 'full-collection' ? 'gallery' : id;
       }
     });
-  }, {threshold: 0.3, rootMargin: '-60px 0px 0px 0px'});
+    
+    document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+    if (navSpyLinks[activeSection]) navSpyLinks[activeSection].classList.add('active');
+  }
   
-  sections.forEach(s => {
-    const el = document.getElementById(s.id);
-    if (el) {
-      el.dataset.spyNav = s.nav;
-      spyObserver.observe(el);
-    }
-  });
-  });
+  window.addEventListener('scroll', updateScrollSpy, {passive:true});
+  updateScrollSpy();
 }
 
 // Handle back/forward for artwork detail
