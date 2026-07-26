@@ -322,6 +322,28 @@ function observeReveals() {
   document.querySelectorAll('.reveal:not(.visible)').forEach(el => revealObserver.observe(el));
 }
 
+// ===== Scroll-spy: nav highlighting as user scrolls =====
+(function(){
+  const navSpyLinks = {};
+  document.querySelectorAll('.nav-links a').forEach(a => { navSpyLinks[a.dataset.section] = a; });
+  
+  function updateScrollSpy() {
+    const scrollY = window.scrollY + 100;
+    let active = 'home';
+    ['events','about','prints','full-collection','gallery','home'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.offsetParent && el.offsetTop <= scrollY) {
+        active = id === 'full-collection' ? 'gallery' : id;
+      }
+    });
+    Object.values(navSpyLinks).forEach(l => l.classList.remove('active'));
+    if (navSpyLinks[active]) navSpyLinks[active].classList.add('active');
+  }
+  
+  window.addEventListener('scroll', updateScrollSpy, {passive:true});
+  updateScrollSpy();
+})();
+
 function init() {
   renderFeatured();
   renderAll();
@@ -624,29 +646,6 @@ function setupNav() {
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeDetail();
   });
-  
-  // Scroll-spy: highlight active nav section as user scrolls
-  const navSpyLinks = {};
-  document.querySelectorAll('.nav-links a').forEach(a => { navSpyLinks[a.dataset.section] = a; });
-  
-  function updateScrollSpy() {
-    const scrollY = window.scrollY + 100; // offset for sticky nav
-    let activeSection = 'home';
-    
-    ['events','about','prints','full-collection','gallery','home'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el && el.offsetParent !== null && el.offsetTop <= scrollY) {
-        // Map full-collection back to gallery
-        activeSection = id === 'full-collection' ? 'gallery' : id;
-      }
-    });
-    
-    document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
-    if (navSpyLinks[activeSection]) navSpyLinks[activeSection].classList.add('active');
-  }
-  
-  window.addEventListener('scroll', updateScrollSpy, {passive:true});
-  updateScrollSpy();
 }
 
 // Handle back/forward for artwork detail
