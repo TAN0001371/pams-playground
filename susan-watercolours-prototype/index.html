@@ -326,37 +326,25 @@ function observeReveals() {
 (function(){
   var navSpyLinks = {};
   document.querySelectorAll('.nav-links a').forEach(function(a) { navSpyLinks[a.dataset.section] = a; });
-  console.log('[spy] nav links found:', Object.keys(navSpyLinks));
   
   function updateScrollSpy() {
-    var rawScrollY = window.scrollY;
-    var scrollY = rawScrollY + 100;
     var active = 'home';
-    
+    // Check from bottom of page upward — last visible section whose top is near/above nav wins
     ['events','about','prints','full-collection','gallery','home'].forEach(function(id) {
       var el = document.getElementById(id);
-      if (!el) { console.log('[spy] element #'+id+' NOT FOUND'); return; }
-      var op = el.offsetParent;
-      var ot = el.offsetTop;
-      var visible = op !== null;
-      var matches = visible && ot <= scrollY;
-      console.log('[spy] #'+id+' offsetTop='+ot+' offsetParent='+(op?op.tagName:'NULL')+' visible='+visible+' matches='+matches+' scrollY='+scrollY);
-      if (matches) {
+      if (!el) return;
+      var rect = el.getBoundingClientRect();
+      // Only consider sections that have actual height (excludes display:none)
+      if (rect.height > 0 && rect.top <= 100) {
         active = id === 'full-collection' ? 'gallery' : id;
       }
     });
-    
-    console.log('[spy] active='+active);
     Object.values(navSpyLinks).forEach(function(l) { l.classList.remove('active'); });
-    if (navSpyLinks[active]) {
-      navSpyLinks[active].classList.add('active');
-      console.log('[spy] set active on nav link:', active);
-    }
+    if (navSpyLinks[active]) navSpyLinks[active].classList.add('active');
   }
   
   window.addEventListener('scroll', updateScrollSpy, {passive:true});
   updateScrollSpy();
-  console.log('[spy] scroll-spy initialized, listener attached');
 })();
 
 function init() {
