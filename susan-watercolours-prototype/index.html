@@ -580,16 +580,39 @@ function renderEvents() {
 function setupNav() {
   document.querySelectorAll('.nav-links a').forEach(link => {
     link.addEventListener('click', function(e) {
+      e.preventDefault();
       const section = this.dataset.section;
+      
+      // Update active state
+      document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+      this.classList.add('active');
+      
       if (section === 'home') {
-        document.querySelectorAll('section').forEach(s => s.style.display = '');
+        // Show homepage sections, hide sub-pages
+        document.getElementById('gallery').style.display = '';
         document.getElementById('full-collection').style.display = 'none';
         document.getElementById('prints').style.display = 'none';
         document.getElementById('about').style.display = 'none';
         document.getElementById('events').style.display = 'none';
+        window.scrollTo({top:0,behavior:'smooth'});
+      } else if (section === 'gallery') {
+        document.getElementById('gallery').style.display = '';
+        document.getElementById('full-collection').style.display = 'none';
+        document.getElementById('prints').style.display = 'none';
+        document.getElementById('about').style.display = 'none';
+        document.getElementById('events').style.display = 'none';
+        document.getElementById('gallery').scrollIntoView({behavior:'smooth'});
       } else {
-        document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
-        this.classList.add('active');
+        // Sub-pages: hide homepage sections, show target
+        document.getElementById('gallery').style.display = '';
+        document.getElementById('full-collection').style.display = 'none';
+        document.getElementById('prints').style.display = section === 'prints' ? '' : 'none';
+        document.getElementById('about').style.display = (section === 'about' || section === 'contact') ? '' : 'none';
+        document.getElementById('events').style.display = section === 'events' ? '' : 'none';
+        
+        // Scroll to target
+        const target = document.getElementById(section === 'contact' ? 'about' : section);
+        if (target) target.scrollIntoView({behavior:'smooth'});
       }
     });
   });
