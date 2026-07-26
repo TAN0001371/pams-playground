@@ -499,7 +499,9 @@ function enquireAbout(id) {
 }
 
 function goToEnquiry(isCommission, artworkId) {
-  document.querySelectorAll('section').forEach(s => s.style.display = 'none');
+  document.getElementById('prints').style.display = 'none';
+  document.getElementById('events').style.display = 'none';
+  document.getElementById('full-collection').style.display = 'none';
   document.getElementById('about').style.display = '';
   document.getElementById('about').scrollIntoView({behavior:'smooth'});
   
@@ -589,6 +591,7 @@ function setupNav() {
       
       if (section === 'home') {
         // Show homepage sections, hide sub-pages
+        document.getElementById('home').style.display = '';
         document.getElementById('gallery').style.display = '';
         document.getElementById('full-collection').style.display = 'none';
         document.getElementById('prints').style.display = 'none';
