@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ABC Learning — Prototype</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #fef9e7;
+    display: flex; flex-direction: column; align-items: center;
+    min-height: 100vh; padding: 20px;
+  }
+  h1 { font-size: 2rem; color: #5b2c6f; margin-bottom: 8px; }
+  .subtitle { color: #888; font-size: 0.85rem; margin-bottom: 24px; }
+
+  .letter-tabs {
+    display: flex; gap: 12px; margin-bottom: 24px;
+  }
+  .letter-tab {
+    width: 64px; height: 64px;
+    border-radius: 16px; border: 3px solid #d5b8e8;
+    background: white; font-size: 1.6rem; font-weight: 700;
+    color: #7d3c98; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .letter-tab:hover { background: #f3e5f5; transform: scale(1.05); }
+  .letter-tab.active { background: #7d3c98; color: white; border-color: #7d3c98; }
+
+  .card {
+    background: white; border-radius: 24px; padding: 32px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    max-width: 420px; width: 100%;
+    text-align: center;
+  }
+  .big-letter {
+    font-size: 8rem; font-weight: 800; line-height: 1;
+    color: #5b2c6f; margin-bottom: 4px;
+  }
+  .big-lower {
+    font-size: 4rem; font-weight: 600; color: #8e6ba8;
+    margin-bottom: 16px;
+  }
+  .sound-row {
+    display: flex; align-items: center; justify-content: center;
+    gap: 10px; margin-bottom: 20px;
+  }
+  .sound-label {
+    font-size: 1.8rem; color: #e67e22; font-weight: 700;
+  }
+  .speak-btn {
+    width: 48px; height: 48px; border-radius: 50%;
+    border: none; background: #7d3c98; color: white;
+    font-size: 1.4rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .speak-btn:hover { background: #6c2d82; }
+  .speak-btn:active { transform: scale(0.95); }
+
+  .word-section { margin-bottom: 16px; }
+  .word-label {
+    font-size: 2rem; font-weight: 700; color: #2c3e50;
+  }
+  .word-svg { margin: 12px auto; max-width: 200px; }
+
+  .sound-out {
+    display: flex; gap: 8px; justify-content: center;
+    flex-wrap: wrap; margin-bottom: 20px;
+  }
+  .sound-chip {
+    background: #e8daef; color: #5b2c6f;
+    padding: 8px 16px; border-radius: 20px;
+    font-weight: 600; font-size: 1.1rem;
+    cursor: pointer; border: none;
+    transition: background 0.15s;
+  }
+  .sound-chip:hover { background: #d5b8e8; }
+
+  .nav-row {
+    display: flex; gap: 12px; justify-content: center;
+  }
+  .nav-btn {
+    padding: 10px 28px; border-radius: 12px;
+    border: 2px solid #7d3c98; background: white;
+    color: #7d3c98; font-size: 1rem; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .nav-btn:hover { background: #7d3c98; color: white; }
+  .nav-btn:disabled { opacity: 0.3; cursor: default; }
+  .nav-btn:disabled:hover { background: white; color: #7d3c98; }
+
+  .prototype-badge {
+    margin-top: 32px; background: #fff3cd; border: 1px solid #ffc107;
+    border-radius: 12px; padding: 16px; max-width: 420px; width: 100%;
+    font-size: 0.85rem; color: #856404; text-align: center; line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<h1>🔤 ABC Learning</h1>
+<p class="subtitle">Tap a letter, hear its sound, see a word</p>
+
+<div class="letter-tabs" id="tabs"></div>
+
+<div class="card" id="card"></div>
+
+<div class="prototype-badge">
+  <strong>⚠️ Minimal prototype — letters A, B, C only.</strong><br>
+  Full version would cover all 26 letters with more words per letter.
+</div>
+
+<script>
+const letters = {
+  A: {
+    upper: 'A', lower: 'a',
+    sound: 'ah',
+    word: 'Apple',
+    wordSounds: ['a', 'p', 'u', 'l'],
+    svg: `<svg viewBox="0 0 200 200" width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="100" cy="100" r="70" fill="#e74c3c"/>
+      <circle cx="100" cy="100" r="55" fill="#c0392b" opacity="0.2"/>
+      <ellipse cx="90" cy="75" rx="12" ry="18" fill="#fff" opacity="0.3"/>
+      <line x1="100" y1="30" x2="100" y2="10" stroke="#27ae60" stroke-width="5" stroke-linecap="round"/>
+      <path d="M80 10 Q100 0 100 10" stroke="#27ae60" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <ellipse cx="100" cy="10" rx="4" ry="2" fill="#27ae60"/>
+    </svg>`
+  },
+  B: {
+    upper: 'B', lower: 'b',
+    sound: 'buh',
+    word: 'Ball',
+    wordSounds: ['b', 'aw', 'l'],
+    svg: `<svg viewBox="0 0 200 200" width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="ballGrad" cx="40%" cy="35%">
+          <stop offset="0%" stop-color="#fff" stop-opacity="0.4"/>
+          <stop offset="100%" stop-color="#000" stop-opacity="0.15"/>
+        </radialGradient>
+      </defs>
+      <circle cx="100" cy="100" r="75" fill="#3498db"/>
+      <circle cx="100" cy="100" r="75" fill="url(#ballGrad)"/>
+      <path d="M25 100 Q100 40 175 100" stroke="#2980b9" stroke-width="6" fill="none"/>
+      <path d="M25 100 Q100 160 175 100" stroke="#2980b9" stroke-width="6" fill="none"/>
+      <circle cx="60" cy="70" r="10" fill="#fff" opacity="0.25"/>
+    </svg>`
+  },
+  C: {
+    upper: 'C', lower: 'c',
+    sound: 'kuh',
+    word: 'Cat',
+    wordSounds: ['c', 'a', 't'],
+    svg: `<svg viewBox="0 0 200 200" width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+      <!-- Ears -->
+      <polygon points="50,90 70,50 90,85" fill="#f39c12"/>
+      <polygon points="110,85 130,50 150,90" fill="#f39c12"/>
+      <polygon points="58,85 70,58 82,84" fill="#f5b041"/>
+      <polygon points="118,84 130,58 142,85" fill="#f5b041"/>
+      <!-- Head -->
+      <circle cx="100" cy="100" r="55" fill="#f39c12"/>
+      <!-- Eyes -->
+      <ellipse cx="80" cy="95" rx="10" ry="12" fill="white"/>
+      <ellipse cx="120" cy="95" rx="10" ry="12" fill="white"/>
+      <circle cx="82" cy="95" r="5" fill="#2c3e50"/>
+      <circle cx="122" cy="95" r="5" fill="#2c3e50"/>
+      <circle cx="83" cy="93" r="2" fill="white"/>
+      <circle cx="123" cy="93" r="2" fill="white"/>
+      <!-- Nose -->
+      <polygon points="97,108 103,108 100,113" fill="#e67e22"/>
+      <!-- Mouth -->
+      <path d="M92 116 Q100 122 108 116" stroke="#2c3e50" stroke-width="2" fill="none"/>
+      <!-- Whiskers -->
+      <line x1="40" y1="105" x2="70" y2="110" stroke="#2c3e50" stroke-width="1.5"/>
+      <line x1="40" y1="115" x2="70" y2="115" stroke="#2c3e50" stroke-width="1.5"/>
+      <line x1="130" y1="110" x2="160" y2="105" stroke="#2c3e50" stroke-width="1.5"/>
+      <line x1="130" y1="115" x2="160" y2="115" stroke="#2c3e50" stroke-width="1.5"/>
+    </svg>`
+  }
+};
+
+const letterKeys = Object.keys(letters);
+let currentIdx = 0;
+
+function speak(text, rate = 0.9) {
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-AU'; u.rate = rate; u.pitch = 1.1;
+  window.speechSynthesis.speak(u);
+}
+
+function render() {
+  const key = letterKeys[currentIdx];
+  const L = letters[key];
+  const isFirst = currentIdx === 0;
+  const isLast = currentIdx === letterKeys.length - 1;
+
+  // Tabs
+  document.getElementById('tabs').innerHTML = letterKeys.map((k, i) =>
+    `<button class="letter-tab${i === currentIdx ? ' active' : ''}" onclick="goTo(${i})" aria-label="Letter ${k}">${k}</button>`
+  ).join('');
+
+  // Card
+  document.getElementById('card').innerHTML = `
+    <div class="big-letter">${L.upper}</div>
+    <div class="big-lower">${L.lower}</div>
+    <div class="sound-row">
+      <span class="sound-label">/${L.sound}/</span>
+      <button class="speak-btn" onclick="speakLetterSound('${L.sound}')" aria-label="Hear sound" title="Hear sound">🔊</button>
+    </div>
+    <div class="word-section">
+      <div class="word-label">${L.word}</div>
+      <div class="word-svg">${L.svg}</div>
+      <button class="speak-btn" style="margin-bottom:12px" onclick="speakWord('${L.word}')" aria-label="Hear word" title="Hear word">🔊</button>
+    </div>
+    <div class="sound-out">
+      ${L.wordSounds.map((s,i) =>
+        `<button class="sound-chip" onclick="speak('${s}', 0.7)">${s}</button>`
+      ).join('')}
+    </div>
+    <div class="nav-row">
+      <button class="nav-btn" onclick="prev()" ${isFirst ? 'disabled' : ''}>← Prev</button>
+      <button class="nav-btn" onclick="next()" ${isLast ? 'disabled' : ''}>Next →</button>
+    </div>
+  `;
+}
+
+function speakLetterSound(sound) { speak(sound, 0.7); }
+function speakWord(word) { speak(word.toLowerCase(), 0.8); }
+
+function goTo(i) { currentIdx = i; render(); }
+function next() { if (currentIdx < letterKeys.length - 1) { currentIdx++; render(); } }
+function prev() { if (currentIdx > 0) { currentIdx--; render(); } }
+
+// Keyboard nav
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') next();
+  else if (e.key === 'ArrowLeft') prev();
+});
+
+render();
+</script>
+</body>
+</html>
