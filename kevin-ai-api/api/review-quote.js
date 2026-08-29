@@ -220,13 +220,14 @@ module.exports = async function handler(req, res) {
       },
       body: JSON.stringify({
         model: process.env.DEEPSEEK_MODEL || 'deepseek-v4-flash',
+        thinking: {type: 'disabled'},
         messages: [
           {role: 'system', content: 'Return strict JSON only. Never expose private identity details.'},
           {role: 'user', content: buildPrompt(payload)}
         ],
         response_format: {type: 'json_object'},
         temperature: 0.2,
-        max_tokens: 900
+        max_tokens: 1200
       })
     });
     const result = await response.json();
