@@ -507,6 +507,7 @@
   const FEEDBACK_APP_VERSION = 'feedback-v1';
   let feedbackEditingId = null;
   let feedbackDraftContext = null;
+  let feedbackDraftType = 'Feature request';
 
   function feedbackContext() {
     const active = document.querySelector('.tab.active');
@@ -548,26 +549,20 @@
     box.innerHTML = label ? '<span class="feedback-context-label">Auto-context</span><span class="feedback-context-pill">'+escapeHtml(label)+'</span><small>Customer names and locations are not included.</small>' : '';
   }
   function clearFeedbackForm() {
-    input('feedbackTitle', '');
     input('feedbackDescription', '');
-    if ($('feedbackType')) $('feedbackType').value = 'Feature request';
-    if ($('feedbackPriority')) $('feedbackPriority').value = 'Normal';
     feedbackEditingId = null;
     feedbackDraftContext = null;
-    renderFeedbackContext(null);
+    feedbackDraftType = 'Feature request';
   }
   window.newFeedbackRequest = function (type, context) {
     feedbackEditingId = null;
     feedbackDraftContext = context || feedbackContext();
+    feedbackDraftType = type || 'Feature request';
     const form = $('feedbackForm');
-    if (form) form.style.display = 'block';
-    if ($('feedbackFormHeading')) $('feedbackFormHeading').textContent = 'New request';
-    if ($('feedbackType')) $('feedbackType').value = type || 'Feature request';
-    if ($('feedbackPriority')) $('feedbackPriority').value = 'Normal';
-    input('feedbackTitle', '');
+    if (form) { form.style.display = 'block'; form.scrollIntoView({behavior:'smooth', block:'nearest'}); }
+    if ($('feedbackFormHeading')) $('feedbackFormHeading').textContent = 'Write a request';
     input('feedbackDescription', '');
-    renderFeedbackContext(feedbackDraftContext);
-    setTimeout(() => $('feedbackTitle') && $('feedbackTitle').focus(), 0);
+    setTimeout(() => $('feedbackDescription') && $('feedbackDescription').focus(), 0);
   };
   window.openFeedbackFromQuote = function () {
     const context = feedbackContext();
@@ -576,21 +571,20 @@
   };
   window.cancelFeedbackRequest = function () {
     const form = $('feedbackForm');
-    if (form) form.style.display = 'none';
     clearFeedbackForm();
+    if (form) form.style.display = 'block';
   };
   window.saveFeedbackRequest = function () {
-    const title = value('feedbackTitle');
     const description = value('feedbackDescription');
-    if (!title) { showToast('Add a short title first.', 'info'); $('feedbackTitle') && $('feedbackTitle').focus(); return; }
-    if (!description) { showToast('Write a little detail so this is useful later.', 'info'); $('feedbackDescription') && $('feedbackDescription').focus(); return; }
+    if (!description) { showToast('Write a request first.', 'info'); $('feedbackDescription') && $('feedbackDescription').focus(); return; }
     state.feedback = Array.isArray(state.feedback) ? state.feedback : [];
     const now = new Date().toISOString();
     const existing = feedbackEditingId ? state.feedback.find(item => item.id === feedbackEditingId) : null;
+    const title = description.split(/\n|[.!?]/)[0].trim().slice(0, 120) || 'Request';
     const record = {
       id: feedbackEditingId || 'feedback-' + Date.now(),
-      type: value('feedbackType') || 'Feature request',
-      priority: value('feedbackPriority') || 'Normal',
+      type: existing && existing.type || feedbackDraftType || 'Feature request',
+      priority: existing && existing.priority || 'Normal',
       title,
       description,
       status: existing && existing.status || 'Open',
@@ -610,14 +604,11 @@
     if (!item) return;
     feedbackEditingId = id;
     feedbackDraftContext = item.context || null;
+    feedbackDraftType = item.type || 'Feature request';
     if ($('feedbackForm')) $('feedbackForm').style.display = 'block';
-    if ($('feedbackFormHeading')) $('feedbackFormHeading').textContent = 'Edit request';
-    if ($('feedbackType')) $('feedbackType').value = item.type || 'Feature request';
-    if ($('feedbackPriority')) $('feedbackPriority').value = item.priority || 'Normal';
-    input('feedbackTitle', item.title || '');
+    if ($('feedbackFormHeading')) $('feedbackFormHeading').textContent = 'Write a request';
     input('feedbackDescription', item.description || '');
-    renderFeedbackContext(feedbackDraftContext);
-    setTimeout(() => $('feedbackTitle') && $('feedbackTitle').focus(), 0);
+    setTimeout(() => $('feedbackDescription') && $('feedbackDescription').focus(), 0);
   };
   window.updateFeedbackStatus = function (id, status) {
     const item = (state.feedback || []).find(record => record.id === id);
@@ -640,24 +631,17 @@
   window.renderFeedback = function () {
     const list = $('feedbackList');
     if (!list) return;
-    const query = value('feedbackSearch').toLowerCase();
-    const status = value('feedbackStatusFilter');
-    const items = (state.feedback || []).filter(item => {
-      const haystack = [item.title, item.description, item.type, item.priority].join(' ').toLowerCase();
-      return (!query || haystack.includes(query)) && (!status || (item.status || 'Open') === status);
-    });
+    const items = state.feedback || [];
     if (!items.length) {
-      list.innerHTML = '<div class="empty-state">'+(state.feedback && state.feedback.length ? 'No feedback matches those filters.' : 'No feedback saved yet. Capture the next idea or problem while it is fresh.')+'</div>';
+      list.innerHTML = '<div class="empty-state">No requests saved yet. Capture the next idea or problem while it is fresh.</div>';
       return;
     }
     list.innerHTML = items.map(item => {
       const safeStatus = item.status || 'Open';
       const safeType = item.type || 'Other';
       return '<article class="feedback-item">'
-        +'<div class="feedback-item-top"><div class="feedback-tags"><span class="feedback-tag '+feedbackTypeClass(safeType)+'">'+escapeHtml(safeType)+'</span><span class="feedback-tag priority-'+(String(item.priority || 'Normal').toLowerCase())+'">'+escapeHtml(item.priority || 'Normal')+'</span></div><span class="feedback-date">'+escapeHtml(feedbackDate(item.updatedAt || item.createdAt))+'</span></div>'
-        +'<h3>'+escapeHtml(item.title || 'Untitled request')+'</h3>'
+        +'<div class="feedback-item-top"><div class="feedback-tags"><span class="feedback-tag '+feedbackTypeClass(safeType)+'">Request</span><span class="feedback-tag">'+escapeHtml(safeStatus)+'</span></div><span class="feedback-date">'+escapeHtml(feedbackDate(item.updatedAt || item.createdAt))+'</span></div>'
         +'<p>'+escapeHtml(item.description || '')+'</p>'
-        +'<div class="feedback-item-bottom"><span class="feedback-context-summary">'+escapeHtml(feedbackContextLabel(item.context))+'</span><div class="feedback-actions"><select aria-label="Feedback status" onchange="updateFeedbackStatus(\''+escapeHtml(item.id)+'\', this.value)">'+feedbackStatusOptions(safeStatus)+'</select><button class="btn btn-small btn-outline" onclick="editFeedbackRequest(\''+escapeHtml(item.id)+'\')">Edit</button><button class="btn btn-small btn-danger" onclick="deleteFeedbackRequest(\''+escapeHtml(item.id)+'\')">Delete</button></div></div>'
         +'</article>';
     }).join('');
   };

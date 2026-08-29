@@ -647,49 +647,23 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
   <div class="card">
     <div class="section-header feedback-heading">
       <div>
-        <h2>Feedback & requests</h2>
-        <p class="muted">Keep a running list of things to fix, improve, or remember for later.</p>
+        <h2>Requests</h2>
+        <p class="muted">Type a problem, idea, or request here. It will be saved for later.</p>
       </div>
-      <button class="btn btn-primary" onclick="newFeedbackRequest()">＋ New request</button>
     </div>
 
-    <div id="feedbackForm" class="feedback-form" style="display:none;">
+    <div id="feedbackForm" class="feedback-form">
       <div class="feedback-form-head">
-        <div><strong id="feedbackFormHeading">New request</strong><span class="muted"> Saved with the current screen and quote context.</span></div>
-        <button class="btn btn-small btn-outline" type="button" onclick="cancelFeedbackRequest()">Cancel</button>
+        <div><strong id="feedbackFormHeading">Write a request</strong></div>
       </div>
-      <div class="feedback-form-grid">
-        <div>
-          <label for="feedbackType">What kind of note?</label>
-          <select id="feedbackType">
-            <option>Feature request</option>
-            <option>Bug / something broken</option>
-            <option>Something confusing</option>
-            <option>Upsell idea</option>
-            <option>Other</option>
-          </select>
-        </div>
-        <div>
-          <label for="feedbackPriority">Priority</label>
-          <select id="feedbackPriority"><option>Normal</option><option>High</option><option>Low</option></select>
-        </div>
-      </div>
-      <label for="feedbackTitle">Short title</label>
-      <input id="feedbackTitle" type="text" maxlength="120" placeholder="e.g. Need a quicker way to price decks">
-      <label for="feedbackDescription">What happened or what would help?</label>
-      <textarea id="feedbackDescription" rows="5" maxlength="2000" placeholder="Write it in your own words. Include what you expected and what happened if something went wrong."></textarea>
-      <div id="feedbackContext" class="feedback-context"></div>
+      <label for="feedbackDescription">Request</label>
+      <textarea id="feedbackDescription" rows="5" maxlength="2000" placeholder="What would you like changed or fixed?"></textarea>
       <div class="feedback-form-actions">
         <button class="btn btn-primary" type="button" onclick="saveFeedbackRequest()">💾 Save request</button>
-        <button class="btn btn-outline" type="button" onclick="cancelFeedbackRequest()">Cancel</button>
       </div>
     </div>
 
-    <div class="feedback-toolbar">
-      <input id="feedbackSearch" type="search" placeholder="Search feedback" oninput="renderFeedback()">
-      <select id="feedbackStatusFilter" onchange="renderFeedback()"><option value="">All statuses</option><option>Open</option><option>Planned</option><option>Done</option><option>Won't do</option></select>
-    </div>
-    <div id="feedbackList"><div class="empty-state">No feedback saved yet.</div></div>
+    <div id="feedbackList"><div class="empty-state">No requests saved yet.</div></div>
   </div>
 </div>
 
