@@ -47,6 +47,17 @@
   function quoteTypeLabel(type) {
     return type === 'sauna' ? 'Sauna' : type === 'reno-general' ? 'Basic Reno' : type === 'custom' ? 'Custom job' : (type || 'Job');
   }
+  function activeTemplateType() {
+    const explicit = value('nqType');
+    if (explicit) return explicit;
+    const active = document.querySelector('.template-chip.active[id^="tpl-"]');
+    return active ? active.id.slice(4) : 'sauna';
+  }
+  function syncTemplateType() {
+    const type = activeTemplateType();
+    input('nqType', type);
+    return type;
+  }
   function rowSell(row, hoursKey) {
     const qty = Number(row && (hoursKey ? row.hours : row.qty)) || 0;
     const cost = Number(row && (row.cost != null ? row.cost : row.rate)) || 0;
@@ -110,7 +121,7 @@
   function auditForCurrentQuote() {
     syncCurrentQuoteFromDOM();
     const p = pricing();
-    return quoteAudit({type:value('nqType'), scope:value('nqScope'), materials:currentQuote.materials, labour:currentQuote.labour, subbies:currentQuote.subbies, other:currentQuote.other, matTotal:p.c.matTotal, labTotal:p.c.labTotal, subTotal:p.c.subTotal, otherTotal:p.c.otherTotal, overheadCost:p.c.overheadCost, subtotal:p.c.subtotal, contingency:p.c.contingency, contingencyAmt:p.c.contingencyAmt, profitPct:p.c.profitPct, profitAmt:p.c.profitAmt, gst:p.c.gst, grandTotal:p.c.grandTotal, pricingVersion:PRICING_VERSION});
+    return quoteAudit({type:syncTemplateType(), scope:value('nqScope'), materials:currentQuote.materials, labour:currentQuote.labour, subbies:currentQuote.subbies, other:currentQuote.other, matTotal:p.c.matTotal, labTotal:p.c.labTotal, subTotal:p.c.subTotal, otherTotal:p.c.otherTotal, overheadCost:p.c.overheadCost, subtotal:p.c.subtotal, contingency:p.c.contingency, contingencyAmt:p.c.contingencyAmt, profitPct:p.c.profitPct, profitAmt:p.c.profitAmt, gst:p.c.gst, grandTotal:p.c.grandTotal, pricingVersion:PRICING_VERSION});
   }
   function auditStatusLabel(status) {
     return status === 'needs-review' ? 'Needs review' : status === 'check' ? 'Check items' : 'Looks complete';
@@ -166,7 +177,7 @@
     renderChecklist();
   };
   function quoteTypeGroup() {
-    return value('nqType') === 'sauna' ? 'sauna' : 'reno';
+    return activeTemplateType() === 'sauna' ? 'sauna' : 'reno';
   }
   function lineText() {
     return [...(currentQuote.materials || []), ...(currentQuote.labour || []), ...(currentQuote.subbies || []), ...(currentQuote.other || [])]
@@ -325,6 +336,7 @@
 
   function finishSave() {
     const editingId = editingQuoteId;
+    syncTemplateType();
     rawSave();
     const q = editingId !== null ? state.quotes.find(x => x.id === editingId) : state.quotes[0];
     if (!q) return;
@@ -456,7 +468,7 @@
     const active = document.querySelector('.tab.active');
     return {
       screen: active ? active.id.replace(/^tab-/, '') : 'unknown',
-      quoteType: value('nqType') || '',
+      quoteType: activeTemplateType(),
       materialLines: (currentQuote.materials || []).length,
       labourLines: (currentQuote.labour || []).length,
       appVersion: FEEDBACK_APP_VERSION
@@ -636,6 +648,12 @@
     renderChecklist();
     renderUpsells();
   };
+  document.addEventListener('click', event => {
+    const chip = event.target.closest && event.target.closest('.template-chip[id^="tpl-"]');
+    if (!chip) return;
+    input('nqType', chip.id.slice(4));
+    setTimeout(renderUpsells, 0);
+  });
   window.loadQuoteIntoForm = function (q) {
     rawLoad(q);
     setQuoteFields(q);
