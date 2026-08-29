@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/review-quote.js": {
+      "maxDuration": 30
+    }
+  }
+}

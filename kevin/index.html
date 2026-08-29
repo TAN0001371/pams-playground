@@ -1769,6 +1769,11 @@ function doLogout() {
 
 // Everyone on ALLOWED_EMAILS shares this one document — same data on every
 // signed-in device, regardless of whose Google account signed in.
+window.getQuoteAiIdToken = function () {
+  if (!cloud.enabled || !cloud.auth || !cloud.auth.currentUser) return Promise.resolve('');
+  return cloud.auth.currentUser.getIdToken();
+};
+
 function attachCloudDoc() {
   const ref = cloud.db.collection('appData').doc('shared');
   ref.get().then(snap => {
@@ -1884,7 +1889,8 @@ window.saveQuote = saveQuote;
 window.renderHistory = renderHistory;
 window.loadQuoteIntoForm = loadQuoteIntoForm;
 window.newQuoteFresh = newQuoteFresh;
+window.QUOTE_AI_REVIEW_ENDPOINT = 'https://kevin-quote-ai.vercel.app/api/review-quote';
 </script>
-<script src="quote-experience.js?v=20260829-7"></script>
+<script src="quote-experience.js?v=20260829-8"></script>
 </body>
 </html>

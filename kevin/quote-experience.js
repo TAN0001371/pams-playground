@@ -447,7 +447,30 @@
     box.innerHTML = '<h3>'+escapeHtml(title || 'Quote review')+'</h3><div class="muted">These are prompts to consider, not automatic changes.</div>' + section('Worth checking', review.missing, 'warning') + section('Potential risks', review.risks, 'warning') + section('Patterns from previous jobs', review.patterns, 'good') + section('Potential upsells', review.upsells, 'good');
     box.classList.add('show');
   }
+  function setReviewBusy(busy) {
+    document.querySelectorAll('[onclick="runQuoteReview()"],[onclick="runQuoteReview()"] *').forEach(el => {
+      const button = el.closest ? el.closest('button') : el;
+      if (!button) return;
+      if (busy) {
+        if (!button.dataset.reviewLabel) button.dataset.reviewLabel = button.textContent;
+        button.disabled = true;
+        button.textContent = button.title === 'Check this quote' ? '⏳' : '⏳ Reviewing…';
+      } else {
+        button.disabled = false;
+        if (button.dataset.reviewLabel) button.textContent = button.dataset.reviewLabel;
+      }
+    });
+  }
+  async function aiRequestHeaders() {
+    const headers = {'Content-Type':'application/json'};
+    if (window.getQuoteAiIdToken) {
+      const token = await window.getQuoteAiIdToken();
+      if (token) headers.Authorization = 'Bearer ' + token;
+    }
+    return headers;
+  }
   window.runQuoteReview = async function () {
+    if (window.runQuoteReview.busy) return;
     renderUpsells();
     const local = localReview();
     renderReview(local, AI_REVIEW_ENDPOINT ? 'AI quote review' : 'Quick quote review');
@@ -455,8 +478,13 @@
       showToast('Quick checks are ready. Connect the secure AI endpoint for deeper suggestions.', 'info');
       return;
     }
+    window.runQuoteReview.busy = true;
+    setReviewBusy(true);
     try {
-      const response = await fetch(AI_REVIEW_ENDPOINT, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(reviewPayload())});
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 25000);
+      const response = await fetch(AI_REVIEW_ENDPOINT, {method:'POST', headers:await aiRequestHeaders(), body:JSON.stringify(reviewPayload()), signal:controller.signal});
+      clearTimeout(timeout);
       if (!response.ok) throw new Error('AI review returned '+response.status);
       const aiReview = await response.json();
       renderReview({
@@ -468,6 +496,9 @@
       }, 'AI quote review');
     } catch (error) {
       showToast('AI review is unavailable, so the quick checks are shown instead.', 'info');
+    } finally {
+      window.runQuoteReview.busy = false;
+      setReviewBusy(false);
     }
   };
 
