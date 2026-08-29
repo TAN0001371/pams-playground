@@ -1861,6 +1861,18 @@ document.addEventListener('click', function(e) {
 
 initCloud();
 </script>
+<script>
+// Keep the original page functions available to the enhancement layer before
+// it wraps them. This is important in browsers that keep top-level functions
+// out of window's property namespace.
+window.switchTab = switchTab;
+window.selectTemplate = selectTemplate;
+window.recalcQuote = recalcQuote;
+window.saveQuote = saveQuote;
+window.renderHistory = renderHistory;
+window.loadQuoteIntoForm = loadQuoteIntoForm;
+window.newQuoteFresh = newQuoteFresh;
+</script>
 <script src="quote-experience.js?v=20260829"></script>
 </body>
 </html>
