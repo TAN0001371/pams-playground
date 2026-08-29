@@ -624,7 +624,12 @@
   };
 
   window.selectTemplate = function (type) {
-    rawSelect(type);
+    // Some browsers restore hidden form fields without their original value.
+    // Set the type explicitly so pricing, audits and upsell logic stay aligned
+    // with the template the user just chose.
+    input('nqType', type);
+    if (rawSelect) rawSelect(type);
+    input('nqType', type);
     activeChecklist = {};
     selectedUpsells = [];
     if ($('quoteReview')) $('quoteReview').classList.remove('show');
@@ -671,6 +676,7 @@
     document.querySelectorAll('#historyList .card').forEach((card, i) => { const q = state.quotes[i] || {}; const match = (!query || (q.client || '').toLowerCase().includes(query) || (q.quoteNumber || '').toLowerCase().includes(query)) && (!status || (q.status || 'Draft') === status); card.style.display = match ? '' : 'none'; });
   };
   setQuoteFields(null);
+  if (!value('nqType')) input('nqType', 'sauna');
   setQuoteMode(localStorage.getItem('kevinQuoteMode') || 'simple');
   recalcQuote();
   renderHistory();
