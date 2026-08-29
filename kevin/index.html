@@ -502,7 +502,16 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
           <span id="sideInsightText"></span>
         </div>
         <div id="quoteWarnings" class="quote-warnings" aria-live="polite"></div>
-        <div id="quoteUpsells" class="quote-upsells" aria-live="polite"></div>
+        <div id="quoteUpsells" class="quote-upsells show" aria-live="polite">
+          <div class="quote-upsells-head">Potential upsell ideas <span>Rate these so the list gets smarter</span></div>
+          <div class="upsell-row">
+            <button type="button" class="upsell-pill" title="A profitable handover add-on that is easy to explain." onclick="toggleUpsellIdea('sauna-care-kit')">💡 Timber care kit<small>A profitable handover add-on that is easy to explain.</small></button>
+            <div class="upsell-rating" aria-label="Rate this upsell idea">
+              <button type="button" class="upsell-rate" aria-pressed="false" onclick="rateUpsellIdea('sauna-care-kit','good')" title="Useful suggestion">👍 Good</button>
+              <button type="button" class="upsell-rate" aria-pressed="false" onclick="rateUpsellIdea('sauna-care-kit','bad')" title="Not useful for this business">👎 Bad</button>
+            </div>
+          </div>
+        </div>
         <div id="quoteReview" class="review-card" aria-live="polite"></div>
         <button class="btn btn-primary mt" onclick="saveQuote()" style="margin-top:14px;">Save quote</button>
         <button class="btn btn-secondary" onclick="runQuoteReview()" style="background:rgba(255,255,255,0.1);">🔎 Check this quote</button>
@@ -1876,6 +1885,6 @@ window.renderHistory = renderHistory;
 window.loadQuoteIntoForm = loadQuoteIntoForm;
 window.newQuoteFresh = newQuoteFresh;
 </script>
-<script src="quote-experience.js?v=20260829-5"></script>
+<script src="quote-experience.js?v=20260829-6"></script>
 </body>
 </html>
