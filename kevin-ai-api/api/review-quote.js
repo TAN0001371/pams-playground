@@ -135,11 +135,34 @@ function checkRateLimit(user) {
 }
 
 function extractJson(text) {
+  if (text && typeof text === 'object') return text;
   const value = String(text || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
   try { return JSON.parse(value); } catch (_) {
     const start = value.indexOf('{');
-    const end = value.lastIndexOf('}');
-    if (start >= 0 && end > start) return JSON.parse(value.slice(start, end + 1));
+    if (start >= 0) {
+      // Accept a valid JSON object surrounded by a short explanation or
+      // markdown. Stop at the first balanced closing brace that parses.
+      let depth = 0;
+      let quoted = false;
+      let escaped = false;
+      for (let i = start; i < value.length; i += 1) {
+        const character = value[i];
+        if (quoted) {
+          if (escaped) escaped = false;
+          else if (character === '\\') escaped = true;
+          else if (character === '"') quoted = false;
+          continue;
+        }
+        if (character === '"') quoted = true;
+        else if (character === '{') depth += 1;
+        else if (character === '}') {
+          depth -= 1;
+          if (depth === 0) {
+            try { return JSON.parse(value.slice(start, i + 1)); } catch (_) { /* keep scanning */ }
+          }
+        }
+      }
+    }
     throw new Error('DeepSeek did not return JSON');
   }
 }
@@ -211,8 +234,15 @@ module.exports = async function handler(req, res) {
       console.error('DeepSeek request failed', response.status, result && result.error && result.error.type);
       return json(res, 502, {error: 'AI review could not be completed'}, headers);
     }
-    const content = result && result.choices && result.choices[0] && result.choices[0].message && result.choices[0].message.content;
-    const review = normaliseReview(extractJson(content));
+    const message = result && result.choices && result.choices[0] && result.choices[0].message;
+    const contentCandidates = message ? [message.content, message.reasoning_content] : [];
+    let parsed;
+    for (const candidate of contentCandidates) {
+      if (candidate == null || candidate === '') continue;
+      try { parsed = extractJson(candidate); break; } catch (_) { /* try the next response field */ }
+    }
+    if (!parsed) throw new Error('DeepSeek did not return JSON');
+    const review = normaliseReview(parsed);
     return json(res, 200, review, headers);
   } catch (error) {
     console.error('AI review error', error && error.message);
