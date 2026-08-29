@@ -678,6 +678,11 @@
     recalcQuote();
     renderQuoteAuditBanner(null);
   };
+  window.refreshUpsellIdeas = renderUpsells;
+  setTimeout(() => {
+    syncTemplateType();
+    renderUpsells();
+  }, 0);
   const rawHistory = window.renderHistory;
   window.renderHistory = function () {
     rawHistory();
