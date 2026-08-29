@@ -473,7 +473,7 @@
     if (window.runQuoteReview.busy) return;
     renderUpsells();
     const local = localReview();
-    renderReview(local, AI_REVIEW_ENDPOINT ? 'AI quote review' : 'Quick quote review');
+    renderReview(local, AI_REVIEW_ENDPOINT ? 'Checking with AI…' : 'Quick quote review');
     if (!AI_REVIEW_ENDPOINT) {
       showToast('Quick checks are ready. Connect the secure AI endpoint for deeper suggestions.', 'info');
       return;
@@ -495,6 +495,7 @@
         upsells: aiReview.upsells || aiReview.upsellSuggestions || local.upsells
       }, 'AI quote review');
     } catch (error) {
+      renderReview(local, 'Quick quote review');
       showToast('AI review is unavailable, so the quick checks are shown instead.', 'info');
     } finally {
       window.runQuoteReview.busy = false;
