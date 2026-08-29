@@ -223,7 +223,14 @@
       if (careKit) ideas.push(careKit);
     }
     box.classList.toggle('show', ideas.length > 0);
-    if (!ideas.length) { box.innerHTML = ''; return; }
+    if (!ideas.length) {
+      if (activeTemplateType() === 'sauna') {
+        box.innerHTML = '<div class="quote-upsells-head">Potential upsell ideas <span>Rate these so the list gets smarter</span></div><div class="upsell-row"><button type="button" class="upsell-pill" title="A profitable handover add-on that is easy to explain." onclick="toggleUpsellIdea(\'sauna-care-kit\')">💡 Timber care kit<small>A profitable handover add-on that is easy to explain.</small></button><div class="upsell-rating" aria-label="Rate this upsell idea"><button type="button" class="upsell-rate" aria-pressed="false" onclick="rateUpsellIdea(\'sauna-care-kit\', \'good\')" title="Useful suggestion">👍 Good</button><button type="button" class="upsell-rate" aria-pressed="false" onclick="rateUpsellIdea(\'sauna-care-kit\', \'bad\')" title="Not useful for this business">👎 Bad</button></div></div>';
+      } else {
+        box.innerHTML = '';
+      }
+      return;
+    }
     ideas.sort((a, b) => {
       const rank = {good:0, neutral:1, '':2, bad:3};
       return (rank[upsellRating(a.key).rating] ?? 2) - (rank[upsellRating(b.key).rating] ?? 2);
