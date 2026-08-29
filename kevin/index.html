@@ -1001,6 +1001,8 @@ function selectTemplate(type) {
   const chip = document.getElementById('tpl-' + type);
   if (chip) chip.classList.add('active');
   loadJobTemplate();
+  // Keep the hidden field authoritative after template loading and recalculation.
+  document.getElementById('nqType').value = type;
 }
 
 function renderUserTemplates() {
