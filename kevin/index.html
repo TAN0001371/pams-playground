@@ -987,6 +987,7 @@ function switchTab(name) {
   var navBtn = document.querySelector('nav button[data-tab="'+name+'"]');
   if (navBtn) navBtn.classList.add('active');
   if (name === 'overview') renderOverview();
+  else if (name === 'newquote' && window.refreshUpsellIdeas) window.refreshUpsellIdeas();
   else if (name === 'history') renderHistory();
   else if (name === 'overhead') renderOverhead();
   else if (name === 'materials') renderMaterialsDB();
@@ -1875,6 +1876,6 @@ window.renderHistory = renderHistory;
 window.loadQuoteIntoForm = loadQuoteIntoForm;
 window.newQuoteFresh = newQuoteFresh;
 </script>
-<script src="quote-experience.js?v=20260829-4"></script>
+<script src="quote-experience.js?v=20260829-5"></script>
 </body>
 </html>

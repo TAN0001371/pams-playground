@@ -441,6 +441,7 @@
     box.classList.add('show');
   }
   window.runQuoteReview = async function () {
+    renderUpsells();
     const local = localReview();
     renderReview(local, AI_REVIEW_ENDPOINT ? 'AI quote review' : 'Quick quote review');
     if (!AI_REVIEW_ENDPOINT) {
