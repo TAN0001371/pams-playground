@@ -218,6 +218,10 @@
       if (idea.key === 'reno-storage') return /renov|kitchen|bathroom|garage|alfresco|deck/.test((value('nqScope')+' '+text).toLowerCase());
       return true;
     });
+    if (!ideas.length && activeTemplateType() === 'sauna' && !/oil|care|maintenance/.test(text)) {
+      const careKit = UPSELL_LIBRARY.sauna.find(idea => idea.key === 'sauna-care-kit');
+      if (careKit) ideas.push(careKit);
+    }
     box.classList.toggle('show', ideas.length > 0);
     if (!ideas.length) { box.innerHTML = ''; return; }
     ideas.sort((a, b) => {
