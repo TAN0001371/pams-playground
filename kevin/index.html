@@ -216,7 +216,7 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
 
 @media print { nav, .no-print { display: none !important; } body { background: #fff; } }
 </style>
-    <link rel="stylesheet" href="quote-experience.css?v=8842ba5">
+    <link rel="stylesheet" href="quote-experience.css?v=8842ba6">
 </head>
 <body>
 
@@ -251,6 +251,7 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
     <button data-tab="overhead" onclick="switchTab('overhead')">🏢 Overhead</button>
     <button data-tab="materials" onclick="switchTab('materials')">📦 Materials</button>
     <button data-tab="history" onclick="switchTab('history')">📋 History</button>
+    <button data-tab="feedback" onclick="switchTab('feedback')">🛠 Feedback</button>
   </nav>
 </div>
 
@@ -275,7 +276,7 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
   </div>
 
   <div class="card" id="chargingCheckCard">
-    <h2>Am I charging enough?</h2>
+    <h2>Quote health check</h2>
     <div id="chargingCheck"></div>
   </div>
 
@@ -295,28 +296,18 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
       ✏️ Editing saved job — <strong id="editingName"></strong>. Saving updates it.
       <button class="btn btn-small btn-outline" onclick="newQuoteFresh()" style="margin-left:8px;">Start a new job instead</button>
     </div>
+    <div id="quoteAuditBanner" class="quote-audit-banner" style="display:none;"></div>
 
     <!-- Template strip -->
-    <div class="template-strip">
-      <button class="template-chip" id="tpl-sauna-small" onclick="selectTemplate('sauna-small')">
-        <strong>Small sauna</strong><span>1–2 people · compact build</span>
-      </button>
+    <div class="template-strip quote-start-strip">
       <button class="template-chip active" id="tpl-sauna" onclick="selectTemplate('sauna')">
-        <strong>Medium sauna</strong><span>2–4 people · standard build</span>
+        <strong>🔥 Sauna</strong><span>Standard sauna starter</span>
       </button>
-      <button class="template-chip" id="tpl-sauna-large" onclick="selectTemplate('sauna-large')">
-        <strong>Large sauna</strong><span>4–6 people · premium build</span>
-      </button>
-      <button class="template-chip" id="tpl-reno-wall" onclick="selectTemplate('reno-wall')">
-        <strong>🧱 Wall / Framing</strong><span>Stud walls, plaster</span>
-      </button>
-      <button class="template-chip" id="tpl-reno-tile" onclick="selectTemplate('reno-tile')">
-        <strong>🛁 Tiling / Bathroom</strong><span>Waterproof, tile</span>
-      </button>
-      <button class="template-chip" id="tpl-custom" onclick="selectTemplate('custom')">
-        <strong>📋 Custom</strong><span>Start from scratch</span>
+      <button class="template-chip" id="tpl-reno-general" onclick="selectTemplate('reno-general')">
+        <strong>🔨 Basic Reno</strong><span>Common renovation starter</span>
       </button>
     </div>
+    <p class="muted template-note">Pick a starting point, then change anything you need. The checklist and upsell ideas are optional.</p>
 
     <!-- Kev's own saved templates -->
     <div class="template-strip" id="userTemplateStrip" style="display:none;"></div>
@@ -345,6 +336,14 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
     <div class="quote-details-grid quote-copy-fields">
       <div><label>Scope of work</label><textarea id="nqScope" placeholder="What is included in this quote"></textarea></div>
       <div><label>Exclusions / notes</label><textarea id="nqExclusions" placeholder="Anything the customer should know"></textarea></div>
+    </div>
+
+    <div class="quote-support-card">
+      <div class="support-card-head">
+        <div><strong>Quick job checklist</strong><span>Optional prompts — leave anything blank if it does not apply.</span></div>
+        <span class="support-card-badge">Optional</span>
+      </div>
+      <div id="quoteChecklist" class="check-pill-grid" aria-label="Optional job checklist"></div>
     </div>
 
         <div class="quote-mode-switch" role="group" aria-label="Quote mode">
@@ -499,11 +498,15 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
           <div class="price-line total-line"><span>Total to quote (inc. GST)</span><b id="sideTotalIncGst">$128.40</b></div>
         </div>
         <div class="insight-box" id="sideInsight" style="display:none;">
-          <strong>💡 Your take-home</strong>
+          <strong>📌 Quote audit</strong>
           <span id="sideInsightText"></span>
         </div>
         <div id="quoteWarnings" class="quote-warnings" aria-live="polite"></div>
+        <div id="quoteUpsells" class="quote-upsells" aria-live="polite"></div>
+        <div id="quoteReview" class="review-card" aria-live="polite"></div>
         <button class="btn btn-primary mt" onclick="saveQuote()" style="margin-top:14px;">Save quote</button>
+        <button class="btn btn-secondary" onclick="runQuoteReview()" style="background:rgba(255,255,255,0.1);">🔎 Check this quote</button>
+        <button class="btn btn-secondary" onclick="openFeedbackFromQuote()" style="background:rgba(255,255,255,0.1);">🛠 Report a problem / request</button>
         <button class="btn btn-secondary" onclick="copyXeroTotal(this)" style="background:rgba(255,255,255,0.1);">Copy Xero total</button>
         <button class="btn btn-secondary" onclick="copyQuote(this)" style="background:rgba(255,255,255,0.1);">Copy detailed costing</button>
         <button class="btn btn-secondary" onclick="printClientQuote()" style="background:rgba(255,255,255,0.1);">Customer quote / PDF</button>
@@ -516,6 +519,8 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
   <div class="mobile-price-bar" id="mobilePriceBar">
     <div><span>Recommended quote (incl. GST)</span><strong id="mobileGrandTotal">$0</strong></div>
     <div style="display:flex;gap:6px;">
+      <button class="btn btn-secondary btn-small" onclick="runQuoteReview()" style="background:rgba(255,255,255,0.15);" title="Check this quote">🔎</button>
+      <button class="btn btn-secondary btn-small" onclick="printClientQuote()" style="background:rgba(255,255,255,0.15);" title="Customer quote / PDF">📄</button>
       <button class="btn btn-secondary btn-small" onclick="copyQuote(this)" style="background:rgba(255,255,255,0.15);" title="Copy figures for Xero">📋</button>
       <button class="btn btn-primary btn-small" onclick="saveQuote()">💾 Save</button>
     </div>
@@ -620,11 +625,62 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
         <input type="file" id="importFile" accept="application/json,.json" style="display:none" onchange="restoreData(this)">
       </div>
     </div>
-    <p class="muted" style="margin-bottom:10px;">Everything is stored only in this browser. Use <strong>Backup</strong> regularly to save a file you can restore later or move to another computer.</p>
+    <p class="muted" style="margin-bottom:10px;">When signed in, jobs, materials, and feedback sync across Kevin’s devices. Use <strong>Backup</strong> regularly to save a file you can restore later or move to another computer.</p>
         <div class="add-row-bar" style="margin-bottom:12px;">
       <input id="historySearch" placeholder="Search jobs or quote number" oninput="applyHistoryFilters()" style="max-width:270px;">
       <select id="historyStatusFilter" onchange="applyHistoryFilters()" style="max-width:150px;"><option value="">All statuses</option><option>Draft</option><option>Sent</option><option>Accepted</option><option>Lost</option></select>
     </div><div id="historyList"><div class="empty-state">No jobs saved yet.</div></div>
+  </div>
+</div>
+
+<!-- ============ FEEDBACK ============ -->
+<div id="tab-feedback" class="tab">
+  <div class="card">
+    <div class="section-header feedback-heading">
+      <div>
+        <h2>Feedback & requests</h2>
+        <p class="muted">Keep a running list of things to fix, improve, or remember for later.</p>
+      </div>
+      <button class="btn btn-primary" onclick="newFeedbackRequest()">＋ New request</button>
+    </div>
+
+    <div id="feedbackForm" class="feedback-form" style="display:none;">
+      <div class="feedback-form-head">
+        <div><strong id="feedbackFormHeading">New request</strong><span class="muted"> Saved with the current screen and quote context.</span></div>
+        <button class="btn btn-small btn-outline" type="button" onclick="cancelFeedbackRequest()">Cancel</button>
+      </div>
+      <div class="feedback-form-grid">
+        <div>
+          <label for="feedbackType">What kind of note?</label>
+          <select id="feedbackType">
+            <option>Feature request</option>
+            <option>Bug / something broken</option>
+            <option>Something confusing</option>
+            <option>Upsell idea</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div>
+          <label for="feedbackPriority">Priority</label>
+          <select id="feedbackPriority"><option>Normal</option><option>High</option><option>Low</option></select>
+        </div>
+      </div>
+      <label for="feedbackTitle">Short title</label>
+      <input id="feedbackTitle" type="text" maxlength="120" placeholder="e.g. Need a quicker way to price decks">
+      <label for="feedbackDescription">What happened or what would help?</label>
+      <textarea id="feedbackDescription" rows="5" maxlength="2000" placeholder="Write it in your own words. Include what you expected and what happened if something went wrong."></textarea>
+      <div id="feedbackContext" class="feedback-context"></div>
+      <div class="feedback-form-actions">
+        <button class="btn btn-primary" type="button" onclick="saveFeedbackRequest()">💾 Save request</button>
+        <button class="btn btn-outline" type="button" onclick="cancelFeedbackRequest()">Cancel</button>
+      </div>
+    </div>
+
+    <div class="feedback-toolbar">
+      <input id="feedbackSearch" type="search" placeholder="Search feedback" oninput="renderFeedback()">
+      <select id="feedbackStatusFilter" onchange="renderFeedback()"><option value="">All statuses</option><option>Open</option><option>Planned</option><option>Done</option><option>Won't do</option></select>
+    </div>
+    <div id="feedbackList"><div class="empty-state">No feedback saved yet.</div></div>
   </div>
 </div>
 
@@ -747,10 +803,41 @@ const PDF_MATERIALS_2026 = [
   {cat:'Membrane', item:'Airflo White Wall Wrap 1.5x30m VPM', unit:'EA', cost:129.28, markup:20, supplier:'Bowens', sku:'AFW5030', priceDate:'2026-03-13', source:'Order 17627835'},
 ];
 
+// Repeatable physical materials found in Kevin's three saved quotes.
+// Services such as plans/permits and rubbish removal remain quote-specific costs.
+const QUOTE_HISTORY_MATERIALS = [
+  {cat:'Footings', item:'100x100 concrete stump', unit:'EA', cost:25.60, markup:20, source:'Kevin quote history'},
+  {cat:'Concrete', item:'Dingo 40MPa concrete bag', unit:'EA', cost:11.66, markup:20, source:'Kevin quote history'},
+  {cat:'Timber', item:'Treated pine 90x45 4.8m', unit:'EA', cost:32.35, markup:20, source:'Kevin quote history'},
+  {cat:'Timber', item:'Treated pine 90x45 6.0m', unit:'EA', cost:40.44, markup:20, source:'Kevin quote history'},
+  {cat:'Timber', item:'MGP10 90x45 4.2m', unit:'EA', cost:14.00, markup:20, source:'Kevin quote history'},
+  {cat:'Timber', item:'Treated pine 90x45 4.2m', unit:'EA', cost:17.00, markup:20, source:'Kevin quote history'},
+  {cat:'Decking', item:'Spotted gum decking board', unit:'LM', cost:15.73, markup:20, source:'Kevin quote history'},
+  {cat:'Decking', item:'Spotted gum decking board 5.4m', unit:'EA', cost:93.20, markup:20, source:'Kevin quote history'},
+  {cat:'Hardware', item:'Decking screws 500x50mm', unit:'BOX', cost:84.59, markup:20, source:'Kevin quote history'},
+  {cat:'Hardware', item:'Countersunk drill bits', unit:'SET', cost:33.25, markup:20, source:'Kevin quote history'},
+  {cat:'Steel', item:'Steel tube 75x50x3mm 8m', unit:'EA', cost:155.75, markup:20, source:'Kevin quote history'},
+  {cat:'Steel', item:'Steel tube 65x65x3mm 8m', unit:'EA', cost:154.52, markup:20, source:'Kevin quote history'},
+  {cat:'Hardware', item:'M12 dome head bolts', unit:'EA', cost:2.30, markup:20, source:'Kevin quote history'},
+  {cat:'Fire rating', item:'Fire-zone party wall system', unit:'M2', cost:72.82, markup:20, source:'Kevin quote history'},
+  {cat:'Sauna', item:'Cedar cladding 3m 9mm', unit:'EA', cost:47.85, markup:30, source:'Kevin quote history'},
+  {cat:'Insulation', item:'Eco wool insulation', unit:'PK', cost:90.00, markup:20, source:'Kevin quote history'},
+  {cat:'Sauna', item:'Cedar bench timber 3m', unit:'EA', cost:83.38, markup:30, source:'Kevin quote history'},
+];
+
 function mergePdfMaterials() {
   const existing = new Set(state.materialsDB.map(m => (m.sku || (m.cat + '|' + m.item)).toLowerCase()));
   let added = 0;
   PDF_MATERIALS_2026.forEach(item => {
+    const key = (item.sku || (item.cat + '|' + item.item)).toLowerCase();
+    if (!existing.has(key)) { state.materialsDB.push(deepClone(item)); existing.add(key); added++; }
+  });
+  return added;
+}
+function mergeQuoteHistoryMaterials() {
+  const existing = new Set(state.materialsDB.map(m => (m.sku || (m.cat + '|' + m.item)).toLowerCase()));
+  let added = 0;
+  QUOTE_HISTORY_MATERIALS.forEach(item => {
     const key = (item.sku || (item.cat + '|' + item.item)).toLowerCase();
     if (!existing.has(key)) { state.materialsDB.push(deepClone(item)); existing.add(key); added++; }
   });
@@ -808,7 +895,19 @@ const JOB_TEMPLATES = {
     labour: [{worker:'Kevin', hours:24, cost:110, markup:0},{worker:'Jordan', hours:12, cost:45, markup:20}],
     subbies: [{trade:'Plumber', cost:400}], other: [{item:'Skip bin', cost:180}],
   },
-  'reno-general': { materials: [], labour: [{worker:'Kevin', hours:1, cost:110, markup:0}], subbies: [], other: [] },
+  'reno-general': {
+    materials: [
+      {item:'Rubbish removal', qty:1, cost:550, markup:20},
+      {item:'Plasterboard 10mm', qty:4, cost:26.73, markup:20},
+      {item:'Plaster screws box', qty:1, cost:27.12, markup:20},
+      {item:'Stud adhesive', qty:1, cost:18.85, markup:20},
+      {item:'Waterproofing membrane', qty:10, cost:25, markup:20},
+      {item:'Tile adhesive 20kg', qty:3, cost:28, markup:20},
+      {item:'Tile grout 5kg', qty:2, cost:18, markup:20},
+    ],
+    labour: [{worker:'Kevin', hours:16, cost:110, markup:0},{worker:'Jordan', hours:16, cost:45, markup:20}],
+    subbies: [], other: [],
+  },
   'custom': { materials: [], labour: [{worker:'Kevin', hours:1, cost:110, markup:0}], subbies: [], other: [] },
 };
 
@@ -838,6 +937,8 @@ let state = {
   overhead: { expenses: deepClone(DEFAULT_OVERHEAD), weeks: 44, hoursPerWeek: 32, targetSalary: 80000, configured: false },
   materialsDB: [...DEFAULT_MATERIALS_DB],
   templates: [],
+  feedback: [],
+  upsellFeedback: [],
 };
 let currentQuote = { materials: [], labour: [], subbies: [], other: [] };
 let editingQuoteId = null;
@@ -861,13 +962,15 @@ function loadState() {
       }));
       state.materialsDB = parsed.materialsDB && parsed.materialsDB.length > 0 ? parsed.materialsDB : [...DEFAULT_MATERIALS_DB];
       state.templates = Array.isArray(parsed.templates) ? parsed.templates : [];
+      state.feedback = Array.isArray(parsed.feedback) ? parsed.feedback : [];
+      state.upsellFeedback = Array.isArray(parsed.upsellFeedback) ? parsed.upsellFeedback : [];
     }
   } catch(e) { console.log('Load error', e); }
-  if (mergePdfMaterials() > 0) saveState();
+  if (mergePdfMaterials() + mergeQuoteHistoryMaterials() > 0) saveState();
 }
 function saveState() {
   localStorage.setItem('kevinBusinessNumbers', JSON.stringify({
-    quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB, templates: state.templates,
+    quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB, templates: state.templates, feedback: state.feedback, upsellFeedback: state.upsellFeedback,
   }));
   // mirror to the cloud (debounced) when logged in — skip while applying a remote update
   if (cloud.enabled && cloud.uid && !cloud.applyingRemote) {
@@ -887,6 +990,7 @@ function switchTab(name) {
   else if (name === 'history') renderHistory();
   else if (name === 'overhead') renderOverhead();
   else if (name === 'materials') renderMaterialsDB();
+  else if (name === 'feedback' && window.renderFeedback) renderFeedback();
   if (location.hash !== '#'+name) { history.replaceState(null, '', '#'+name); }
 }
 
@@ -1028,7 +1132,7 @@ function recalcOverhead() {
   document.getElementById('ovWageRateShort').textContent = '$' + c.wageRate.toFixed(0) + '/hr';
   saveState();
 }
-function saveOverhead() { state.overhead.configured = true; saveState(); showToast('Overhead settings saved!', 'success'); }
+function saveOverhead() { state.overhead.configured = true; saveState(); renderOverview(); showToast('Overhead settings saved!', 'success'); }
 
 // ===== JOB COSTING =====
 // Labour rows saved before the pay-rate/markup split only have a flat
@@ -1180,12 +1284,13 @@ function recalcQuote() {
 
   // Sidebar insight
   if (c.kevinHours > 0) {
-    const effectiveRate = c.grandTotal / c.kevinHours;
-    const takeHome = (c.grandTotal - c.matTotal - c.subTotal - c.otherTotal - c.gst - c.overheadCost - c.otherWorkersPayout) / c.kevinHours;
+    const kevinPay = currentQuote.labour.filter(l => (l.worker || '').toLowerCase() === 'kevin').reduce((s,l) => s + l.hours * l.cost, 0);
+    const enteredRate = kevinPay / c.kevinHours;
+    const quoteCrewRate = c.totalHours > 0 ? (c.grandTotal - c.gst) / c.totalHours : 0;
     document.getElementById('sideInsight').style.display = 'block';
     document.getElementById('sideInsightText').innerHTML =
-      'That\'s <strong>$'+effectiveRate.toFixed(0)+'/hr effective</strong> for your '+c.kevinHours+' hours. '+
-      'After costs: roughly <strong>$'+takeHome.toFixed(0)+'/hr</strong> (min. rate is $'+c.minRate.toFixed(0)+'/hr).';
+      'Kevin\'s entered rate is <strong>$'+enteredRate.toFixed(0)+'/hr</strong> for '+c.kevinHours+' hours; the business minimum is <strong>$'+c.minRate.toFixed(0)+'/hr</strong>. '+
+      'The quote is <strong>$'+quoteCrewRate.toFixed(0)+'/crew hr</strong> before GST — that includes materials, other workers and business margin, so it is not take-home pay.';
   }
 
   // === Mobile bottom bar ===
@@ -1245,20 +1350,42 @@ function openMaterialPicker() {
 function closeModal() { document.getElementById('modalPicker').style.display = 'none'; }
 function filterModalMaterials() {
   const q = document.getElementById('modalSearch').value.toLowerCase();
-  const filtered = state.materialsDB.filter(m => m.item.toLowerCase().includes(q) || m.cat.toLowerCase().includes(q));
+  const filtered = state.materialsDB.filter(m => String(m.item || '').toLowerCase().includes(q) || String(m.cat || '').toLowerCase().includes(q));
   renderModalMaterials(filtered);
 }
 function renderModalMaterials(items) {
   const body = document.getElementById('modalBody');
-  body.innerHTML = items.map((m, i) => {
+  const addButton = '<button class="material-add-card" onclick="showNewMaterialForm()"><div><strong>＋ Add a new material</strong><small>Save it to the materials library and add it to this quote</small></div><span style="font-size:18px;font-weight:700;">+</span></button>';
+  const materialRows = items.map((m, i) => {
     const origIdx = state.materialsDB.indexOf(m);
-    return `<button onclick="pickMaterial(${origIdx})"><div><strong>${esc(m.item)}</strong><small>${esc(m.cat)} · $${m.cost.toFixed(2)}/${esc(m.unit)} · ${m.markup}% markup</small></div><span style="color:var(--green);font-weight:700;font-size:18px;">+</span></button>`;
+    return `<button onclick="pickMaterial(${origIdx})"><div><strong>${esc(m.item)}</strong><small>${esc(m.cat)} · $${Number(m.cost || 0).toFixed(2)}/${esc(m.unit || 'each')} · ${Number(m.markup || 0)}% markup</small></div><span style="color:var(--green);font-weight:700;font-size:18px;">+</span></button>`;
   }).join('');
-  if (items.length === 0) body.innerHTML = '<div class="empty-state compact">No materials match that search.</div>';
+  body.innerHTML = addButton + (materialRows || '<div class="empty-state compact">No materials match that search.</div>');
+}
+function showNewMaterialForm() {
+  const body = document.getElementById('modalBody');
+  body.innerHTML = '<div class="new-material-form"><h3>Add a new material</h3><div class="new-material-grid"><input id="newMaterialCat" placeholder="Category" autocomplete="off"><input id="newMaterialName" placeholder="Material name" autocomplete="off"><input id="newMaterialUnit" value="each" placeholder="Unit" autocomplete="off"><input id="newMaterialCost" type="number" min="0" step="0.01" placeholder="Cost price"><input id="newMaterialMarkup" type="number" min="0" step="1" value="20" placeholder="Markup %"></div><div class="new-material-actions"><button class="btn btn-primary btn-small" onclick="saveNewMaterialFromPicker()">Save and add</button><button class="btn btn-outline btn-small" onclick="filterModalMaterials()">Cancel</button></div></div>';
+  const name = document.getElementById('newMaterialName');
+  if (name) name.focus();
+}
+function saveNewMaterialFromPicker() {
+  const name = (document.getElementById('newMaterialName').value || '').trim();
+  const cat = (document.getElementById('newMaterialCat').value || 'Other').trim();
+  const unit = (document.getElementById('newMaterialUnit').value || 'each').trim();
+  const cost = parseFloat(document.getElementById('newMaterialCost').value);
+  const markup = parseFloat(document.getElementById('newMaterialMarkup').value);
+  if (!name) return showToast('Add a material name first.', 'error');
+  if (!Number.isFinite(cost) || cost < 0) return showToast('Add a valid cost price.', 'error');
+  const material = {cat, item:name, unit, cost, markup:Number.isFinite(markup) ? markup : 20};
+  state.materialsDB.unshift(material);
+  saveState();
+  renderMaterialsDB();
+  pickMaterial(0);
+  showToast('Material saved to your library.', 'success');
 }
 function pickMaterial(idx) {
   const m = state.materialsDB[idx];
-  currentQuote.materials.push({item: m.cat+' - '+m.item, qty:1, cost:m.cost, markup:m.markup});
+  currentQuote.materials.push({item: m.cat+' - '+m.item, qty:1, cost:m.cost, markup:m.markup, unit:m.unit || 'each'});
   renderCurrentQuote(); recalcQuote(); closeModal();
 }
 
@@ -1373,8 +1500,8 @@ function renameQuote(i, value) {
 
 function jobEffectiveRate(q) {
   const kevinHrs = (q.labour||[]).filter(l => (l.worker||'').toLowerCase()==='kevin').reduce((s,l)=>s+(l.hours||0),0);
-  const hrs = kevinHrs > 0 ? kevinHrs : (q.totalHours||0);
-  return hrs > 0 ? { rate: q.grandTotal / hrs, hrs } : null;
+  const kevinPay = (q.labour||[]).filter(l => (l.worker||'').toLowerCase()==='kevin').reduce((s,l)=>s+(l.hours||0)*(Number(l.cost != null ? l.cost : l.rate)||0),0);
+  return kevinHrs > 0 ? { rate: kevinPay / kevinHrs, hrs:kevinHrs } : null;
 }
 
 function renderChargingCheck() {
@@ -1393,9 +1520,9 @@ function renderChargingCheck() {
   const avg = rated.reduce((s,x)=>s+x.r.rate,0) / rated.length;
   const below = rated.filter(x => x.r.rate < minRate);
   const ok = avg >= minRate;
-  let html = '<div class="insight-box" style="'+(ok?'':'background:#fff3cd;border-left-color:#e0a800;color:#856404;')+'">';
-  html += '<strong>'+(ok?'✓ On average, yes':'⚠ Some jobs are under your minimum')+'</strong>';
-  html += 'Across '+rated.length+' job'+(rated.length>1?'s':'')+' you average <b>$'+avg.toFixed(0)+'/hr</b> for your own time — your minimum is <b>$'+minRate.toFixed(0)+'/hr</b>.';
+  let html = '<div class="insight-box" style="'+(ok?'background:#e9f7ec;border-left-color:#8ac59a;color:#176b39;':'background:#fff3cd;border-left-color:#e0a800;color:#856404;')+'">';
+  html += '<strong>'+(ok?'✓ Kevin’s entered rate clears the minimum':'⚠ Kevin’s entered rate is below the minimum')+'</strong>';
+  html += 'Across '+rated.length+' job'+(rated.length>1?'s':'')+' Kevin is entered at <b>$'+avg.toFixed(0)+'/hr</b> — the business minimum is <b>$'+minRate.toFixed(0)+'/hr</b>. Customer quote totals are not Kevin’s earnings.';
   html += '</div>';
   if (below.length) {
     html += '<div style="margin-top:12px;font-size:13px;">';
@@ -1477,7 +1604,7 @@ function exportQuotes() {
 function backupData() {
   const data = JSON.stringify({
     _app: 'KevinsBusinessNumbers', _version: 1, _backup: new Date().toISOString(),
-    quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB, templates: state.templates,
+    quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB, templates: state.templates, feedback: state.feedback, upsellFeedback: state.upsellFeedback,
   }, null, 2);
   const b = new Blob([data],{type:'application/json'}); const u = URL.createObjectURL(b); const a = document.createElement('a');
   a.href = u; a.download = 'KevinBackup_'+new Date().toISOString().split('T')[0]+'.json'; a.click(); URL.revokeObjectURL(u);
@@ -1489,14 +1616,16 @@ function restoreData(input) {
   reader.onload = e => {
     try {
       const d = JSON.parse(e.target.result);
-      if (!d || (!d.quotes && !d.overhead && !d.materialsDB)) throw new Error('This file doesn\'t look like a Kevin backup.');
+      if (!d || (!d.quotes && !d.overhead && !d.materialsDB && !d.feedback && !d.upsellFeedback)) throw new Error('This file doesn\'t look like a Kevin backup.');
       var doRestore = function() {
         if (Array.isArray(d.quotes)) state.quotes = d.quotes;
         if (d.overhead) state.overhead = { ...state.overhead, ...d.overhead };
         if (Array.isArray(d.materialsDB) && d.materialsDB.length) state.materialsDB = d.materialsDB;
         if (Array.isArray(d.templates)) state.templates = d.templates;
+        if (Array.isArray(d.feedback)) state.feedback = d.feedback;
+        if (Array.isArray(d.upsellFeedback)) state.upsellFeedback = d.upsellFeedback;
         saveState();
-        recalcOverhead(); renderOverhead(); renderMaterialsDB(); renderHistory(); renderOverview(); renderUserTemplates();
+        recalcOverhead(); renderOverhead(); renderMaterialsDB(); renderHistory(); renderOverview(); renderUserTemplates(); if (window.renderFeedback) renderFeedback();
         document.getElementById('quoteCounter').textContent = state.quotes.length + ' jobs';
         showToast('Backup restored — '+state.quotes.length+' job(s) loaded.', 'success');
         input.value = '';
@@ -1650,9 +1779,12 @@ function hydrateFromCloud(data) {
     state.overhead = { ...state.overhead, ...(data.overhead || {}) };
     if (Array.isArray(data.materialsDB) && data.materialsDB.length) state.materialsDB = data.materialsDB;
     mergePdfMaterials();
+    mergeQuoteHistoryMaterials();
     state.templates = Array.isArray(data.templates) ? data.templates : [];
+    state.feedback = Array.isArray(data.feedback) ? data.feedback : [];
+    state.upsellFeedback = Array.isArray(data.upsellFeedback) ? data.upsellFeedback : [];
     localStorage.setItem('kevinBusinessNumbers', JSON.stringify({
-      quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB, templates: state.templates,
+      quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB, templates: state.templates, feedback: state.feedback, upsellFeedback: state.upsellFeedback,
     }));
     renderAll();
   } catch(e) { console.log('Hydrate error', e); }
@@ -1661,14 +1793,14 @@ function hydrateFromCloud(data) {
 
 function pushToCloud() {
   if (!cloud.enabled || !cloud.uid) return;
-  const payload = { quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB, templates: state.templates };
+  const payload = { quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB, templates: state.templates, feedback: state.feedback, upsellFeedback: state.upsellFeedback };
   cloud.db.collection('appData').doc('shared')
     .set({ data: payload, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true })
     .catch(e => console.log('Cloud save error', e));
 }
 
 function renderAll() {
-  recalcOverhead(); renderOverhead(); renderMaterialsDB(); renderHistory(); renderOverview(); renderUserTemplates();
+  recalcOverhead(); renderOverhead(); renderMaterialsDB(); renderHistory(); renderOverview(); renderUserTemplates(); if (window.renderFeedback) renderFeedback();
   document.getElementById('quoteCounter').textContent = state.quotes.length + ' jobs';
 }
 
@@ -1680,6 +1812,7 @@ renderMaterialsDB();
 renderHistory();
 renderOverview();
 renderUserTemplates();
+if (window.renderFeedback) renderFeedback();
 loadJobTemplate();
 document.getElementById('quoteCounter').textContent = state.quotes.length + ' jobs';
 
@@ -1704,6 +1837,7 @@ document.addEventListener('click', function(e) {
     else if (h === 'history') renderHistory();
     else if (h === 'overhead') renderOverhead();
     else if (h === 'materials') renderMaterialsDB();
+    else if (h === 'feedback' && window.renderFeedback) renderFeedback();
   }
   window.addEventListener('hashchange', function() {
     var h2 = location.hash.replace('#', '');
@@ -1727,6 +1861,6 @@ document.addEventListener('click', function(e) {
 
 initCloud();
 </script>
-<script src="quote-experience.js"></script>
+<script src="quote-experience.js?v=20260829"></script>
 </body>
 </html>
