@@ -497,6 +497,15 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
           <div class="price-line"><span>GST (10%)</span><b id="sideGst">$11.67</b></div>
           <div class="price-line total-line"><span>Total to quote (inc. GST)</span><b id="sideTotalIncGst">$128.40</b></div>
         </div>
+        <div class="customer-summary-card" id="customerQuoteSummary">
+          <div class="eyebrow">Customer-facing figures</div>
+          <h3>What the customer sees</h3>
+          <p class="muted">Overhead, contingency and profit are already built in. No internal costing is shown here.</p>
+          <div class="customer-summary-lines">
+            <div><span>Materials total</span><strong id="customerSummaryMaterials">$0.00</strong></div>
+            <div><span>Labour total</span><strong id="customerSummaryLabour">$0.00</strong></div>
+          </div>
+        </div>
         <div class="insight-box" id="sideInsight" style="display:none;">
           <strong>📌 Quote audit</strong>
           <span id="sideInsightText"></span>
@@ -526,24 +535,6 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
       </div>
     </div><!-- /quote-right -->
   </div><!-- /quote-layout -->
-
-  <section class="card customer-summary-card" id="customerQuoteSummary">
-    <div class="customer-summary-head">
-      <div>
-        <div class="eyebrow">Customer-facing summary</div>
-        <h2>Labour and materials only</h2>
-        <p class="muted">This is the clean version to show the customer or paste into Xero. Internal overhead, contingency, markup and profit are already built into these figures.</p>
-      </div>
-      <button class="btn btn-primary btn-small" onclick="copyCustomerSummary(this)">Copy for Xero</button>
-    </div>
-    <div class="customer-summary-lines">
-      <div><span>Materials</span><strong id="customerSummaryMaterials">$0.00</strong></div>
-      <div><span>Labour</span><strong id="customerSummaryLabour">$0.00</strong></div>
-      <div class="customer-summary-subtotal"><span>Subtotal ex GST</span><strong id="customerSummaryExGst">$0.00</strong></div>
-      <div><span>GST (10%)</span><strong id="customerSummaryGst">$0.00</strong></div>
-      <div class="customer-summary-total"><span>Total including GST</span><strong id="customerSummaryTotal">$0.00</strong></div>
-    </div>
-  </section>
 
   <!-- MOBILE BOTTOM BAR -->
   <div class="mobile-price-bar" id="mobilePriceBar">
@@ -1886,6 +1877,6 @@ window.loadQuoteIntoForm = loadQuoteIntoForm;
 window.newQuoteFresh = newQuoteFresh;
 window.QUOTE_AI_REVIEW_ENDPOINT = 'https://kevin-quote-ai.vercel.app/api/review-quote';
 </script>
-<script src="quote-experience.js?v=20260831-1"></script>
+<script src="quote-experience.js?v=20260831-2"></script>
 </body>
 </html>
