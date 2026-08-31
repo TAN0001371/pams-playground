@@ -192,7 +192,7 @@
   function upsellFeedbackSummary() {
     return UPSELL_LIBRARY[quoteTypeGroup()].map(idea => {
       const rating = upsellRating(idea.key);
-      return {key:idea.key, label:idea.label, good:rating.good, bad:rating.bad, signal:rating.rating || 'unrated'};
+      return {key:idea.key, label:idea.label, good:rating.good, bad:rating.bad, rating:rating.rating || 'unrated', count:rating.good + rating.bad};
     });
   }
   function renderUpsellCard(idea, rating) {
@@ -405,27 +405,38 @@
 
   function historicalQuoteBreakdowns() {
     return (state.quotes || []).map(q => ({
-      type: q.type === 'custom' ? 'reno' : q.type,
+      type: q.type === 'sauna' ? 'sauna' : 'reno',
       date: q.date || '',
       totalHours: Number(q.totalHours) || 0,
       materials: (q.materials || []).map(m => ({item:m.item || '', qty:Number(m.qty) || 0, amount:(Number(m.qty)||0) * (Number(m.cost)||0) * (1 + (Number(m.markup)||0) / 100)})),
-      labour: (q.labour || []).map(l => ({hours:Number(l.hours) || 0, amount:(Number(l.hours)||0) * (Number(l.cost)||Number(l.rate)||0) * (1 + (Number(l.markup)||0) / 100)})),
-      totals: {materials:Number(q.matTotal)||0, labour:Number(q.labTotal)||0, total:Number(q.grandTotal)||0}
+      labour: (q.labour || []).map(l => {
+        const payRate = Number(l.cost != null ? l.cost : l.rate) || 0;
+        const markupPct = Number(l.markup) || 0;
+        const sellRate = payRate * (1 + markupPct / 100);
+        return {worker:l.worker || '', hours:Number(l.hours) || 0, payRate, markupPct, sellRate, sell:(Number(l.hours)||0) * sellRate};
+      }),
+      totals: {materials:Number(q.matTotal)||0, labour:Number(q.labTotal)||0, overhead:Number(q.overheadCost)||0, contingencyPct:Number(q.contingency)||0, contingency:Number(q.contingencyAmt)||0, profitPct:Number(q.profitPct)||0, profit:Number(q.profitAmt)||0, total:Number(q.grandTotal)||0}
     }));
   }
   function reviewPayload() {
     syncCurrentQuoteFromDOM();
     const p = pricing();
+    const audit = auditForCurrentQuote();
     return {
       jobType: quoteTypeGroup(),
       scope: value('nqScope'),
       checklist: deepClone(activeChecklist),
       materials: (currentQuote.materials || []).map(m => ({item:m.item || '', qty:Number(m.qty)||0, unit:m.unit || '', sell:(Number(m.qty)||0) * (Number(m.cost)||0) * (1 + (Number(m.markup)||0) / 100)})),
-      labour: (currentQuote.labour || []).map(l => ({worker:l.worker || '', hours:Number(l.hours)||0, sell:(Number(l.hours)||0) * ((Number(l.cost)||Number(l.rate)||0) * (1 + (Number(l.markup)||0) / 100))})),
-      totals: {materials:p.c.matTotal, labour:p.c.labTotal, total:p.total, profitPct:p.c.profitPct},
+      labour: (currentQuote.labour || []).map(l => {
+        const payRate = Number(l.cost != null ? l.cost : l.rate) || 0;
+        const markupPct = Number(l.markup) || 0;
+        const sellRate = payRate * (1 + markupPct / 100);
+        return {worker:l.worker || '', hours:Number(l.hours)||0, payRate, markupPct, sellRate, sell:(Number(l.hours)||0) * sellRate};
+      }),
+      totals: {materials:p.c.matTotal, labour:p.c.labTotal, subbies:p.c.subTotal, other:p.c.otherTotal, overhead:p.c.overheadCost, contingencyPct:p.c.contingency, contingency:p.c.contingencyAmt, profitPct:p.c.profitPct, profit:p.c.profitAmt, exGst:p.exGst, gst:p.gst, total:p.total},
       previousQuotes: historicalQuoteBreakdowns(),
       upsellFeedback: upsellFeedbackSummary(),
-      audit: auditForCurrentQuote(),
+      audit: audit.issues.concat(audit.checks),
       selectedUpsells: deepClone(selectedUpsells)
     };
   }

@@ -57,6 +57,9 @@ function cleanPayload(raw) {
   const cleanLabour = (item) => ({
     worker: cleanText(item && item.worker, 100),
     hours: cleanNumber(item && item.hours, 100000),
+    payRate: cleanNumber(item && item.payRate),
+    markupPct: cleanNumber(item && item.markupPct, 1000),
+    sellRate: cleanNumber(item && item.sellRate),
     sell: cleanNumber(item && item.sell)
   });
   const cleanQuote = (quote) => ({
@@ -91,8 +94,16 @@ function cleanPayload(raw) {
     totals: {
       materials: cleanNumber(source.totals && source.totals.materials),
       labour: cleanNumber(source.totals && source.totals.labour),
+      subbies: cleanNumber(source.totals && source.totals.subbies),
+      other: cleanNumber(source.totals && source.totals.other),
+      overhead: cleanNumber(source.totals && source.totals.overhead),
+      contingencyPct: cleanNumber(source.totals && source.totals.contingencyPct, 100),
+      contingency: cleanNumber(source.totals && source.totals.contingency),
       total: cleanNumber(source.totals && source.totals.total),
-      profitPct: cleanNumber(source.totals && source.totals.profitPct, 100)
+      profitPct: cleanNumber(source.totals && source.totals.profitPct, 100),
+      profit: cleanNumber(source.totals && source.totals.profit),
+      exGst: cleanNumber(source.totals && source.totals.exGst),
+      gst: cleanNumber(source.totals && source.totals.gst)
     },
     previousQuotes: Array.isArray(source.previousQuotes) ? source.previousQuotes.slice(0, 8).map(cleanQuote) : [],
     upsellFeedback: feedback,
@@ -186,10 +197,14 @@ Rules:
 - Do not invent quantities, prices, regulations, or facts. Say when there is not enough evidence.
 - missing: likely cost or scope items that appear relevant but are absent, based on this job's scope, checklist, and prior jobs.
 - risks: pricing or completeness concerns worth checking, including suspiciously high apparent hourly returns when the quote may omit overhead, travel, disposal, admin, or other business costs. Do not declare the quote wrong.
+- labour data: payRate is what the business pays the worker; sellRate is the quoted charge-out rate after markup. Never call sellRate or sell divided by hours a worker's pay. If payRate is present, use it when discussing pay.
+- totals data: overhead, contingency and profit are already calculated values for this quote. Do not flag a missing overhead or contingency allowance when the corresponding total is greater than zero. Do not warn that profit is unaccounted for when profit is supplied.
 - patterns: useful repeated materials, unusual omissions, or differences from previous jobs. Use the history only as evidence.
+- Compare the current quote only with previous quotes of the same job type unless the comparison is explicitly valid. Do not infer that a material quantity is insufficient from a different-sized job or a different unit of measure.
 - upsells: maximum 3 genuinely optional, specific, non-default add-ons. Do not label required base-scope items as upsells. Do not repeat an idea marked bad in the feedback. Keep each reason short and practical.
 - Keep the tone direct and respectful: he knows the trade; this is a second set of eyes.
 - Never include customer names, addresses, or other identifying details. Use AUD where money is discussed.
+- Only return a finding when it is supported by the supplied quote or comparable history. Do not pad the response with generic construction warnings; an empty array is better than a weak suggestion.
 
 QUOTE DATA:
 ${JSON.stringify(payload)}`;
