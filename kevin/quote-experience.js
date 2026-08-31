@@ -41,6 +41,7 @@
   };
   let activeChecklist = {};
   let selectedUpsells = [];
+  let reviewState = {signature:'', result:null, title:''};
 
   // ===== QUOTE HEALTH / COST COMPLETENESS =====
   const PRICING_VERSION = 2;
@@ -175,6 +176,7 @@
     activeChecklist[key] = order[(order.indexOf(activeChecklist[key] || '') + 1) % order.length];
     if (!activeChecklist[key]) delete activeChecklist[key];
     renderChecklist();
+    updateReviewAvailability();
   };
   function quoteTypeGroup() {
     return activeTemplateType() === 'sauna' ? 'sauna' : 'reno';
@@ -299,6 +301,7 @@
     updateWarnings();
     renderChecklist();
     renderUpsells();
+    updateReviewAvailability();
   }
   window.recalcQuote = function () { rawRecalc(); displayPricing(); };
 
@@ -440,6 +443,69 @@
       selectedUpsells: deepClone(selectedUpsells)
     };
   }
+  function reviewInput() {
+    syncCurrentQuoteFromDOM();
+    const p = pricing();
+    return {
+      version: PRICING_VERSION,
+      type: syncTemplateType(),
+      scope: value('nqScope'),
+      exclusions: value('nqExclusions'),
+      settings: {
+        contingency: value('nqContingency'),
+        profit: value('nqProfit'),
+        overheadPct: value('nqOverheadPct'),
+        rounding: value('nqRounding'),
+        xeroTaxMode: value('nqXeroTaxMode'),
+        overhead: state.overhead ? {configured:!!state.overhead.configured, weeks:Number(state.overhead.weeks)||0, hoursPerWeek:Number(state.overhead.hoursPerWeek)||0, targetSalary:Number(state.overhead.targetSalary)||0, expenses:deepClone(state.overhead.expenses || [])} : {}
+      },
+      checklist: deepClone(activeChecklist),
+      materials: deepClone(currentQuote.materials || []),
+      labour: deepClone(currentQuote.labour || []),
+      subbies: deepClone(currentQuote.subbies || []),
+      other: deepClone(currentQuote.other || []),
+      totals: {materials:p.c.matTotal, labour:p.c.labTotal, subbies:p.c.subTotal, other:p.c.otherTotal, overhead:p.c.overheadCost, contingency:p.c.contingencyAmt, profit:p.c.profitAmt, exGst:p.exGst, gst:p.gst, total:p.total}
+    };
+  }
+  function reviewSignature() {
+    const text = JSON.stringify(reviewInput());
+    let hash = 2166136261;
+    for (let i = 0; i < text.length; i++) hash = Math.imul(hash ^ text.charCodeAt(i), 16777619);
+    return 'quote-review-v'+PRICING_VERSION+'-'+(hash >>> 0).toString(16);
+  }
+  function cachedReview(signature) {
+    const cache = state.aiReviews;
+    return cache && typeof cache === 'object' && !Array.isArray(cache) ? cache[signature] : null;
+  }
+  function saveReviewResult(signature, result, title) {
+    state.aiReviews = state.aiReviews && typeof state.aiReviews === 'object' && !Array.isArray(state.aiReviews) ? state.aiReviews : {};
+    state.aiReviews[signature] = {signature, result:deepClone(result), title:title || 'AI quote review', reviewedAt:new Date().toISOString()};
+    saveState();
+    reviewState = {signature, result, title:title || 'AI quote review'};
+  }
+  function reviewButtons() {
+    return document.querySelectorAll('button[onclick="runQuoteReview()"]');
+  }
+  function updateReviewAvailability() {
+    const signature = reviewSignature();
+    const cached = cachedReview(signature);
+    if (cached && reviewState.signature !== signature) {
+      reviewState = {signature, result:cached.result, title:cached.title || 'AI quote review'};
+      renderReview(cached.result, reviewState.title);
+    } else if (!cached && reviewState.signature && reviewState.signature !== signature) {
+      reviewState = {signature:'', result:null, title:''};
+      if ($('quoteReview')) { $('quoteReview').classList.remove('show'); $('quoteReview').innerHTML = ''; }
+    }
+    const busy = !!window.runQuoteReview.busy;
+    reviewButtons().forEach(button => {
+      button.disabled = busy || !!cached;
+      button.title = cached ? 'Already checked — change the quote to check again' : 'AI Check this quote';
+      button.setAttribute('aria-label', cached ? 'AI check already completed for this quote version' : 'AI Check this quote');
+    });
+    const status = $('quoteReviewStatus');
+    if (status) status.textContent = busy ? 'Reviewing this quote…' : cached ? 'Already checked for this quote. Change a costing, scope or checklist item to check again.' : 'One check per quote version. Change the quote to check again.';
+  }
+  window.refreshQuoteReview = updateReviewAvailability;
   function localReview() {
     const payload = reviewPayload();
     const audit = auditForCurrentQuote();
@@ -464,14 +530,12 @@
   function renderReview(review, title) {
     const box = $('quoteReview');
     if (!box) return;
-    const section = (heading, items, className) => items && items.length ? '<div class="review-card-section"><strong>'+heading+'</strong><div>'+items.map(x => '<span class="review-pill '+(className || '')+'">'+escapeHtml(typeof x === 'string' ? x : x.label || '')+(x.reason ? '<small> · '+escapeHtml(x.reason)+'</small>' : '')+'</span>').join('')+'</div></div>' : '';
+    const section = (heading, items, className) => Array.isArray(items) && items.length ? '<div class="review-card-section"><strong>'+heading+'</strong><div>'+items.map(x => '<span class="review-pill '+(className || '')+'">'+escapeHtml(typeof x === 'string' ? x : x.label || '')+(x.reason ? '<small> · '+escapeHtml(x.reason)+'</small>' : '')+'</span>').join('')+'</div></div>' : '';
     box.innerHTML = '<h3>'+escapeHtml(title || 'Quote review')+'</h3><div class="muted">These are prompts to consider, not automatic changes.</div>' + section('Worth checking', review.missing, 'warning') + section('Potential risks', review.risks, 'warning') + section('Patterns from previous jobs', review.patterns, 'good') + section('Potential upsells', review.upsells, 'good');
     box.classList.add('show');
   }
   function setReviewBusy(busy) {
-    document.querySelectorAll('[onclick="runQuoteReview()"],[onclick="runQuoteReview()"] *').forEach(el => {
-      const button = el.closest ? el.closest('button') : el;
-      if (!button) return;
+    reviewButtons().forEach(button => {
       if (busy) {
         if (!button.dataset.reviewLabel) button.dataset.reviewLabel = button.textContent;
         button.disabled = true;
@@ -492,10 +556,22 @@
   }
   window.runQuoteReview = async function () {
     if (window.runQuoteReview.busy) return;
+    const signature = reviewSignature();
+    const cached = cachedReview(signature);
+    if (cached) {
+      reviewState = {signature, result:cached.result, title:cached.title || 'AI quote review'};
+      renderReview(cached.result, reviewState.title);
+      updateReviewAvailability();
+      showToast('This quote version has already been checked. Change the quote before checking again.', 'info');
+      return;
+    }
     renderUpsells();
     const local = localReview();
+    reviewState = {signature, result:local, title:AI_REVIEW_ENDPOINT ? 'Checking with AI…' : 'Quick quote review'};
     renderReview(local, AI_REVIEW_ENDPOINT ? 'Checking with AI…' : 'Quick quote review');
     if (!AI_REVIEW_ENDPOINT) {
+      saveReviewResult(signature, local, 'Quick quote review');
+      updateReviewAvailability();
       showToast('Quick checks are ready. Connect the secure AI endpoint for deeper suggestions.', 'info');
       return;
     }
@@ -508,19 +584,22 @@
       clearTimeout(timeout);
       if (!response.ok) throw new Error('AI review returned '+response.status);
       const aiReview = await response.json();
-      renderReview({
+      const result = {
         ...local,
         missing: aiReview.missing || aiReview.missingItems || local.missing,
         risks: aiReview.risks || aiReview.riskFlags || local.risks,
         patterns: aiReview.patterns || aiReview.marginFlags || local.patterns,
         upsells: aiReview.upsells || aiReview.upsellSuggestions || local.upsells
-      }, 'AI quote review');
+      };
+      saveReviewResult(signature, result, 'AI quote review');
+      renderReview(result, 'AI quote review');
     } catch (error) {
       renderReview(local, 'Quick quote review');
       showToast('AI review is unavailable, so the quick checks are shown instead.', 'info');
     } finally {
       window.runQuoteReview.busy = false;
       setReviewBusy(false);
+      updateReviewAvailability();
     }
   };
 
@@ -693,6 +772,8 @@
     if ($('quoteReview')) $('quoteReview').classList.remove('show');
     renderChecklist();
     renderUpsells();
+    reviewState = {signature:'', result:null, title:''};
+    updateReviewAvailability();
   };
   document.addEventListener('click', event => {
     const chip = event.target.closest && event.target.closest('.template-chip[id^="tpl-"]');
@@ -709,6 +790,8 @@
     renderChecklist();
     recalcQuote();
     renderQuoteAuditBanner(q);
+    reviewState = {signature:'', result:null, title:''};
+    updateReviewAvailability();
   };
   window.newQuoteFresh = function () {
     activeChecklist = {};
@@ -719,11 +802,20 @@
     renderChecklist();
     recalcQuote();
     renderQuoteAuditBanner(null);
+    reviewState = {signature:'', result:null, title:''};
+    updateReviewAvailability();
   };
   window.refreshUpsellIdeas = renderUpsells;
+  document.addEventListener('input', event => {
+    if (['nqScope', 'nqExclusions'].includes(event.target && event.target.id)) updateReviewAvailability();
+  });
+  document.addEventListener('change', event => {
+    if (['nqContingency', 'nqProfit', 'nqOverheadPct', 'nqRounding', 'nqXeroTaxMode'].includes(event.target && event.target.id)) updateReviewAvailability();
+  });
   setTimeout(() => {
     syncTemplateType();
     renderUpsells();
+    updateReviewAvailability();
   }, 0);
   const rawHistory = window.renderHistory;
   window.renderHistory = function () {

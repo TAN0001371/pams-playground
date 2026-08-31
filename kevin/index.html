@@ -514,6 +514,7 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
         <div class="quote-review-action">
           <button class="btn btn-primary" onclick="runQuoteReview()" title="AI Check this quote">🤖 AI Check this quote</button>
           <small>AI-assisted check for missing costs, patterns and optional upsells.</small>
+          <small id="quoteReviewStatus" class="quote-review-status">One check per quote version. Change the quote to check again.</small>
         </div>
         <div id="quoteUpsells" class="quote-upsells show" aria-live="polite">
           <div class="quote-upsells-head">Potential upsell ideas <span>Rate these so the list gets smarter</span></div>
@@ -934,6 +935,7 @@ let state = {
   templates: [],
   feedback: [],
   upsellFeedback: [],
+  aiReviews: {},
 };
 let currentQuote = { materials: [], labour: [], subbies: [], other: [] };
 let editingQuoteId = null;
@@ -959,13 +961,14 @@ function loadState() {
       state.templates = Array.isArray(parsed.templates) ? parsed.templates : [];
       state.feedback = Array.isArray(parsed.feedback) ? parsed.feedback : [];
       state.upsellFeedback = Array.isArray(parsed.upsellFeedback) ? parsed.upsellFeedback : [];
+      state.aiReviews = parsed.aiReviews && typeof parsed.aiReviews === 'object' && !Array.isArray(parsed.aiReviews) ? parsed.aiReviews : {};
     }
   } catch(e) { console.log('Load error', e); }
   if (mergePdfMaterials() + mergeQuoteHistoryMaterials() > 0) saveState();
 }
 function saveState() {
   localStorage.setItem('kevinBusinessNumbers', JSON.stringify({
-    quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB, templates: state.templates, feedback: state.feedback, upsellFeedback: state.upsellFeedback,
+    quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB, templates: state.templates, feedback: state.feedback, upsellFeedback: state.upsellFeedback, aiReviews: state.aiReviews,
   }));
   // mirror to the cloud (debounced) when logged in — skip while applying a remote update
   if (cloud.enabled && cloud.uid && !cloud.applyingRemote) {
@@ -1602,7 +1605,7 @@ function exportQuotes() {
 function backupData() {
   const data = JSON.stringify({
     _app: 'KevinsBusinessNumbers', _version: 1, _backup: new Date().toISOString(),
-    quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB, templates: state.templates, feedback: state.feedback, upsellFeedback: state.upsellFeedback,
+    quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB, templates: state.templates, feedback: state.feedback, upsellFeedback: state.upsellFeedback, aiReviews: state.aiReviews,
   }, null, 2);
   const b = new Blob([data],{type:'application/json'}); const u = URL.createObjectURL(b); const a = document.createElement('a');
   a.href = u; a.download = 'KevinBackup_'+new Date().toISOString().split('T')[0]+'.json'; a.click(); URL.revokeObjectURL(u);
@@ -1614,7 +1617,7 @@ function restoreData(input) {
   reader.onload = e => {
     try {
       const d = JSON.parse(e.target.result);
-      if (!d || (!d.quotes && !d.overhead && !d.materialsDB && !d.feedback && !d.upsellFeedback)) throw new Error('This file doesn\'t look like a Kevin backup.');
+      if (!d || (!d.quotes && !d.overhead && !d.materialsDB && !d.feedback && !d.upsellFeedback && !d.aiReviews)) throw new Error('This file doesn\'t look like a Kevin backup.');
       var doRestore = function() {
         if (Array.isArray(d.quotes)) state.quotes = d.quotes;
         if (d.overhead) state.overhead = { ...state.overhead, ...d.overhead };
@@ -1622,6 +1625,7 @@ function restoreData(input) {
         if (Array.isArray(d.templates)) state.templates = d.templates;
         if (Array.isArray(d.feedback)) state.feedback = d.feedback;
         if (Array.isArray(d.upsellFeedback)) state.upsellFeedback = d.upsellFeedback;
+        if (d.aiReviews && typeof d.aiReviews === 'object' && !Array.isArray(d.aiReviews)) state.aiReviews = d.aiReviews;
         saveState();
         recalcOverhead(); renderOverhead(); renderMaterialsDB(); renderHistory(); renderOverview(); renderUserTemplates(); if (window.renderFeedback) renderFeedback();
         document.getElementById('quoteCounter').textContent = state.quotes.length + ' jobs';
@@ -1786,8 +1790,9 @@ function hydrateFromCloud(data) {
     state.templates = Array.isArray(data.templates) ? data.templates : [];
     state.feedback = Array.isArray(data.feedback) ? data.feedback : [];
     state.upsellFeedback = Array.isArray(data.upsellFeedback) ? data.upsellFeedback : [];
+    state.aiReviews = data.aiReviews && typeof data.aiReviews === 'object' && !Array.isArray(data.aiReviews) ? data.aiReviews : {};
     localStorage.setItem('kevinBusinessNumbers', JSON.stringify({
-      quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB, templates: state.templates, feedback: state.feedback, upsellFeedback: state.upsellFeedback,
+      quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB, templates: state.templates, feedback: state.feedback, upsellFeedback: state.upsellFeedback, aiReviews: state.aiReviews,
     }));
     renderAll();
   } catch(e) { console.log('Hydrate error', e); }
@@ -1796,14 +1801,14 @@ function hydrateFromCloud(data) {
 
 function pushToCloud() {
   if (!cloud.enabled || !cloud.uid) return;
-  const payload = { quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB, templates: state.templates, feedback: state.feedback, upsellFeedback: state.upsellFeedback };
+  const payload = { quotes: state.quotes, overhead: state.overhead, materialsDB: state.materialsDB, templates: state.templates, feedback: state.feedback, upsellFeedback: state.upsellFeedback, aiReviews: state.aiReviews };
   cloud.db.collection('appData').doc('shared')
     .set({ data: payload, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true })
     .catch(e => console.log('Cloud save error', e));
 }
 
 function renderAll() {
-  recalcOverhead(); renderOverhead(); renderMaterialsDB(); renderHistory(); renderOverview(); renderUserTemplates(); if (window.renderFeedback) renderFeedback();
+  recalcOverhead(); renderOverhead(); renderMaterialsDB(); renderHistory(); renderOverview(); renderUserTemplates(); if (window.renderFeedback) renderFeedback(); if (window.refreshQuoteReview) window.refreshQuoteReview();
   document.getElementById('quoteCounter').textContent = state.quotes.length + ' jobs';
 }
 
@@ -1877,6 +1882,6 @@ window.loadQuoteIntoForm = loadQuoteIntoForm;
 window.newQuoteFresh = newQuoteFresh;
 window.QUOTE_AI_REVIEW_ENDPOINT = 'https://kevin-quote-ai.vercel.app/api/review-quote';
 </script>
-<script src="quote-experience.js?v=20260831-4"></script>
+<script src="quote-experience.js?v=20260831-5"></script>
 </body>
 </html>
