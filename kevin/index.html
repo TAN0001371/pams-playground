@@ -502,6 +502,10 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
           <span id="sideInsightText"></span>
         </div>
         <div id="quoteWarnings" class="quote-warnings" aria-live="polite"></div>
+        <div class="quote-review-action">
+          <button class="btn btn-primary" onclick="runQuoteReview()">🔎 Check this quote</button>
+          <small>AI-assisted check for missing costs, patterns and optional upsells.</small>
+        </div>
         <div id="quoteUpsells" class="quote-upsells show" aria-live="polite">
           <div class="quote-upsells-head">Potential upsell ideas <span>Rate these so the list gets smarter</span></div>
           <div class="upsell-row">
@@ -514,9 +518,8 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
         </div>
         <div id="quoteReview" class="review-card" aria-live="polite"></div>
         <button class="btn btn-primary mt" onclick="saveQuote()" style="margin-top:14px;">Save quote</button>
-        <button class="btn btn-secondary" onclick="runQuoteReview()" style="background:rgba(255,255,255,0.1);">🔎 Check this quote</button>
         <button class="btn btn-secondary" onclick="openFeedbackFromQuote()" style="background:rgba(255,255,255,0.1);">🛠 Report a problem / request</button>
-        <button class="btn btn-secondary" onclick="copyXeroTotal(this)" style="background:rgba(255,255,255,0.1);">Copy Xero total</button>
+        <button class="btn btn-secondary" onclick="copyCustomerSummary(this)" style="background:rgba(255,255,255,0.1);">Copy customer figures for Xero</button>
         <button class="btn btn-secondary" onclick="copyQuote(this)" style="background:rgba(255,255,255,0.1);">Copy detailed costing</button>
         <button class="btn btn-secondary" onclick="printClientQuote()" style="background:rgba(255,255,255,0.1);">Customer quote / PDF</button>
         <button class="btn btn-secondary advanced-only" onclick="printForSelf()" style="background:rgba(255,255,255,0.1);">Internal costing / PDF</button>
@@ -524,13 +527,31 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
     </div><!-- /quote-right -->
   </div><!-- /quote-layout -->
 
+  <section class="card customer-summary-card" id="customerQuoteSummary">
+    <div class="customer-summary-head">
+      <div>
+        <div class="eyebrow">Customer-facing summary</div>
+        <h2>Labour and materials only</h2>
+        <p class="muted">This is the clean version to show the customer or paste into Xero. Internal overhead, contingency, markup and profit are already built into these figures.</p>
+      </div>
+      <button class="btn btn-primary btn-small" onclick="copyCustomerSummary(this)">Copy for Xero</button>
+    </div>
+    <div class="customer-summary-lines">
+      <div><span>Materials</span><strong id="customerSummaryMaterials">$0.00</strong></div>
+      <div><span>Labour</span><strong id="customerSummaryLabour">$0.00</strong></div>
+      <div class="customer-summary-subtotal"><span>Subtotal ex GST</span><strong id="customerSummaryExGst">$0.00</strong></div>
+      <div><span>GST (10%)</span><strong id="customerSummaryGst">$0.00</strong></div>
+      <div class="customer-summary-total"><span>Total including GST</span><strong id="customerSummaryTotal">$0.00</strong></div>
+    </div>
+  </section>
+
   <!-- MOBILE BOTTOM BAR -->
   <div class="mobile-price-bar" id="mobilePriceBar">
     <div><span>Recommended quote (incl. GST)</span><strong id="mobileGrandTotal">$0</strong></div>
     <div style="display:flex;gap:6px;">
       <button class="btn btn-secondary btn-small" onclick="runQuoteReview()" style="background:rgba(255,255,255,0.15);" title="Check this quote">🔎</button>
       <button class="btn btn-secondary btn-small" onclick="printClientQuote()" style="background:rgba(255,255,255,0.15);" title="Customer quote / PDF">📄</button>
-      <button class="btn btn-secondary btn-small" onclick="copyQuote(this)" style="background:rgba(255,255,255,0.15);" title="Copy figures for Xero">📋</button>
+      <button class="btn btn-secondary btn-small" onclick="copyCustomerSummary(this)" style="background:rgba(255,255,255,0.15);" title="Copy customer figures for Xero">📋</button>
       <button class="btn btn-primary btn-small" onclick="saveQuote()">💾 Save</button>
     </div>
   </div>
@@ -1865,6 +1886,6 @@ window.loadQuoteIntoForm = loadQuoteIntoForm;
 window.newQuoteFresh = newQuoteFresh;
 window.QUOTE_AI_REVIEW_ENDPOINT = 'https://kevin-quote-ai.vercel.app/api/review-quote';
 </script>
-<script src="quote-experience.js?v=20260829-9"></script>
+<script src="quote-experience.js?v=20260831-1"></script>
 </body>
 </html>

@@ -265,23 +265,23 @@
     const rounding = Number(value('nqRounding')) || 0;
     const total = rounding ? Math.round((exGst * 1.1) / rounding) * rounding : exGst * 1.1;
     const finalExGst = total / 1.1;
-    return { c, exGst: finalExGst, gst: total - finalExGst, total, rounding, customerRows: buildCustomerRows(currentQuote.materials, currentQuote.labour, finalExGst, c.matTotal, c.labTotal) };
+    return { c, exGst: finalExGst, gst: total - finalExGst, total, rounding, customerTotals: customerCategoryTotals(finalExGst, c.matTotal, c.labTotal) };
   }
   window.getQuotePricing = pricing;
 
-  function buildCustomerRows(materials, labour, exGst, directMaterials, directLabour) {
-    const rows = [];
-    (materials || []).forEach(m => rows.push({type:'Materials', label:m.item || 'Material', qty:m.qty, base:(Number(m.qty)||0) * (Number(m.cost)||0) * (1 + (Number(m.markup)||0) / 100)}));
-    (labour || []).forEach(l => rows.push({type:'Labour', label:'Labour', qty:l.hours, base:(Number(l.hours)||0) * (Number(l.cost)||Number(l.rate)||0) * (1 + (Number(l.markup)||0) / 100)}));
-    const direct = (Number(directMaterials)||0) + (Number(directLabour)||0);
-    const hiddenUplift = Math.max(0, (Number(exGst)||0) - direct);
-    let running = 0;
-    rows.forEach(row => {
-      row.amount = direct > 0 ? row.base + hiddenUplift * (row.base / direct) : row.base;
-      running += row.amount;
-    });
-    if (rows.length) rows[rows.length - 1].amount += (Number(exGst)||0) - running;
-    return rows;
+  function customerCategoryTotals(exGst, directMaterials, directLabour) {
+    const target = Math.max(0, Number(exGst) || 0);
+    const materials = Math.max(0, Number(directMaterials) || 0);
+    const labour = Math.max(0, Number(directLabour) || 0);
+    const direct = materials + labour;
+    if (!direct) return {materials:0, labour:target};
+    if (target < direct) {
+      const scaledMaterials = target * (materials / direct);
+      return {materials:scaledMaterials, labour:target - scaledMaterials};
+    }
+    const uplift = target - direct;
+    const materialUplift = uplift * (materials / direct);
+    return {materials:materials + materialUplift, labour:labour + (uplift - materialUplift)};
   }
 
   function displayPricing() {
@@ -291,6 +291,11 @@
     if ($('sideGst')) $('sideGst').textContent = money(p.gst);
     if ($('sideTotalIncGst')) $('sideTotalIncGst').textContent = money(p.total);
     if ($('mobileGrandTotal')) $('mobileGrandTotal').textContent = money(p.total);
+    if ($('customerSummaryMaterials')) $('customerSummaryMaterials').textContent = money(p.customerTotals.materials);
+    if ($('customerSummaryLabour')) $('customerSummaryLabour').textContent = money(p.customerTotals.labour);
+    if ($('customerSummaryExGst')) $('customerSummaryExGst').textContent = money(p.exGst);
+    if ($('customerSummaryGst')) $('customerSummaryGst').textContent = money(p.gst);
+    if ($('customerSummaryTotal')) $('customerSummaryTotal').textContent = money(p.total);
     updateWarnings();
     renderChecklist();
     renderUpsells();
@@ -383,11 +388,16 @@
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
     else fallbackCopy(text, done);
   }
-  window.copyXeroTotal = function (btn) {
+  window.copyCustomerSummary = function (btn) {
     const p = pricing(), meta = quoteMeta();
-    copyText((value('nqClient') || 'Job') + ' — Xero invoice figures\n' +
-      'Subtotal (' + (meta.xeroTaxMode === 'inclusive' ? 'GST inclusive view' : 'ex GST') + ')\t' + money(meta.xeroTaxMode === 'inclusive' ? p.total : p.exGst) + '\nGST (10%)\t' + money(p.gst) + '\nTotal (inc GST)\t' + money(p.total), btn);
+    const subtotalLabel = meta.xeroTaxMode === 'inclusive' ? 'Subtotal (GST inclusive view)' : 'Subtotal (ex GST)';
+    const subtotalValue = meta.xeroTaxMode === 'inclusive' ? p.total : p.exGst;
+    copyText((value('nqClient') || 'Job') + ' — customer-facing Xero figures\n' +
+      'Materials\t' + money(p.customerTotals.materials) + '\n' +
+      'Labour\t' + money(p.customerTotals.labour) + '\n' +
+      subtotalLabel + '\t' + money(subtotalValue) + '\nGST (10%)\t' + money(p.gst) + '\nTotal (inc GST)\t' + money(p.total), btn);
   };
+  window.copyXeroTotal = window.copyCustomerSummary;
   window.copyQuote = function (btn) {
     const p = pricing(), c = p.c;
     copyText((value('nqClient') || 'Job') + ' — detailed costing\nMaterials\t' + money(c.matTotal) + '\nLabour\t' + money(c.labTotal) + '\nOverhead\t' + money(c.overheadCost) + '\nSubbies + other\t' + money(c.subTotal + c.otherTotal) + '\nContingency\t' + money(c.contingencyAmt) + '\nProfit\t' + money(c.profitAmt) + '\nSubtotal (ex GST)\t' + money(p.exGst) + '\nGST (10%)\t' + money(p.gst) + '\nTotal (inc GST)\t' + money(p.total), btn);
@@ -654,13 +664,10 @@
       exGst:Number(job.exGst != null ? job.exGst : (job.grandTotal || 0) / 1.1),
       gst:Number(job.gst != null ? job.gst : (job.grandTotal || 0) - (job.grandTotal || 0) / 1.1),
       total:Number(job.grandTotal || 0),
-      rows:buildCustomerRows(job.materials || [], job.labour || [], Number(job.exGst != null ? job.exGst : (job.grandTotal || 0) / 1.1), job.matTotal, job.labTotal)
-    } : { exGst:current.exGst, gst:current.gst, total:current.total, rows:current.customerRows };
-    const grouped = type => p.rows.filter(row => row.type === type);
-    const itemRows = type => grouped(type).map(row => '<tr><td>'+escapeHtml(row.label)+'</td><td class="r">'+escapeHtml(row.qty == null ? '' : row.qty)+'</td><td class="r">'+money(row.amount)+'</td></tr>').join('');
-    const items = '<tr class="group"><td colspan="3"><strong>Materials</strong></td></tr>'+itemRows('Materials')+'<tr class="group"><td colspan="3"><strong>Labour</strong></td></tr>'+itemRows('Labour');
+      customerTotals:customerCategoryTotals(Number(job.exGst != null ? job.exGst : (job.grandTotal || 0) / 1.1), job.matTotal, job.labTotal)
+    } : { exGst:current.exGst, gst:current.gst, total:current.total, customerTotals:current.customerTotals };
     const w = window.open('', '_blank'); if (!w) return showToast('Allow pop-ups to create the customer quote.', 'error');
-    w.document.write('<!doctype html><html><head><title>Quote '+escapeHtml(q.quoteNumber || '')+'</title><style>body{font:15px Arial,sans-serif;color:#202a32;max-width:760px;margin:auto;padding:42px}h1{color:#142b3e;margin-bottom:4px}.muted{color:#65727d}.meta{display:flex;gap:12px;flex-wrap:wrap}.quote-head{border-bottom:2px solid #142b3e;padding-bottom:16px}table{width:100%;border-collapse:collapse;margin:25px 0}th,td{padding:10px;border-bottom:1px solid #dbe1e5;text-align:left}.r{text-align:right}.group td{background:#f4f8f7;border-top:1px solid #cbded2}.total{font-weight:bold;font-size:18px}.box{background:#f4f8f7;padding:16px;margin:20px 0;white-space:pre-line}@media print{button{display:none}body{padding:15px}}</style></head><body><button onclick="print()">Print / Save PDF</button><div class="quote-head"><h1>QUOTE</h1><div class="meta muted"><span>'+escapeHtml(q.quoteNumber || 'Draft quote')+'</span><span>Issued '+escapeHtml(q.quoteDate || q.date || today())+'</span>'+(q.validUntil ? '<span>Valid until '+escapeHtml(q.validUntil)+'</span>' : '')+'</div><h2>'+escapeHtml(q.client || 'Customer')+'</h2>'+(q.location ? '<div class="muted">'+escapeHtml(q.location)+'</div>' : '')+'</div>'+(q.scope ? '<div class="box"><strong>Scope of work</strong><br>'+escapeHtml(q.scope)+'</div>' : '')+'<table><tr><th>Description</th><th class="r">Qty / hrs</th><th class="r">Amount</th></tr>'+items+'</table><table><tr><td>Subtotal ex GST</td><td class="r">'+money(p.exGst)+'</td></tr><tr><td>GST (10%)</td><td class="r">'+money(p.gst)+'</td></tr><tr class="total"><td>Total including GST</td><td class="r">'+money(p.total)+'</td></tr></table>'+(q.exclusions ? '<div class="box"><strong>Notes and exclusions</strong><br>'+escapeHtml(q.exclusions)+'</div>' : '')+'<p class="muted">Thank you for the opportunity to quote this work.</p></body></html>'); w.document.close();
+    w.document.write('<!doctype html><html><head><title>Quote '+escapeHtml(q.quoteNumber || '')+'</title><style>body{font:15px Arial,sans-serif;color:#202a32;max-width:760px;margin:auto;padding:42px}h1{color:#142b3e;margin-bottom:4px}.muted{color:#65727d}.meta{display:flex;gap:12px;flex-wrap:wrap}.quote-head{border-bottom:2px solid #142b3e;padding-bottom:16px}table{width:100%;border-collapse:collapse;margin:25px 0}th,td{padding:10px;border-bottom:1px solid #dbe1e5;text-align:left}.r{text-align:right}.total{font-weight:bold;font-size:18px}.box{background:#f4f8f7;padding:16px;margin:20px 0;white-space:pre-line}.summary-note{color:#65727d;font-size:13px;margin-top:24px}@media print{button{display:none}body{padding:15px}}</style></head><body><button onclick="print()">Print / Save PDF</button><div class="quote-head"><h1>QUOTE</h1><div class="meta muted"><span>'+escapeHtml(q.quoteNumber || 'Draft quote')+'</span><span>Issued '+escapeHtml(q.quoteDate || q.date || today())+'</span>'+(q.validUntil ? '<span>Valid until '+escapeHtml(q.validUntil)+'</span>' : '')+'</div><h2>'+escapeHtml(q.client || 'Customer')+'</h2>'+(q.location ? '<div class="muted">'+escapeHtml(q.location)+'</div>' : '')+'</div>'+(q.scope ? '<div class="box"><strong>Scope of work</strong><br>'+escapeHtml(q.scope)+'</div>' : '')+'<p class="summary-note">Pricing is shown as simple customer-facing categories. Internal overhead, contingency and profit are included in the figures.</p><table><tr><th>Description</th><th class="r">Amount</th></tr><tr><td>Materials</td><td class="r">'+money(p.customerTotals.materials)+'</td></tr><tr><td>Labour</td><td class="r">'+money(p.customerTotals.labour)+'</td></tr><tr><td>Subtotal ex GST</td><td class="r">'+money(p.exGst)+'</td></tr><tr><td>GST (10%)</td><td class="r">'+money(p.gst)+'</td></tr><tr class="total"><td>Total including GST</td><td class="r">'+money(p.total)+'</td></tr></table>'+(q.exclusions ? '<div class="box"><strong>Notes and exclusions</strong><br>'+escapeHtml(q.exclusions)+'</div>' : '')+'<p class="muted">Thank you for the opportunity to quote this work.</p></body></html>'); w.document.close();
   };
 
   window.selectTemplate = function (type) {
