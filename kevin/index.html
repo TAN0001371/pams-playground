@@ -512,7 +512,7 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
         </div>
         <div id="quoteWarnings" class="quote-warnings" aria-live="polite"></div>
         <div class="quote-review-action">
-          <button class="btn btn-primary" onclick="runQuoteReview()">🔎 Check this quote</button>
+          <button class="btn btn-primary" onclick="runQuoteReview()" title="AI Check this quote">🤖 AI Check this quote</button>
           <small>AI-assisted check for missing costs, patterns and optional upsells.</small>
         </div>
         <div id="quoteUpsells" class="quote-upsells show" aria-live="polite">
@@ -540,7 +540,7 @@ th { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.
   <div class="mobile-price-bar" id="mobilePriceBar">
     <div><span>Recommended quote (incl. GST)</span><strong id="mobileGrandTotal">$0</strong></div>
     <div style="display:flex;gap:6px;">
-      <button class="btn btn-secondary btn-small" onclick="runQuoteReview()" style="background:rgba(255,255,255,0.15);" title="Check this quote">🔎</button>
+      <button class="btn btn-secondary btn-small" onclick="runQuoteReview()" style="background:rgba(255,255,255,0.15);" title="AI Check this quote">🤖</button>
       <button class="btn btn-secondary btn-small" onclick="printClientQuote()" style="background:rgba(255,255,255,0.15);" title="Customer quote / PDF">📄</button>
       <button class="btn btn-secondary btn-small" onclick="copyCustomerSummary(this)" style="background:rgba(255,255,255,0.15);" title="Copy customer figures for Xero">📋</button>
       <button class="btn btn-primary btn-small" onclick="saveQuote()">💾 Save</button>
@@ -1877,6 +1877,6 @@ window.loadQuoteIntoForm = loadQuoteIntoForm;
 window.newQuoteFresh = newQuoteFresh;
 window.QUOTE_AI_REVIEW_ENDPOINT = 'https://kevin-quote-ai.vercel.app/api/review-quote';
 </script>
-<script src="quote-experience.js?v=20260831-3"></script>
+<script src="quote-experience.js?v=20260831-4"></script>
 </body>
 </html>

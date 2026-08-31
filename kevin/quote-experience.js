@@ -442,7 +442,7 @@
   }
   function localReview() {
     const payload = reviewPayload();
-    const audit = payload.audit;
+    const audit = auditForCurrentQuote();
     const lineNames = payload.materials.map(x => x.item).concat(payload.labour.map(x => x.worker)).join(' ').toLowerCase();
     const scope = payload.scope.toLowerCase();
     const missing = [...audit.issues];
@@ -475,7 +475,7 @@
       if (busy) {
         if (!button.dataset.reviewLabel) button.dataset.reviewLabel = button.textContent;
         button.disabled = true;
-        button.textContent = button.title === 'Check this quote' ? '⏳' : '⏳ Reviewing…';
+        button.textContent = button.title === 'AI Check this quote' ? '⏳' : '⏳ Reviewing…';
       } else {
         button.disabled = false;
         if (button.dataset.reviewLabel) button.textContent = button.dataset.reviewLabel;
