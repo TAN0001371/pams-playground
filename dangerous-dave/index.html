@@ -10,20 +10,22 @@
     min-height:100vh;justify-content:center;gap:10px;user-select:none;}
   canvas{image-rendering:pixelated;image-rendering:crisp-edges;border:4px solid #333;
     border-radius:6px;background:#000;max-width:96vw;max-height:82vh;width:auto;height:auto;}
-  #hint{font-size:13px;color:#888;text-align:center;line-height:1.7;padding:0 10px;max-width:760px;}
+  #hint{font-size:13px;color:#888;text-align:center;line-height:1.7;padding:0 10px;max-width:780px;}
   #hint b{color:#e8c15a;}
 </style>
 </head>
 <body>
 <canvas id="g" width="640" height="480"></canvas>
-<div id="hint"><b>&larr;&rarr;</b> run &nbsp; <b>Space/&uarr;</b> jump &nbsp; <b>Ctrl/X</b> shoot &nbsp; <b>Shift</b> jetpack &nbsp; <b>&darr;</b> drop through wood &nbsp; <b>P</b> pause &nbsp; <b>M</b> sound</div>
+<div id="hint"><b>&larr;&rarr;</b> run &nbsp; <b>Space/&uarr;</b> jump &nbsp; <b>Ctrl/X</b> shoot &nbsp; <b>Shift</b> jetpack &nbsp; <b>&darr;</b> drop &nbsp; <b>R</b> retry level &nbsp; <b>P</b> pause &nbsp; <b>M</b> sound
+<br>Chain kills fast for a <b>COMBO MULTIPLIER</b>. Grab every coin. 150 coins = <b>1UP</b>!</div>
 <script>
 "use strict";
 /* ============================================================
-   DANGEROUS DAVE: TROPHY TROUBLE
-   Side-scrolling tribute to Dangerous Dave (1990 DOS, John
-   Romero / Softdisk). Grab the trophy, then reach the door.
-   Watch for fire, water and Clyde's creatures. Jetpack helps.
+   DANGEROUS DAVE: TROPHY TROUBLE  (arcade remix)
+   Side-scrolling tribute to the 1990 DOS original, rebuilt for
+   modern juice: coins, kill combos, multipliers, stars, 1UPs,
+   particles, screen shake, hit-stop and an endless Nightmare
+   mode after level 10. Grab the trophy, then reach the door.
    ============================================================ */
 const canvas = document.getElementById("g");
 const ctx = canvas.getContext("2d");
@@ -44,122 +46,174 @@ const LEVEL_NAMES = [
   "FIRE FIELDS", "HIGH LEDGES", "RUSH HOUR", "BLAZING TRAIL",
   "CLYDE'S FORTRESS", "THE LAIR",
 ];
+const SOLIDG = { "#": 1, G: 1, B: 1 };
 
 function genLevel(i) {
   const rnd = mulberry32(i * 7919 + 13);
   const W = Math.min(64 + i * 6, 112);
   const g = [];
   for (let r = 0; r < ROWS; r++) g.push(Array(W).fill(" "));
-  for (let c = 0; c < W; c++) g[12][c] = "G"; // ground
+  for (let c = 0; c < W; c++) g[12][c] = "G";
 
-  const pits = [];    // {c,w}
-  const hills = [];   // {c,w,h}
-  const plats = [];   // {c,w,row,type}
-  let fires = [];     // column list
+  const pits = [], hills = [], plats = [], spikes = [];
+  let fires = [];
 
-  // trophy pedestal zone + door zone must stay flat:
-  const tCol = Math.floor(W * (0.60 + rnd() * 0.12));      // ~60-72%
+  const tCol = Math.floor(W * (0.60 + rnd() * 0.12));
   const dCol = W - 5;
-  const zone = (c) => (c >= tCol - 5 && c <= tCol + 5) || (c >= dCol - 7);
+  const zone = (c) => (c >= tCol - 5 && c <= tCol + 5) || (c >= dCol - 7) || c < 8;
 
-  let cur = 7;
-  const pitChance = Math.min(0.10 + i * 0.05, 0.42);
-  const hillChance = i >= 1 ? Math.min(0.10 + i * 0.03, 0.28) : 0;
-  while (cur < W - 16) {
-    cur += 4 + Math.floor(rnd() * 6);
-    if (cur >= W - 16) break;
-    if (zone(cur)) continue;
+  let cur = 8;
+  const pitChance = Math.min(0.10 + i * 0.055, 0.40);
+  const hillChance = i >= 1 ? Math.min(0.10 + i * 0.035, 0.30) : 0;
+  const spikeChance = i >= 5 ? Math.min(0.05 + i * 0.02, 0.16) : 0;
+  while (cur < W - 18) {
+    cur += 3 + Math.floor(rnd() * 5);
+    if (cur >= W - 18 || zone(cur)) continue;
     const r = rnd();
     if (r < pitChance) {
-      let w = 2 + (rnd() < Math.min(i / 9, 0.6) ? 1 : 0);
-      if (w > 3 && rnd() < 0.5) w = 3;             // keep 4-wide rare
+      let w = 2 + (rnd() < Math.min(i / 7, 0.55) ? 1 : 0);
+      if (w > 3) w = 3;
       for (let cc = cur; cc < cur + w && cc < W - 1; cc++) g[12][cc] = " ";
       pits.push({ c: cur, w }); cur += w + 1;
-    } else if (r < pitChance + hillChance && i >= 1) {
-      const h = 1 + (rnd() < i / 8 ? 1 : 0);        // 1-2 high (safe jump)
-      const w = 1 + (rnd() < 0.5 ? 1 : 0);
+    } else if (r < pitChance + hillChance) {
+      const h = 1 + (rnd() < i / 7 ? 1 : 0);
+      const w = 1 + (rnd() < 0.6 ? 1 : 0);
       for (let cc = cur; cc < cur + w && cc < W - 1; cc++)
         for (let rr = 12 - h; rr <= 11; rr++) g[rr][cc] = "#";
       hills.push({ c: cur, w, h }); cur += w + 1;
-    } else if (r < pitChance + hillChance + 0.14 && i >= 2) {
-      // floating platform as a hop (never required)
+    } else if (r < pitChance + hillChance + 0.13 && i >= 2) {
       const row = rnd() < 0.6 ? 10 : 9;
       const w = 2 + Math.floor(rnd() * 3);
       const type = rnd() < 0.5 ? "-" : "#";
       for (let cc = cur; cc < cur + w && cc < W - 2; cc++) g[row][cc] = type;
       plats.push({ c: cur, w, row, type }); cur += w + 1;
-    } else if (i >= 4 && rnd() < 0.5) {
-      fires.push(cur);                              // flame on flat ground
-      cur += 1;
+    } else if (r < pitChance + hillChance + 0.13 + spikeChance && i >= 5) {
+      const w = 1 + Math.floor(rnd() * 3);
+      let clash = false;
+      for (let cc = cur; cc < cur + w; cc++) if (zone(cc) || g[12][cc] !== "G") clash = true;
+      if (!clash) {
+        for (let cc = cur; cc < cur + w; cc++) g[11][cc] = "S";
+        spikes.push({ c: cur, w }); cur += w + 2;
+      }
+    } else if (i >= 3 && rnd() < 0.55) {
+      fires.push(cur); cur += 1;
     }
-    if (i >= 5 && !zone(cur) && rnd() < 0.22) fires.push(cur); // extra flames
+    if (i >= 4 && !zone(cur) && rnd() < 0.25) fires.push(cur);
   }
 
-  // ---- spawn area: force flat first 7 columns, no fire ----
-  for (let c = 0; c < 7; c++) { g[12][c] = "G"; for (let rr = 0; rr < 12; rr++) g[rr][c] = " "; }
-  fires = fires.filter(c => c >= 9 && !(c >= tCol - 4 && c <= tCol + 4) && !(c >= dCol - 6));
+  // spawn area flat, no hazards
+  for (let c = 0; c < 8; c++) { g[12][c] = "G"; for (let rr = 0; rr < 12; rr++) g[rr][c] = " "; }
+  fires = fires.filter(c => c >= 10 && !(c >= tCol - 5 && c <= tCol + 5) && !(c >= dCol - 7));
 
-  // ---- trophy pedestal (2-high block, reachable) ----
+  // trophy pedestal
   for (let rr = 10; rr <= 11; rr++) { g[rr][tCol] = "#"; g[rr][tCol + 1] = "#"; }
-  // ensure ground under pedestal
   g[12][tCol] = "G"; g[12][tCol + 1] = "G";
 
-  // ---- door area: flat ----
+  // door zone flat
   for (let c = dCol - 2; c < W; c++) { g[12][c] = "G"; for (let rr = 0; rr < 12; rr++) g[rr][c] = " "; }
+
+  // ---- coins ----
+  const coins = [];
+  const coinAt = (c, r) => {
+    if (c < 1 || c >= W - 1 || r < 0 || r >= ROWS) return;
+    const t = g[r][c];
+    if (t !== " " && t !== "-") return;
+    coins.push({ x: c * TILE + 16, y: r * TILE + 16 });
+  };
+  // ground rows (skip spike cols, zones)
+  const spikeCols = {};
+  spikes.forEach(s => { for (let cc = s.c; cc < s.c + s.w; cc++) spikeCols[cc] = 1; });
+  for (let c = 5; c < dCol - 5; c++) {
+    if (spikeCols[c] || (c >= tCol - 4 && c <= tCol + 4)) continue;
+    if (g[12][c] === "G" && g[11][c] === " " && rnd() < 0.42) coinAt(c, 11);
+  }
+  // arcs over pits
+  pits.forEach(p => {
+    const cc = p.c + Math.floor(p.w / 2);
+    coinAt(cc, 10); coinAt(cc, 9);
+  });
+  // on hill tops
+  hills.forEach(h => {
+    for (let cc = h.c; cc < h.c + h.w; cc++) if (g[11 - h.h] && g[11 - h.h][cc] === " ") coinAt(cc, 11 - h.h);
+  });
+  // on floating platforms
+  plats.forEach(p => {
+    for (let cc = p.c; cc < p.c + p.w; cc++) if (g[p.row - 1] && g[p.row - 1][cc] === " ") coinAt(cc, p.row - 1);
+  });
+  // starter trail to teach the mechanic
+  coinAt(4, 11); coinAt(5, 11); coinAt(6, 11);
+  // a few high-risk floating coins mid-level
+  for (let n = 0; n < Math.min(2 + Math.floor(i / 3), 5); n++) {
+    const c = 15 + Math.floor(rnd() * (W - 40));
+    if (zone(c) || g[12][c] !== "G") continue;
+    coinAt(c + (rnd() < 0.5 ? 0 : 1), 8);
+  }
+
+  // ---- hearts (extra life pickups) ----
+  const hearts = [];
+  if (i >= 1 && rnd() < 0.75) {
+    for (let tries = 0; tries < 40; tries++) {
+      const c = 12 + Math.floor(rnd() * (W - 34));
+      if (zone(c) || g[12][c] !== "G" || spikeCols[c]) continue;
+      hearts.push({ col: c }); break;
+    }
+  }
 
   // ---- enemies ----
   const foes = [];
-  const walkers = Math.min(2 + i, 8);
+  const walkers = Math.min(2 + Math.ceil(i * 1.3), 12);
   let placed = 0, guard = 0;
-  while (placed < walkers && guard++ < 300) {
-    const c = 10 + Math.floor(rnd() * (W - 22));
-    if (c < 8 || (c >= tCol - 4 && c <= tCol + 4) || c >= dCol - 5) continue;
-    if (g[12][c] !== "G") continue;
-    foes.push({ kind: "w", fast: i >= 6 && rnd() < 0.45, col: c, row: 11 });
+  while (placed < walkers && guard++ < 400) {
+    const c = 10 + Math.floor(rnd() * (W - 24));
+    if (c < 9 || (c >= tCol - 4 && c <= tCol + 4) || c >= dCol - 5) continue;
+    if (g[12][c] !== "G" || spikeCols[c]) continue;
+    foes.push({ kind: "w", fast: i >= 4 && rnd() < 0.4 + i * 0.03, col: c, row: 11 });
     placed++;
   }
-  const ghostN = i >= 3 ? Math.min(1 + Math.floor((i - 2) / 2), 4) : 0;
+  const ghostN = i >= 3 ? Math.min(1 + Math.floor((i - 1) / 2), 5) : 0;
   for (let n = 0; n < ghostN; n++) {
     const c = 20 + Math.floor(rnd() * Math.max(10, W - 40));
     if (c >= dCol - 6) continue;
     foes.push({ kind: "g", col: c, row: 5 + Math.floor(rnd() * 3) });
   }
 
-  // ---- jetpack pickups ----
+  // ---- jetpacks ----
   const jets = [];
   const jetN = i >= 2 ? 1 + (i >= 5 ? 1 : 0) : 0;
   for (let n = 0; n < jetN; n++) {
     const c = 12 + Math.floor(rnd() * (W - 34));
-    if (g[12][c] !== "G" || (c >= tCol - 4 && c <= tCol + 4) || c >= dCol - 6) continue;
+    if (g[12][c] !== "G" || spikeCols[c] || (c >= tCol - 4 && c <= tCol + 4) || c >= dCol - 6) continue;
     jets.push({ col: c });
   }
 
   return {
     name: LEVEL_NAMES[i],
     w: W, tiles: g,
-    spawnCol: 2,
-    trophyCol: tCol,
-    doorCol: dCol,
-    pits, hills, plats, fires,
-    foes, jets,
+    spawnCol: 2, trophyCol: tCol, doorCol: dCol,
+    pits, hills, plats, fires, spikes, coins, hearts, foes, jets,
   };
 }
 /*GEN_END*/
 
 // ---------- runtime state ----------
-let L = null;              // current generated level
-let tiles = [];
-let trophy = null, door = null, jets = [];
-let foes = [], bullets = [], flames = [];
-let camX = 0;
-let lvlName = "";
+let L = null, tiles = [];
+let trophy = null, door = null, jets = [], hearts = [], coins = [];
+let foes = [], bullets = [], flames = [], popups = [], parts = [];
+let camX = 0, lvlName = "";
+let levelIdx = 0, endless = false;
 
 const pl = { x: 0, y: 0, w: 18, h: 28, vx: 0, vy: 0, dir: 1, ground: false, coyote: 0,
              inv: 0, anim: 0, dropT: 0, jet: false, fuel: 0, jetOn: false, cd: 0 };
-let lives = 3, score = 0, hi = 0, levelIdx = 0;
+let lives = 3, score = 0, hi = 0;
 let state = "title", stT = 0;
-let doorOpen = false, buzzT = 0, msgFlash = 0;
-try { hi = parseInt(localStorage.getItem("dd_hi2") || "0", 10) || 0; } catch (e) {}
+let doorOpen = false, buzzT = 0;
+let shakeT = 0, freezeT = 0, flashT = 0;
+
+// run stats
+let coinRun = 0, coin1upAt = 150, starsTotal = 0;
+let lvlCoins = 0, deathsLvl = 0, combo = 0, comboT = 0, bestCombo = 0, lvlTime = 0;
+let lastStars = 0;
+try { hi = parseInt(localStorage.getItem("dd_hi3") || "0", 10) || 0; } catch (e) {}
 
 // ---------- audio ----------
 let actx = null, muted = false;
@@ -179,22 +233,24 @@ function tone(f, d, vol, slide, type) {
   } catch (e) {}
 }
 const S = {
-  jump:   () => tone(200, .18, .05, 480),
-  shoot:  () => tone(880, .07, .035, 220),
-  coin:   () => { tone(880, .07, .05); setTimeout(() => tone(1320, .1, .05), 60); },
-  jet:    () => tone(500, .3, .04, 200),
-  stomp:  () => tone(150, .12, .06, 50),
+  jump:   () => tone(220, .15, .045, 520),
+  coin:   (c) => tone(880 * (1 + Math.min(combo, 8) * 0.06), .06, .045),
+  shoot:  () => tone(880, .06, .03, 300),
+  jet:    () => tone(500, .3, .035, 220),
+  stomp:  () => tone(150, .1, .05, 60),
   hurt:   () => tone(300, .25, .06, 90),
   door:   () => { [523, 659, 784].forEach((f, i) => setTimeout(() => tone(f, .12, .05), i * 90)); },
   locked: () => tone(110, .12, .05, 90),
   level:  () => { [392, 523, 659, 784].forEach((f, i) => setTimeout(() => tone(f, .13, .05), i * 100)); },
   over:   () => { [330, 262, 196, 131].forEach((f, i) => setTimeout(() => tone(f, .2, .06), i * 160)); },
-  win:    () => { [523, 659, 784, 1046, 1318].forEach((f, i) => setTimeout(() => tone(f, .16, .05), i * 120)); },
+  win:    () => { [523, 659, 784, 1046, 1318, 1568].forEach((f, i) => setTimeout(() => tone(f, .15, .05), i * 110)); },
+  oneup:  () => { [659, 880, 1318].forEach((f, i) => setTimeout(() => tone(f, .12, .06), i * 90)); },
+  star:   () => tone(1200, .1, .05, 2400),
 };
 
 // ---------- input ----------
 const keys = {};
-let jumpBuf = 0, dropQueued = false, enterQueued = false, shootQueued = false, jetQueued = false;
+let jumpBuf = 0, dropQueued = false, enterQueued = false, shootQueued = false, jetQueued = false, retryQueued = false;
 addEventListener("keydown", e => {
   const k = e.key;
   if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].includes(k)) e.preventDefault();
@@ -204,6 +260,7 @@ addEventListener("keydown", e => {
   if (k === "m" || k === "M") muted = !muted;
   if (k === "Control" || k === "x" || k === "X" || k === "z" || k === "Z") shootQueued = true;
   if (k === "Shift") jetQueued = true;
+  if (k === "r" || k === "R") retryQueued = true;
   keys[k] = true;
 });
 addEventListener("keyup", e => { keys[e.key] = false; });
@@ -217,6 +274,7 @@ function tileAt(c, r) {
 }
 function solidAt(c, r) { const t = tileAt(c, r); return t === "X" || SOLID[t] === 1; }
 function platAt(c, r) { return tileAt(c, r) === "-"; }
+function spikeAt(c, r) { return tileAt(c, r) === "S"; }
 
 function loadLevel(i) {
   levelIdx = i;
@@ -225,13 +283,16 @@ function loadLevel(i) {
   lvlName = L.name;
   trophy = { col: L.trophyCol };
   door = { col: L.doorCol };
-  jets = L.jets.map(j => ({ x: j.col * TILE + 8, y: 10 * TILE + 14, got: false }));
+  jets = L.jets.map(j => ({ x: j.col * TILE + 8, y: 10 * TILE + 12, got: false }));
+  hearts = L.hearts.map(h => ({ x: h.col * TILE + 6, y: 9 * TILE + 12, got: false }));
+  coins = L.coins.map(c => ({ x: c.x, y: c.y, got: false, spin: Math.random() * 6.28 }));
   foes = L.foes.map(f => f.kind === "w"
     ? { kind: "w", fast: f.fast, x: f.col * TILE + 6, y: 12 * TILE - 28, w: 20, h: 28, vx: 0, vy: 0, dir: -1, dead: false }
     : { kind: "g", x: f.col * TILE + 6, y: f.row * TILE + 8, w: 20, h: 20, t: Math.random() * 6.28, dead: false });
   flames = L.fires.map(c => ({ x: c * TILE + 4, t: Math.random() * 2.4, active: false }));
-  bullets = [];
-  doorOpen = false;
+  bullets = []; popups = []; parts = [];
+  doorOpen = false; lvlCoins = coins.length; deathsLvl = 0;
+  combo = 0; comboT = 0; bestCombo = 0; lvlTime = 0;
   resetPlayer(); resetFoes();
 }
 function resetPlayer() {
@@ -242,22 +303,36 @@ function resetPlayer() {
 function resetFoes() {
   foes.forEach(f => {
     if (f.kind === "w") { f.x = Math.floor(f.x / TILE) * TILE + 6; f.y = 12 * TILE - 28; f.vx = 0; f.vy = 0; f.dir = -1; f.dead = false; }
-    else { f.dead = false; }
+    else f.dead = false;
   });
 }
-function newGame() { lives = 3; score = 0; state = "intro"; stT = 0; loadLevel(0); }
-function saveHi() { if (score > hi) { hi = score; try { localStorage.setItem("dd_hi2", String(hi)); } catch (e) {} } }
+function newGame() { lives = 3; score = 0; endless = false; state = "intro"; stT = 0; loadLevel(0); }
+function saveHi() { if (score > hi) { hi = score; try { localStorage.setItem("dd_hi3", String(hi)); } catch (e) {} } }
+
+// ---------- juice helpers ----------
+function shake(n) { shakeT = Math.max(shakeT, n); }
+function hitstop(n) { freezeT = Math.max(freezeT, n); }
+function addPop(x, y, txt, col) { popups.push({ x, y, txt, col, t: 0.9 }); }
+function burst(x, y, col, n, spd) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * 6.28, v = (spd || 120) * (0.4 + Math.random() * 0.8);
+    parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 60, t: 0.5 + Math.random() * 0.3, col });
+  }
+}
+function mult() { return Math.min(combo, 9); }
+function addScore(v) { score += v; }
 
 function die() {
   if (pl.inv > 0) return;
-  lives--; S.hurt();
+  lives--; deathsLvl++; combo = 0; comboT = 0;
+  S.hurt(); shake(6); hitstop(0.12);
+  burst(pl.x + pl.w / 2, pl.y + pl.h / 2, "#e03028", 14, 160);
   if (lives < 0) { state = "over"; S.over(); saveHi(); }
-  else { pl.inv = 2; resetFoes(); resetPlayer(); msgFlash = 0; }
+  else { pl.inv = 2; resetFoes(); resetPlayer(); }
 }
-function addMsg(s) { msgFlash = 1.4; }
 
 // ---------- physics ----------
-const GRAV = 1500, MOVE = 200, JUMP = 560;
+const GRAV = 1500, MOVE = 210, JUMP = 570;
 
 function rectHits(x, y, w, h) {
   const hits = [];
@@ -274,6 +349,8 @@ function movePlayer(dt) {
   if (pl.inv > 0) pl.inv -= dt;
   if (pl.dropT > 0) pl.dropT -= dt;
   if (pl.cd > 0) pl.cd -= dt;
+  if (comboT > 0) { comboT -= dt; if (comboT <= 0) combo = 0; }
+  lvlTime += dt;
 
   let mv = 0;
   if (keys["ArrowLeft"] || keys["a"] || keys["A"]) mv--;
@@ -289,22 +366,21 @@ function movePlayer(dt) {
   if (dropQueued && pl.ground && platAt(fc, fr)) { pl.y += 4; pl.ground = false; pl.dropT = 0.2; }
   dropQueued = false;
 
-  // jetpack toggle
   if (jetQueued && pl.jet && pl.fuel > 0) { pl.jetOn = !pl.jetOn; if (pl.jetOn) S.jet(); }
   jetQueued = false;
   if (pl.jetOn) {
-    if (pl.fuel <= 0) { pl.jetOn = false; }
+    if (pl.fuel <= 0) pl.jetOn = false;
     else {
       pl.fuel -= dt;
       if (keys["ArrowUp"] || keys["w"] || keys["W"] || keys[" "]) pl.vy = Math.min(pl.vy - 1300 * dt, -340);
       pl.ground = false; pl.coyote = 0;
-      if (Math.floor(stT * 10) % 3 === 0) S.jet();
+      if (Math.random() < dt * 30) burst(pl.x + pl.w / 2, pl.y + pl.h, "#ff8a2a", 1, 40);
     }
   } else if (jumpBuf > 0 && (pl.ground || pl.coyote > 0)) {
     pl.vy = -JUMP; pl.ground = false; pl.coyote = 0; jumpBuf = 0; S.jump();
+    burst(pl.x + pl.w / 2, pl.y + pl.h, "#ccc", 3, 40);
   }
 
-  // horizontal
   pl.x += pl.vx * dt;
   let hits = rectHits(pl.x, pl.y, pl.w, pl.h).filter(h => !h.plat);
   for (const h of hits) {
@@ -312,10 +388,10 @@ function movePlayer(dt) {
     else if (pl.vx < 0 && pl.x < (h.c + 1) * TILE - 2) pl.x = (h.c + 1) * TILE;
   }
 
-  // vertical
   const prevBottom = pl.y + pl.h;
   pl.vy = Math.min(pl.vy + GRAV * dt, 800);
   pl.y += pl.vy * dt;
+  const wasAir = !pl.ground;
   pl.ground = false;
   hits = rectHits(pl.x, pl.y, pl.w, pl.h);
   for (const h of hits) {
@@ -327,6 +403,7 @@ function movePlayer(dt) {
     } else {
       if (pl.vy > 0 && prevBottom <= h.r * TILE + 12 && pl.y + pl.h >= h.r * TILE) {
         pl.y = h.r * TILE - pl.h; pl.vy = 0; pl.ground = true;
+        if (wasAir && pl.vy === 0) burst(pl.x + pl.w / 2, pl.y + pl.h, "#c8b080", 4, 50);
       } else if (pl.vy < 0 && pl.y < (h.r + 1) * TILE) {
         pl.y = (h.r + 1) * TILE; pl.vy = 0;
       }
@@ -335,28 +412,47 @@ function movePlayer(dt) {
   if (pl.x < 0) pl.x = 0;
   if (pl.x + pl.w > L.w * TILE) pl.x = L.w * TILE - pl.w;
 
-  // fell into water/pit
+  // spikes
+  const feetC = Math.floor((pl.x + pl.w / 2) / TILE);
+  const feetR = Math.floor((pl.y + pl.h + 2) / TILE);
+  if (spikeAt(feetC, feetR) && pl.vy >= 0) { pl.y = feetR * TILE - pl.h + 4; die(); }
+
   if (pl.y > ROWS * TILE + 26) die();
 }
 
 function fireBullet() {
   if (pl.cd > 0) return;
   pl.cd = 0.18; S.shoot();
-  bullets.push({ x: pl.x + (pl.dir > 0 ? pl.w : -4), y: pl.y + 10, dir: pl.dir });
+  bullets.push({ x: pl.x + (pl.dir > 0 ? pl.w : -6), y: pl.y + 11, dir: pl.dir });
+}
+
+function killFoe(f, byStomp) {
+  if (f.dead) return;
+  f.dead = true;
+  combo = Math.min(combo + 1, 9); comboT = 2.2;
+  bestCombo = Math.max(bestCombo, combo);
+  const pts = (f.kind === "g" ? 150 : 100) * mult();
+  addScore(pts);
+  const cx = f.x + f.w / 2, cy = f.y + f.h / 2;
+  addPop(cx, cy - 12, "+" + pts, mult() >= 3 ? "#ff9a2a" : "#fff");
+  if (combo >= 2) addPop(cx, cy - 30, "COMBO x" + mult(), "#ffd700");
+  burst(cx, cy, f.kind === "g" ? "#cfe8ff" : (f.fast ? "#e05545" : "#5cbf4e"), 10, 140);
+  if (byStomp) { pl.vy = -330; pl.y = f.y - pl.h; }
+  S.stomp(); shake(3); hitstop(0.06);
 }
 
 function moveFoes(dt) {
   for (const f of foes) {
     if (f.dead) continue;
     if (f.kind === "w") {
-      const spd = f.fast ? 130 : 45 + levelIdx * 4;
+      const spd = f.fast ? 135 : 48 + levelIdx * 5;
       f.vx = f.dir * spd;
       f.vy = Math.min(f.vy + GRAV * dt, 800);
       f.x += f.vx * dt;
       let aheadC = Math.floor((f.x + (f.dir > 0 ? f.w + 2 : -2)) / TILE);
       let midR = Math.floor((f.y + f.h / 2) / TILE);
       if (solidAt(aheadC, midR)) f.dir *= -1;
-      const cx0 = f.x; f.x = Math.max(0, Math.min(L.w * TILE - f.w, f.x));
+      f.x = Math.max(0, Math.min(L.w * TILE - f.w, f.x));
       f.y += f.vy * dt;
       pushOut(f);
       aheadC = Math.floor((f.x + (f.dir > 0 ? f.w + 3 : -3)) / TILE);
@@ -364,19 +460,18 @@ function moveFoes(dt) {
       if (!solidAt(aheadC, belowR) && !platAt(aheadC, belowR)) f.dir *= -1;
       if (f.y > ROWS * TILE + 30) f.dead = true;
       if (!f.dead && overlap(pl, f)) {
-        if (pl.vy > 60 && pl.y + pl.h - f.y < 16) { f.dead = true; score += 200; S.stomp(); pl.vy = -330; pl.y = f.y - pl.h; }
+        if (pl.vy > 60 && pl.y + pl.h - f.y < 16) killFoe(f, true);
         else die();
       }
     } else {
       f.t += dt;
-      const spd = 55 + levelIdx * 3;
+      const spd = 58 + levelIdx * 4;
       const dx = (pl.x + pl.w / 2) - (f.x + f.w / 2);
       const dy = (pl.y + 2) - (f.y + f.h / 2);
       f.x += Math.sign(dx) * Math.min(Math.abs(dx), spd * dt);
       f.y += Math.sign(dy) * Math.min(Math.abs(dy), spd * 0.8 * dt);
-      // stay out of solid ground: rise if clipping
       const cc = Math.floor((f.x + f.w / 2) / TILE), rr = Math.floor((f.y + f.h / 2) / TILE);
-      if (solidAt(cc, rr + 1) || solidAt(cc, rr)) { f.y -= 60 * dt; if (solidAt(cc, Math.floor((f.y + f.h / 2) / TILE))) f.y = Math.max(HUD + 10, f.y - 2); }
+      if (solidAt(cc, rr + 1) || solidAt(cc, rr)) f.y -= 80 * dt;
       f.x = Math.max(4, Math.min(L.w * TILE - f.w - 4, f.x));
       f.y = Math.max(HUD + 10, Math.min(ROWS * TILE - 34, f.y));
       if (overlap(pl, f)) die();
@@ -405,26 +500,49 @@ function updateFlames(dt) {
   }
 }
 
+function collectCoin(c) {
+  c.got = true; coinRun++;
+  const v = 25;
+  addScore(v);
+  addPop(c.x, c.y - 8, "+" + v, "#ffe870");
+  burst(c.x, c.y, "#ffd700", 5, 70);
+  S.coin();
+  if (coinRun >= coin1upAt) {
+    coin1upAt += 150;
+    if (lives < 9) { lives++; addPop(c.x, c.y - 30, "1UP!", "#ff6a6a"); S.oneup(); }
+  }
+}
+
 function update(dt) {
   stT += dt;
-  if (msgFlash > 0) msgFlash -= dt;
+  if (msgFlashT > 0) msgFlashT -= dt;
   if (buzzT > 0) buzzT -= dt;
   if (state === "intro") {
-    if (stT > 1.4 || enterQueued) { enterQueued = false; state = "play"; }
+    if (stT > 1.2 || enterQueued) { enterQueued = false; state = "play"; }
     return;
   }
   if (state === "clear") {
-    if (stT > 1.0) {
-      if (levelIdx + 1 >= LEVEL_NAMES.length) { state = "win"; S.win(); saveHi(); }
-      else { score += 500; S.level(); state = "intro"; stT = 0; loadLevel(levelIdx + 1); }
+    if (stT > 2.6 || enterQueued) {
+      enterQueued = false;
+      if (levelIdx + 1 >= LEVEL_NAMES.length && !endless) {
+        // beat the game -> endless nightmare continues
+        endless = true;
+        addPop(VIEWW / 2, HUD + 120, "NIGHTMARE MODE!", "#ff6a6a");
+        S.win();
+        state = "intro"; stT = 0;
+        loadLevel(levelIdx + 1);
+      } else {
+        state = "intro"; stT = 0;
+        loadLevel(levelIdx + 1);
+      }
     }
     return;
   }
   if (state !== "play") return;
+  if (retryQueued) { retryQueued = false; loadLevel(levelIdx); return; }
 
   movePlayer(dt);
 
-  // shooting
   if (shootQueued) { shootQueued = false; fireBullet(); }
   for (const b of bullets) {
     b.x += b.dir * 460 * dt;
@@ -435,7 +553,7 @@ function update(dt) {
     for (const f of foes) {
       if (f.dead) continue;
       if (Math.abs(b.x - (f.x + f.w / 2)) < 14 && Math.abs(b.y - (f.y + f.h / 2)) < 16) {
-        f.dead = true; score += 100; S.stomp(); b.dead = true;
+        b.dead = true; killFoe(f, false);
       }
     }
   }
@@ -444,42 +562,79 @@ function update(dt) {
   moveFoes(dt);
   updateFlames(dt);
 
-  // trophy pickup
-  if (trophy && !doorOpen) {
-    const tx = trophy.col * TILE + 16, ty = 9 * TILE + 16;
-    const cx = pl.x + pl.w / 2, cy = pl.y + pl.h / 2;
-    if (Math.abs(cx - tx) < 26 && Math.abs(cy - ty) < 32) {
-      doorOpen = true; score += 1000; S.door();
+  // coins
+  const pcx = pl.x + pl.w / 2, pcy = pl.y + pl.h / 2;
+  for (const c of coins) {
+    if (c.got) continue;
+    if (Math.abs(pcx - c.x) < 22 && Math.abs(pcy - c.y) < 26) collectCoin(c);
+  }
+  // hearts
+  for (const h of hearts) {
+    if (h.got) continue;
+    if (Math.abs(pcx - (h.x + 8)) < 24 && Math.abs(pcy - h.y) < 30) {
+      h.got = true;
+      if (lives < 9) { lives++; addPop(h.x + 8, h.y - 10, "+1 LIFE", "#ff6a6a"); S.oneup(); }
+      else addScore(500);
     }
   }
-
-  // jetpack pickups
+  // trophy
+  if (trophy && !doorOpen) {
+    const tx = trophy.col * TILE + 16, ty = 9 * TILE + 16;
+    if (Math.abs(pcx - tx) < 26 && Math.abs(pcy - ty) < 34) {
+      doorOpen = true;
+      const pts = 1000 * mult();
+      addScore(pts);
+      addPop(tx, ty - 20, "TROPHY +" + pts, "#ffd700");
+      burst(tx, ty, "#ffd700", 22, 190);
+      S.door(); shake(5);
+    }
+  }
+  // jetpacks
   for (const j of jets) {
     if (j.got) continue;
-    const cx = pl.x + pl.w / 2, cy = pl.y + pl.h / 2;
-    if (Math.abs(cx - (j.x + 8)) < 24 && Math.abs(cy - j.y) < 30) {
-      j.got = true; pl.jet = true; pl.fuel = Math.min(6, pl.fuel + 5); S.jet();
+    if (Math.abs(pcx - (j.x + 8)) < 24 && Math.abs(pcy - j.y) < 30) {
+      j.got = true; pl.jet = true; pl.fuel = Math.min(6, pl.fuel + 5);
+      addPop(j.x + 8, j.y - 10, "JETPACK!", "#ff8a2a"); S.jet();
     }
   }
 
   // door
   if (door) {
-    const dx = door.col * TILE, dy = (door.r || 11) * TILE - TILE;
+    const dx = door.col * TILE, dy = 10 * TILE;
     const drect = { x: dx + 2, y: dy, w: 28, h: TILE * 2 };
     if (overlap(pl, drect)) {
-      if (doorOpen) { state = "clear"; stT = 0; }
-      else if (buzzT <= 0) { S.locked(); buzzT = 0.4; pl.x = Math.min(pl.x, dx - pl.w - 1); }
+      if (doorOpen) {
+        // time bonus
+        const par = 22 + levelIdx * 2 + L.w * 0.10;
+        const tb = Math.max(0, Math.round((par - lvlTime) * 5));
+        if (tb > 0) { addScore(tb); addPop(dx + 16, dy - 16, "TIME +" + tb, "#8ad4ff"); }
+        // stars
+        const pct = 1 - (coins.filter(c => !c.got).length / Math.max(1, lvlCoins));
+        lastStars = 1;
+        if (pct >= 0.6) lastStars = 2;
+        if (pct >= 0.92 && deathsLvl === 0) lastStars = 3;
+        starsTotal += lastStars;
+        saveHi();
+        state = "clear"; stT = 0;
+        if (lastStars === 3) S.star();
+        S.level();
+      } else if (buzzT <= 0) { S.locked(); buzzT = 0.4; pl.x = Math.min(pl.x, dx - pl.w - 1); }
     }
   }
 
   // camera
   const target = pl.x + pl.w / 2 - VIEWW / 2;
   camX = Math.max(0, Math.min(L.w * TILE - VIEWW, target));
-  // smooth-ish
-  // camX = Math.max(0, Math.min(L.w * TILE - VIEWW, camX * 0.85 + target * 0.15));
+
+  // popups / particles
+  for (const p of popups) p.t -= dt;
+  popups = popups.filter(p => p.t > 0);
+  for (const p of parts) { p.t -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 500 * dt; }
+  parts = parts.filter(p => p.t > 0);
 
   if (keys["p"] || keys["P"]) { state = "pause"; keys["p"] = keys["P"] = false; }
 }
+let msgFlashT = 0;
 
 // ============================== DRAWING ==============================
 function rrect(x, y, w, h, col) { ctx.fillStyle = col; ctx.fillRect(Math.round(x), Math.round(y), w, h); }
@@ -490,17 +645,18 @@ function drawBg() {
   ctx.fillStyle = grad; ctx.fillRect(0, HUD, VIEWW, VIEWH - HUD);
   ctx.fillStyle = "#6666aa";
   for (let i = 0; i < 50; i++) {
-    const sx = ((i * 137 + (camX * (0.2 + (i % 5) * 0.12)) ) % VIEWW + VIEWW) % VIEWW;
+    const sx = (((i * 137 + camX * (0.2 + (i % 5) * 0.12))) % VIEWW + VIEWW) % VIEWW;
     const sy = HUD + ((i * 53) % (VIEWH - HUD - 130)) + 10;
     ctx.fillRect(sx, sy, (i % 3 === 0) ? 2 : 1, (i % 3 === 0) ? 2 : 1);
   }
 }
 
 function drawTiles() {
-  const c0 = Math.floor(camX / TILE), c1 = Math.min(L.w - 1, c0 + Math.ceil(VIEWW / TILE) + 1);
+  const c0 = Math.max(0, Math.floor(camX / TILE) - 1);
+  const c1 = Math.min(L.w - 1, c0 + Math.ceil(VIEWW / TILE) + 2);
   for (let r = 0; r < ROWS; r++) for (let c = c0; c <= c1; c++) {
     const ch = tiles[r][c];
-    if (ch === " ") continue;
+    if (ch === " " || ch === "S") { if (ch === "S") drawSpikes(c); continue; }
     const x = c * TILE - camX, y = r * TILE;
     if (ch === "#") {
       rrect(x, y, TILE, TILE, "#7a4a2a");
@@ -521,7 +677,7 @@ function drawTiles() {
       rrect(x, y + 28, TILE, 4, "#6e421e");
     }
   }
-  // water in pits
+  // water
   for (let c = c0; c <= c1; c++) {
     if (tiles[12][c] !== "G") {
       const x = c * TILE - camX;
@@ -530,6 +686,17 @@ function drawTiles() {
       rrect(x + 8 + (Math.floor(stT * 4 + c) % 10), ROWS * TILE + 12, 6, 2, "#2a6ab0");
     }
   }
+}
+function drawSpikes(c) {
+  const x = c * TILE - camX, y = 12 * TILE - 12;
+  for (let i = 0; i < 4; i++) {
+    const px = x + i * 8;
+    ctx.fillStyle = "#c8c8d8";
+    ctx.beginPath();
+    ctx.moveTo(px + 1, y + 12); ctx.lineTo(px + 4, y); ctx.lineTo(px + 7, y + 12);
+    ctx.closePath(); ctx.fill();
+  }
+  rrect(x, y + 12, TILE, 4, "#7a7a8a");
 }
 
 function drawFlames() {
@@ -548,10 +715,37 @@ function drawFlames() {
   }
 }
 
+function drawCoins() {
+  for (const c of coins) {
+    if (c.got) continue;
+    c.spin += 0.12;
+    const s = Math.abs(Math.cos(c.spin));
+    const w = Math.max(3, 10 * s);
+    const x = c.x - camX;
+    rrect(x - w / 2, c.y - 7, w, 14, "#d4a017");
+    rrect(x - w / 2, c.y - 7, w, 4, "#f6d155");
+    if (s > 0.85) rrect(x - 1, c.y - 4, 2, 8, "#fff0a0");
+  }
+}
+
+function drawHearts() {
+  for (const h of hearts) {
+    if (h.got) continue;
+    const x = h.x + 8 - camX, y = h.y + Math.sin(stT * 4) * 2;
+    ctx.fillStyle = "#ff4a5a";
+    ctx.beginPath();
+    ctx.arc(x - 4, y, 5, 0, 6.28); ctx.arc(x + 4, y, 5, 0, 6.28);
+    ctx.fill();
+    ctx.fillStyle = "#ff6a7a";
+    ctx.beginPath();
+    ctx.moveTo(x - 9, y + 1); ctx.lineTo(x, y + 12); ctx.lineTo(x + 9, y + 1);
+    ctx.closePath(); ctx.fill();
+  }
+}
+
 function drawTrophy() {
-  if (!trophy) return;
+  if (!trophy || doorOpen) return;
   const x = trophy.col * TILE + 16 - 9 - camX, by = 9 * TILE + 6 + Math.sin(stT * 3) * 2;
-  if (doorOpen) return; // collected
   rrect(x + 3, by + 10, 10, 2, "#b8860b");
   rrect(x + 5, by + 2, 6, 9, "#ffd700");
   rrect(x + 5, by - 4, 6, 6, "#ffd700");
@@ -614,9 +808,7 @@ function drawFoes() {
 
 function drawBullets() {
   ctx.fillStyle = "#ffe870";
-  for (const b of bullets) {
-    ctx.fillRect(b.x - camX - 2, b.y - 2, 10, 4);
-  }
+  for (const b of bullets) ctx.fillRect(b.x - camX - 2, b.y - 2, 10, 4);
 }
 
 function drawPlayer() {
@@ -633,97 +825,160 @@ function drawPlayer() {
   rrect(x + 3, y + 2, 12, 4, "#5a3a1a");
   rrect(x + (pl.dir > 0 ? 12 : 3), y + 6, 3, 3, "#fff");
   rrect(x + (pl.dir > 0 ? 13 : 5), y + 7, 2, 2, "#111");
-  // gun
-  if (pl.cd > 0 || true) rrect(x + (pl.dir > 0 ? 17 : -3), y + 15, 4, 3, "#444");
+  rrect(x + (pl.dir > 0 ? 17 : -3), y + 15, 4, 3, "#444");
+}
+
+function drawCombo() {
+  if (combo < 2 || comboT <= 0 || state !== "play") return;
+  const w = 150;
+  const x = VIEWW / 2 - w / 2;
+  const frac = Math.min(1, comboT / 2.2);
+  ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(x - 6, HUD + 8, w + 12, 30);
+  ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(x - 6, HUD + 38, w + 12, 6);
+  ctx.fillStyle = mult() >= 5 ? "#ff6a2a" : "#ffd700";
+  ctx.fillRect(x - 6, HUD + 38, (w + 12) * frac, 6);
+  ctx.fillStyle = mult() >= 5 ? "#ff9a5a" : "#ffd700";
+  ctx.font = "bold 20px 'Courier New',monospace";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText("COMBO x" + mult(), VIEWW / 2, HUD + 23);
+}
+
+function drawPopups() {
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  for (const p of popups) {
+    ctx.globalAlpha = Math.min(1, p.t / 0.4);
+    ctx.fillStyle = p.col || "#fff";
+    ctx.font = "bold 14px 'Courier New',monospace";
+    ctx.fillText(p.txt, p.x - camX, p.y - (0.9 - p.t) * 46);
+    ctx.globalAlpha = 1;
+  }
+}
+function drawParts() {
+  for (const p of parts) {
+    ctx.globalAlpha = Math.min(1, p.t / 0.3);
+    ctx.fillStyle = p.col;
+    ctx.fillRect(p.x - camX - 1, p.y - 1, 3, 3);
+    ctx.globalAlpha = 1;
+  }
 }
 
 function drawHUD() {
   rrect(0, 0, VIEWW, HUD, "#141428");
   rrect(0, HUD - 2, VIEWW, 2, "#3a3a5a");
-  ctx.fillStyle = "#ffd700"; ctx.font = "bold 20px 'Courier New',monospace";
   ctx.textAlign = "left"; ctx.textBaseline = "middle";
-  ctx.fillText("SCORE " + score, 10, 20);
-  ctx.fillStyle = "#8a8ac0";
-  ctx.fillText("HI " + hi, 230, 20);
+  ctx.fillStyle = "#ffd700"; ctx.font = "bold 20px 'Courier New',monospace";
+  ctx.fillText("SCORE " + score, 10, 18);
+  // coins
+  ctx.fillStyle = "#d4a017";
+  ctx.beginPath(); ctx.arc(248, 18, 7, 0, 6.28); ctx.fill();
+  ctx.fillStyle = "#f6d155"; ctx.font = "bold 16px 'Courier New',monospace";
+  ctx.fillText(coinRun, 262, 19);
+  // 1up progress mini-bar
+  const upf = Math.min(1, (coinRun % 150) / 150);
+  ctx.fillStyle = "#333"; ctx.fillRect(300, 12, 60, 6);
+  ctx.fillStyle = "#ff6a6a"; ctx.fillRect(300, 12, 60 * upf, 6);
+  // hi / level
+  ctx.fillStyle = "#8a8ac0"; ctx.font = "bold 16px 'Courier New',monospace";
+  ctx.fillText("HI " + hi, 372, 18);
   ctx.fillStyle = "#e0e0f0";
-  ctx.fillText("L" + (levelIdx + 1) + "/10", 400, 20);
+  ctx.fillText("L" + (levelIdx + 1) + (endless ? "+" : ""), 500, 18);
   ctx.fillStyle = "#ffd700";
-  ctx.fillText(doorOpen ? "DOOR OPEN!" : "GET THE TROPHY", 480, 20);
+  ctx.fillText("★" + starsTotal, 560, 18);
+  // objective
+  ctx.fillStyle = doorOpen ? "#ffd700" : "#9ad48a"; ctx.font = "bold 13px 'Courier New',monospace";
+  ctx.textAlign = "center";
+  ctx.fillText(doorOpen ? "DOOR OPEN!" : "GET THE TROPHY", VIEWW / 2, 42);
+  ctx.textAlign = "left";
   // lives
-  for (let i = 0; i < Math.max(0, lives + 1); i++) {
-    rrect(14 + i * 22, 38, 12, 2, "#e0a878");
-    rrect(15 + i * 22, 34, 10, 6, "#e0a878");
-    rrect(15 + i * 22, 34, 10, 3, "#5a3a1a");
+  for (let i = 0; i < Math.min(6, Math.max(0, lives + 1)); i++) {
+    rrect(14 + i * 22, 46, 12, 2, "#e0a878");
+    rrect(15 + i * 22, 42, 10, 6, "#e0a878");
+    rrect(15 + i * 22, 42, 10, 3, "#5a3a1a");
   }
+  if (lives >= 6) { ctx.fillStyle = "#e0e0f0"; ctx.font = "bold 14px 'Courier New',monospace"; ctx.fillText("x" + (lives + 1), 150, 48); }
   // jetpack fuel
   if (pl.jet) {
-    ctx.fillStyle = "#333"; ctx.fillRect(230, 40, 90, 10);
+    ctx.fillStyle = "#333"; ctx.fillRect(230, 44, 70, 8);
     ctx.fillStyle = pl.jetOn ? "#ff8a2a" : "#8a8a9a";
-    ctx.fillRect(232, 42, 86 * Math.max(0, pl.fuel / 6), 6);
-    ctx.fillStyle = "#8a8ac0"; ctx.font = "bold 10px 'Courier New',monospace";
-    ctx.fillText("FUEL", 328, 45);
+    ctx.fillRect(232, 46, 66 * Math.max(0, pl.fuel / 6), 4);
   }
-  ctx.fillStyle = "#8a8ac0"; ctx.font = "bold 13px 'Courier New',monospace";
-  ctx.fillText(lvlName, 400, 44);
-  if (muted) { ctx.fillStyle = "#e05545"; ctx.fillText("MUTED", 560, 44); }
-  // flash message
-  if (msgFlash > 0) {
-    ctx.fillStyle = "#ffd700"; ctx.font = "bold 18px 'Courier New',monospace";
-    ctx.fillText("THE DOOR IS OPEN!", VIEWW / 2, HUD + 120);
-  }
+  if (muted) { ctx.fillStyle = "#e05545"; ctx.font = "bold 12px 'Courier New',monospace"; ctx.fillText("MUTED", 580, 48); }
 }
 
 function drawOverlay() {
-  ctx.fillStyle = "rgba(0,0,0,0.55)";
+  ctx.fillStyle = "rgba(0,0,0,0.62)";
   ctx.fillRect(0, HUD, VIEWW, VIEWH - HUD);
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
   if (state === "title") {
     ctx.fillStyle = "#ffd700"; ctx.font = "bold 44px 'Courier New',monospace";
-    ctx.fillText("DANGEROUS DAVE", 320, 120);
+    ctx.fillText("DANGEROUS DAVE", 320, 110);
     ctx.fillStyle = "#e05545"; ctx.font = "bold 22px 'Courier New',monospace";
-    ctx.fillText("TROPHY TROUBLE", 320, 166);
+    ctx.fillText("TROPHY TROUBLE", 320, 156);
     ctx.fillStyle = "#c0c0e0"; ctx.font = "bold 14px 'Courier New',monospace";
-    ctx.fillText("A side-scrolling tribute to the 1990 DOS classic", 320, 202);
-    ctx.fillText("Grab the trophy, then run to the door.", 320, 228);
-    ctx.fillStyle = "#9ad48a";
-    ctx.fillText("Shoot or squash Clyde's creatures. Watch out for fire and water.", 320, 254);
+    ctx.fillText("Side-scrolling tribute to the 1990 DOS classic - arcade remix", 320, 190);
+    ctx.fillStyle = "#ffd700"; ctx.font = "bold 16px 'Courier New',monospace";
+    ctx.fillText("COMBOS x9  |  STARS  |  COINS = 1UPS  |  NIGHTMARE MODE", 320, 216);
     if (Math.floor(stT * 1.5) % 2 === 0) {
       ctx.fillStyle = "#ffffff"; ctx.font = "bold 20px 'Courier New',monospace";
-      ctx.fillText("PRESS ENTER", 320, 306);
+      ctx.fillText("PRESS ENTER", 320, 270);
     }
-    ctx.fillStyle = "#8a8ac0"; ctx.font = "bold 12px 'Courier New',monospace";
-    ctx.fillText("10 LEVELS  |  CTRL/X = SHOOT  |  SHIFT = JETPACK  |  ARROWS MOVE", 320, 366);
+    ctx.fillStyle = "#8a8ac0"; ctx.font = "bold 13px 'Courier New',monospace";
+    ctx.fillText("Kill enemies fast to build the combo. Grab the trophy, then the door.", 320, 330);
+    ctx.fillText("150 coins = extra life. 3 stars a level = all coins, no deaths.", 320, 354);
   } else if (state === "intro") {
     ctx.fillStyle = "#ffd700"; ctx.font = "bold 34px 'Courier New',monospace";
-    ctx.fillText("LEVEL " + (levelIdx + 1), 320, 180);
+    ctx.fillText((endless ? "NIGHTMARE " : "LEVEL ") + (levelIdx + 1), 320, 176);
     ctx.fillStyle = "#9ad48a"; ctx.font = "bold 18px 'Courier New',monospace";
-    ctx.fillText(lvlName, 320, 222);
-    ctx.fillStyle = "#8a8ac0"; ctx.font = "bold 12px 'Courier New',monospace";
-    ctx.fillText("GRAB THE TROPHY  >  REACH THE DOOR", 320, 258);
+    ctx.fillText(lvlName, 320, 218);
+    if (endless) {
+      ctx.fillStyle = "#ff6a6a"; ctx.font = "bold 14px 'Courier New',monospace";
+      ctx.fillText("IT NEVER ENDS. HOW FAR CAN YOU GO?", 320, 250);
+    } else {
+      ctx.fillStyle = "#8a8ac0"; ctx.font = "bold 12px 'Courier New',monospace";
+      ctx.fillText("GRAB THE TROPHY  >  REACH THE DOOR  (3 STARS FOR A PERFECT RUN)", 320, 250);
+    }
   } else if (state === "clear") {
-    ctx.fillStyle = "#ffd700"; ctx.font = "bold 30px 'Courier New',monospace";
-    ctx.fillText("LEVEL CLEAR!", 320, 210);
+    ctx.fillStyle = "#ffd700"; ctx.font = "bold 34px 'Courier New',monospace";
+    ctx.fillText("LEVEL CLEAR!", 320, 120);
+    // stars
+    for (let i = 0; i < 3; i++) {
+      ctx.fillStyle = i < lastStars ? "#ffd700" : "#444";
+      ctx.font = "bold 44px 'Courier New',monospace";
+      ctx.fillText("★", 260 + i * 60, 175);
+    }
+    const pct = Math.round(100 * (1 - coins.filter(c => !c.got).length / Math.max(1, lvlCoins)));
+    ctx.fillStyle = "#c0c0e0"; ctx.font = "bold 15px 'Courier New',monospace";
+    ctx.fillText("COINS " + pct + "%   DEATHS " + deathsLvl + "   BEST COMBO x" + bestCombo, 320, 235);
+    ctx.fillStyle = "#8a8ac0"; ctx.font = "bold 13px 'Courier New',monospace";
+    ctx.fillText("STAR TOTAL: " + starsTotal, 320, 275);
+    if (lastStars === 3) {
+      ctx.fillStyle = "#9ad48a"; ctx.font = "bold 15px 'Courier New',monospace";
+      ctx.fillText("PERFECT LEVEL! ALL COINS, NO DEATHS!", 320, 305);
+    }
   } else if (state === "over") {
     ctx.fillStyle = "#e05545"; ctx.font = "bold 44px 'Courier New',monospace";
-    ctx.fillText("GAME OVER", 320, 180);
-    ctx.fillStyle = "#ffd700"; ctx.font = "bold 22px 'Courier New',monospace";
-    ctx.fillText("SCORE " + score, 320, 240);
-    if (score >= hi && score > 0) { ctx.fillStyle = "#9ad48a"; ctx.fillText("NEW HIGH SCORE!", 320, 276); }
+    ctx.fillText("GAME OVER", 320, 150);
+    ctx.fillStyle = "#ffd700"; ctx.font = "bold 24px 'Courier New',monospace";
+    ctx.fillText("SCORE " + score, 320, 210);
+    ctx.fillStyle = "#c0c0e0"; ctx.font = "bold 15px 'Courier New',monospace";
+    ctx.fillText("STARS " + starsTotal + "   COINS " + coinRun, 320, 246);
+    if (score >= hi && score > 0) { ctx.fillStyle = "#9ad48a"; ctx.fillText("NEW HIGH SCORE!", 320, 282); }
     if (Math.floor(stT * 1.5) % 2 === 0) {
       ctx.fillStyle = "#fff"; ctx.font = "bold 18px 'Courier New',monospace";
       ctx.fillText("PRESS ENTER", 320, 330);
     }
   } else if (state === "win") {
     ctx.fillStyle = "#ffd700"; ctx.font = "bold 44px 'Courier New',monospace";
-    ctx.fillText("YOU WIN!", 320, 170);
+    ctx.fillText("YOU BEAT CLYDE!", 320, 140);
     ctx.fillStyle = "#c0c0e0"; ctx.font = "bold 16px 'Courier New',monospace";
-    ctx.fillText("Dave escaped Clyde's lair with the gold!", 320, 220);
-    ctx.fillStyle = "#ffd700"; ctx.font = "bold 24px 'Courier New',monospace";
-    ctx.fillText("FINAL SCORE " + score, 320, 262);
-    if (score >= hi && score > 0) { ctx.fillStyle = "#9ad48a"; ctx.fillText("NEW HIGH SCORE!", 320, 298); }
+    ctx.fillText("But the nightmare is just beginning...", 320, 196);
+    ctx.fillStyle = "#ff6a6a"; ctx.font = "bold 20px 'Courier New',monospace";
+    ctx.fillText("NIGHTMARE MODE UNLOCKED", 320, 240);
+    ctx.fillStyle = "#ffd700"; ctx.font = "bold 22px 'Courier New',monospace";
+    ctx.fillText("SCORE " + score, 320, 282);
     if (Math.floor(stT * 1.5) % 2 === 0) {
       ctx.fillStyle = "#fff"; ctx.font = "bold 18px 'Courier New',monospace";
-      ctx.fillText("PRESS ENTER", 320, 350);
+      ctx.fillText("PRESS ENTER TO CONTINUE", 320, 340);
     }
   } else if (state === "pause") {
     ctx.fillStyle = "#fff"; ctx.font = "bold 36px 'Courier New',monospace";
@@ -734,16 +989,27 @@ function drawOverlay() {
 }
 
 function draw() {
+  ctx.save();
+  if (shakeT > 0) {
+    ctx.translate((Math.random() - 0.5) * shakeT * 2, (Math.random() - 0.5) * shakeT * 2);
+    shakeT = Math.max(0, shakeT - 0.4);
+  }
   drawBg();
   drawTiles();
   drawFlames();
+  drawCoins();
+  drawHearts();
   drawTrophy();
   drawJets();
   drawDoor();
   drawFoes();
   drawBullets();
+  drawParts();
   drawPlayer();
+  ctx.restore();
   drawHUD();
+  drawCombo();
+  drawPopups();
   if (["title", "intro", "clear", "over", "win", "pause"].includes(state)) drawOverlay();
 }
 
@@ -752,6 +1018,7 @@ let last = 0;
 function frame(ts) {
   const dt = Math.min(0.033, (ts - last) / 1000 || 0.016);
   last = ts;
+  if (freezeT > 0) { freezeT -= dt; draw(); requestAnimationFrame(frame); return; }
   if (state === "title") {
     stT += dt;
     if (enterQueued) { enterQueued = false; state = "intro"; stT = 0; loadLevel(0); }
