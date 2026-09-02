@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dangerous Dave - Trophy Trouble</title>
+<style>
+  html,body{margin:0;padding:0;background:#0b0b18;color:#ddd;
+    font-family:"Courier New",monospace;display:flex;flex-direction:column;align-items:center;
+    min-height:100vh;justify-content:center;gap:10px;user-select:none;}
+  canvas{image-rendering:pixelated;image-rendering:crisp-edges;border:4px solid #333;
+    border-radius:6px;background:#000;max-width:96vw;max-height:80vh;width:auto;height:auto;}
+  #hint{font-size:13px;color:#888;text-align:center;line-height:1.6;padding:0 10px;}
+  #hint b{color:#e8c15a;}
+</style>
+</head>
+<body>
+<canvas id="g" width="640" height="480"></canvas>
+<div id="hint"><b>&larr;&rarr;</b> move &nbsp; <b>Space/&uarr;</b> jump &nbsp; <b>&darr;</b> drop through wood &nbsp; <b>P</b> pause &nbsp; <b>M</b> sound &nbsp; <b>Enter</b> start</div>
+<script>
+"use strict";
+/* ============================================================
+   DANGEROUS DAVE: TROPHY TROUBLE
+   A tribute to Dangerous Dave (1988, John Romero / Softdisk).
+   Collect every gold trophy in Clyde's hideout, then reach the door.
+   Ten hand-built levels. Fixed screens, chunky pixels, beepy sound.
+   ============================================================ */
+
+const canvas = document.getElementById("g");
+const ctx = canvas.getContext("2d");
+const TILE = 32, COLS = 20, ROWS = 13, HUD = 64;
+
+/*__MAPS__*/
+const LEVEL_MAPS = [
+{ name: "FIRST STEPS", map: [
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"    T         T     ",
+"    ##       ##     ",
+"                    ",
+"  P    E T       D  ",
+"GGGGGGGGGGGGGGGGGGGG"
+] },
+{ name: "HIGHER", map: [
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"      T       T     ",
+"      #      ###    ",
+"     ##      ###    ",
+" P  ### E T  ###D   ",
+"GGGGGGGGGGGGGGGGGGGG"
+] },
+{ name: "THE FIRST PIT", map: [
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"      TT            ",
+"      ##            ",
+" P E      E     DT  ",
+"GGGGGG  GGGGG  GGGGG"
+] },
+{ name: "GHOST TOWN", map: [
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"         V          ",
+"                    ",
+"  T             T   ",
+" ##             ##  ",
+"                    ",
+"P  E     T        DE",
+"GGGG  GGGGGGGG  GGGG"
+] },
+{ name: "STAIRWAY", map: [
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"     T              ",
+"     #         T    ",
+"    ##        ###   ",
+"   ###        ###   ",
+"P #### ET   E ###  D",
+"GGGGGGGGG  GGGGGGGGG"
+] },
+{ name: "TOWERS", map: [
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"         T          ",
+"  T     ###      T  ",
+" ##     ###     ##  ",
+"     #  ###     ##  ",
+"P     E ### T E ## D",
+"GGGGGGGGGGGGGGGGGGGG"
+] },
+{ name: "FAST COMPANY", map: [
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"           T  T     ",
+"        --------    ",
+"                    ",
+"  T   T             ",
+" ---------          ",
+"P   F     F    TF  D",
+"GGGGG  GGGGGG  GGGGG"
+] },
+{ name: "THE GAUNTLET", map: [
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"   V    V           ",
+"                    ",
+"       T            ",
+" T     ##     T     ",
+" ##           #     ",
+"      #             ",
+"F     P  E     D    ",
+"GGGG  GGGGG  GGG  GG"
+] },
+{ name: "HIGH DOOR", map: [
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"              V     ",
+"                    ",
+"                    ",
+"                    ",
+"         TD T       ",
+"         ####       ",
+"        #####       ",
+" P   T E#####  T F  ",
+"GGGGGGGGGG  GGGGGGGG"
+] },
+{ name: "CLYDE'S LAIR", map: [
+"                    ",
+"                    ",
+"                    ",
+"                    ",
+"  V      V          ",
+"                    ",
+"                    ",
+"                    ",
+"   TT   TT       T  ",
+"   ##   ##      ##  ",
+"                    ",
+"PT        E      FD ",
+"GGGGG  GGGGGG  GGGGG"
+] }
+];
+/*__MAPS_END__*/
+
+// ---------------- audio ----------------
+let actx = null, muted = false;
+function tone(f, d, vol, slide, type) {
+  if (muted) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === "suspended") actx.resume();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type || "square";
+    o.frequency.setValueAtTime(f, actx.currentTime);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, slide), actx.currentTime + d);
+    g.gain.setValueAtTime(vol || 0.05, actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + d);
+    o.connect(g); g.connect(actx.destination);
+    o.start(); o.stop(actx.currentTime + d);
+  } catch (e) {}
+}
+const S = {
+  jump:   () => tone(200, .18, .05, 480),
+  coin:   () => { tone(880, .07, .05); setTimeout(() => tone(1320, .1, .05), 60); },
+  stomp:  () => tone(150, .12, .06, 50),
+  hurt:   () => tone(300, .25, .06, 90),
+  door:   () => { [523, 659, 784].forEach((f, i) => setTimeout(() => tone(f, .12, .05), i * 90)); },
+  locked: () => tone(110, .12, .05, 90),
+  level:  () => { [392, 523, 659, 784].forEach((f, i) => setTimeout(() => tone(f, .13, .05), i * 100)); },
+  over:   () => { [330, 262, 196, 131].forEach((f, i) => setTimeout(() => tone(f, .2, .06), i * 160)); },
+  win:    () => { [523, 659, 784, 1046, 1318].forEach((f, i) => setTimeout(() => tone(f, .16, .05), i * 120)); },
+};
+
+// ---------------- input ----------------
+const keys = {};
+let jumpBuf = 0, dropQueued = false, enterQueued = false;
+addEventListener("keydown", e => {
+  const k = e.key;
+  if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].includes(k)) e.preventDefault();
+  if (k === " " || k === "ArrowUp" || k === "w" || k === "W") jumpBuf = 0.12;
+  if (k === "ArrowDown" || k === "s" || k === "S") dropQueued = true;
+  if (k === "Enter") enterQueued = true;
+  if (k === "m" || k === "M") muted = !muted;
+  keys[k] = true;
+});
+addEventListener("keyup", e => { keys[e.key] = false; });
+
+// ---------------- level data ----------------
+let tiles = [];          // tiles[r][c]
+let trophies = [], foes = [], door = null, spawn = null, lvlName = "";
+
+const SOLID = { "#": 1, G: 1, B: 1 };
+function tileAt(c, r) {
+  if (c < 0 || c >= COLS || r >= ROWS) return "X"; // walls at edges, void below map
+  if (r < 0) return " ";
+  return tiles[r][c];
+}
+function solidAt(c, r) { const t = tileAt(c, r); return t === "X" || SOLID[t] === 1; }
+function platAt(c, r) { return tileAt(c, r) === "-"; }
+function doorAt(c, r) { return tileAt(c, r) === "D"; }
+
+function loadLevel(i) {
+  const lv = LEVEL_MAPS[i];
+  lvlName = lv.name;
+  tiles = lv.map.map(row => row.split(""));
+  trophies = []; foes = []; door = null; spawn = null;
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    const ch = tiles[r][c];
+    const x = c * TILE, y = r * TILE;
+    if (ch === "T") trophies.push({ x: x + TILE / 2, baseY: (r + 1) * TILE + (platAt(c, r + 1) ? 18 : 0), got: false, t: Math.random() * 6.28, under: tileAt(c, r + 1) });
+    else if (ch === "E" || ch === "F") foes.push(mkWalker(x, r, ch === "F"));
+    else if (ch === "V") foes.push(mkGhost(x, y));
+    else if (ch === "D") door = { c, r };
+    else if (ch === "P") spawn = { x: x + TILE / 2, y: (r + 1) * TILE };
+  }
+}
+function mkWalker(x, r, fast) {
+  return { kind: "w", fast, x: x + 6, y: (r + 1) * TILE - 28, w: 20, h: 28, vx: 0, vy: 0, dir: -1, dead: false, sx: x + 6, sy: (r + 1) * TILE - 28 };
+}
+function mkGhost(x, y) {
+  return { kind: "g", x: x + 6, y: y + 8, w: 20, h: 20, homeX: x + 6, homeY: y + 8, t: Math.random() * 6.28, dead: false, sx: x + 6, sy: y + 8 };
+}
+
+// ---------------- player ----------------
+const pl = { x: 0, y: 0, w: 18, h: 28, vx: 0, vy: 0, dir: 1, ground: false, coyote: 0, inv: 0, anim: 0, dropT: 0 };
+let lives = 3, score = 0, hi = 0;
+try { hi = parseInt(localStorage.getItem("dd_hi") || "0", 10) || 0; } catch (e) {}
+
+function resetPlayer() {
+  pl.x = spawn.x - pl.w / 2; pl.y = spawn.y - pl.h - 2;
+  pl.vx = 0; pl.vy = 0; pl.ground = false; pl.inv = 0; pl.dropT = 0;
+}
+function resetFoes() { foes.forEach(f => { f.x = f.sx; f.y = f.sy; f.vx = 0; f.vy = 0; f.dead = false; f.dir = -1; }); }
+
+// ---------------- game state ----------------
+let state = "title";      // title | intro | play | clear | dead | over | win | pause
+let stT = 0, levelIdx = 0, lockT = 0;
+let doorOpen = false, buzzT = 0;
+
+function newGame() { lives = 3; score = 0; levelIdx = 0; gotoLevel(0); }
+function gotoLevel(i) {
+  levelIdx = i; loadLevel(i); resetPlayer(); resetFoes();
+  doorOpen = trophies.every(t => t.got); stT = 0;
+  if (i === 0 && lives === 3) state = "title";
+  else { state = "intro"; stT = 0; }
+}
+function die(kind) { // kind: 'pit' | 'touch'
+  if (pl.inv > 0 && kind === "touch") return;
+  lives--;
+  if (kind === "pit") S.hurt();
+  else S.hurt();
+  if (lives < 0) { state = "over"; S.over(); saveHi(); }
+  else {
+    if (kind === "pit") { resetPlayer(); resetFoes(); pl.inv = 2; }
+    else { resetFoes(); pl.inv = 1.6; pl.vy = -260; pl.vx = -pl.dir * 120; }
+    state = "play";
+  }
+}
+function saveHi() { if (score > hi) { hi = score; try { localStorage.setItem("dd_hi", String(hi)); } catch (e) {} } }
+
+// ---------------- physics ----------------
+const GRAV = 1500, MOVE = 200, JUMP = 560;
+
+function rectHits(x, y, w, h) {
+  const hits = [];
+  const c0 = Math.floor(x / TILE), c1 = Math.floor((x + w - 1) / TILE);
+  const r0 = Math.floor(y / TILE), r1 = Math.floor((y + h - 1) / TILE);
+  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) {
+    if (solidAt(c, r)) hits.push({ c, r, plat: false });
+    else if (platAt(c, r)) hits.push({ c, r, plat: true });
+  }
+  return hits;
+}
+function pushOut(e, w, h) { // resolve against solids only
+  let hits = rectHits(e.x, e.y, w, h).filter(h => !h.plat);
+  for (const h of hits) {
+    if (e.vy > 0 && e.y + h > h.r * TILE + 2) { e.y = h.r * TILE - h; e.vy = 0; }
+    else if (e.vy < 0 && e.y < (h.r + 1) * TILE - 2) { e.y = (h.r + 1) * TILE; e.vy = 0; }
+  }
+  hits = rectHits(e.x, e.y, w, h).filter(h => !h.plat);
+  for (const h of hits) {
+    if (e.vx > 0 && e.x + w > h.c * TILE + 2) { e.x = h.c * TILE - w; e.vx = 0; }
+    else if (e.vx < 0 && e.x < (h.c + 1) * TILE - 2) { e.x = (h.c + 1) * TILE; e.vx = 0; }
+  }
+}
+
+function movePlayer(dt) {
+  if (pl.inv > 0) pl.inv -= dt;
+  if (pl.dropT > 0) pl.dropT -= dt;
+
+  let mv = 0;
+  if (keys["ArrowLeft"] || keys["a"] || keys["A"]) mv--;
+  if (keys["ArrowRight"] || keys["d"] || keys["D"]) mv++;
+  pl.vx = mv * MOVE;
+  if (mv) { pl.dir = mv; pl.anim += dt * 9; } else pl.anim = 0;
+
+  if (jumpBuf > 0) jumpBuf -= dt;
+  if (pl.ground) pl.coyote = 0.09; else if (pl.coyote > 0) pl.coyote -= dt;
+
+  // drop through one-way platforms
+  const fc = Math.floor((pl.x + pl.w / 2) / TILE);
+  const fr = Math.floor((pl.y + pl.h + 1) / TILE);
+  if (dropQueued && pl.ground && platAt(fc, fr)) { pl.y += 4; pl.ground = false; pl.dropT = 0.2; }
+  dropQueued = false;
+
+  // jump
+  if (jumpBuf > 0 && (pl.ground || pl.coyote > 0)) {
+    pl.vy = -JUMP; pl.ground = false; pl.coyote = 0; jumpBuf = 0; S.jump();
+  }
+
+  // horizontal
+  pl.x += pl.vx * dt;
+  let hits = rectHits(pl.x, pl.y, pl.w, pl.h).filter(h => !h.plat);
+  for (const h of hits) {
+    if (pl.vx > 0 && pl.x + pl.w > h.c * TILE + 2) pl.x = h.c * TILE - pl.w;
+    else if (pl.vx < 0 && pl.x < (h.c + 1) * TILE - 2) pl.x = (h.c + 1) * TILE;
+  }
+
+  // vertical
+  const prevBottom = pl.y + pl.h;
+  pl.vy = Math.min(pl.vy + GRAV * dt, 800);
+  pl.y += pl.vy * dt;
+  pl.ground = false;
+  hits = rectHits(pl.x, pl.y, pl.w, pl.h);
+  for (const h of hits) {
+    const topY = h.plat ? h.r * TILE + 18 : h.r * TILE;
+    if (h.plat) {
+      // one-way: land only when falling from above and not dropping through
+      if (pl.vy > 0 && prevBottom <= topY + 10 && pl.y + pl.h >= topY && pl.dropT <= 0 && !(keys["ArrowDown"] || keys["s"] || keys["S"])) {
+        pl.y = topY - pl.h; pl.vy = 0; pl.ground = true;
+      }
+    } else {
+      if (pl.vy > 0 && prevBottom <= h.r * TILE + 12 && pl.y + pl.h >= h.r * TILE) {
+        pl.y = h.r * TILE - pl.h; pl.vy = 0; pl.ground = true;
+      } else if (pl.vy < 0 && pl.y < (h.r + 1) * TILE) {
+        pl.y = (h.r + 1) * TILE; pl.vy = 0;
+      }
+    }
+  }
+  // clamp to screen sides (walls are solid, but be safe)
+  if (pl.x < 0) pl.x = 0;
+  if (pl.x + pl.w > COLS * TILE) pl.x = COLS * TILE - pl.w;
+
+  // fell into a pit
+  if (pl.y > ROWS * TILE + 30) die("pit");
+}
+
+function moveFoes(dt) {
+  for (const f of foes) {
+    if (f.dead) continue;
+    if (f.kind === "w") {
+      const spd = f.fast ? 120 : 45 + levelIdx * 4;
+      f.vx = f.dir * spd;
+      f.vy = Math.min(f.vy + GRAV * dt, 800);
+      f.x += f.vx * dt;
+      // wall ahead?
+      let aheadC = Math.floor((f.x + (f.dir > 0 ? f.w + 2 : -2)) / TILE);
+      let midR = Math.floor((f.y + f.h / 2) / TILE);
+      if (solidAt(aheadC, midR)) f.dir *= -1;
+      pushOut(f, f.w, f.h);
+      f.y += f.vy * dt;
+      pushOut(f, f.w, f.h);
+      // ledge ahead?
+      aheadC = Math.floor((f.x + (f.dir > 0 ? f.w + 3 : -3)) / TILE);
+      const belowR = Math.floor((f.y + f.h + 4) / TILE);
+      if (!solidAt(aheadC, belowR) && !platAt(aheadC, belowR)) f.dir *= -1;
+      if (f.y > ROWS * TILE + 30) f.dead = true;
+      // stomp?
+      if (overlap(pl, f)) {
+        if (pl.vy > 60 && pl.y + pl.h - f.y < 16) {
+          f.dead = true; score += 200; S.stomp(); pl.vy = -330; pl.y = f.y - pl.h;
+        } else die("touch");
+      }
+    } else {
+      // ghost: homes toward the player, wobbly flight
+      f.t += dt;
+      const spd = 60 + levelIdx * 3;
+      const dx = (pl.x + pl.w / 2) - (f.x + f.w / 2);
+      const dy = (pl.y + 2) - (f.y + f.h / 2);
+      f.x += Math.sign(dx) * Math.min(Math.abs(dx), spd * dt);
+      f.y += Math.sign(dy) * Math.min(Math.abs(dy), (spd * 0.8) * dt);
+      f.y += Math.sin(f.t * 4) * 6 * dt;
+      f.x = Math.max(4, Math.min(COLS * TILE - f.w - 4, f.x));
+      f.y = Math.max(HUD + 10, Math.min(ROWS * TILE - 34, f.y));
+      if (overlap(pl, f)) die("touch");
+    }
+  }
+}
+function overlap(a, b) {
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+// ---------------- update ----------------
+function update(dt) {
+  stT += dt;
+  if (lockT > 0) lockT -= dt;
+  if (state === "intro") {
+    if (stT > 1.4 || enterQueued) { enterQueued = false; state = "play"; }
+    return;
+  }
+  if (state === "clear") {
+    if (stT > 1.0) {
+      if (levelIdx + 1 >= LEVEL_MAPS.length) { state = "win"; S.win(); saveHi(); }
+      else { score += 500; S.level(); gotoLevel(levelIdx + 1); }
+    }
+    return;
+  }
+  if (state !== "play") return;
+
+  movePlayer(dt);
+  moveFoes(dt);
+
+  // trophies
+  for (const t of trophies) {
+    if (t.got) continue;
+    const cx = pl.x + pl.w / 2, feet = pl.y + pl.h;
+    if (Math.abs(cx - t.x) < 22 && Math.abs(feet - t.baseY) < 20) {
+      t.got = true; score += 100; S.coin();
+      if (trophies.every(x => x.got)) { doorOpen = true; S.door(); }
+    }
+  }
+
+  // door
+  if (door) {
+    const dx = door.c * TILE, dy = (door.r - 1) * TILE;
+    const drect = { x: dx + 2, y: dy, w: 28, h: TILE * 2 };
+    if (overlap(pl, drect)) {
+      if (doorOpen) { state = "clear"; stT = 0; }
+      else if (buzzT <= 0) { S.locked(); buzzT = 0.4; pl.x = Math.min(pl.x, dx - pl.w - 1); }
+    }
+  }
+  if (lockT > 0) lockT -= dt;
+
+  if (keys["p"] || keys["P"]) { state = "pause"; keys["p"] = keys["P"] = false; }
+}
+
+// ============================================================
+//  DRAWING
+// ============================================================
+function rrect(x, y, w, h, col) { ctx.fillStyle = col; ctx.fillRect(Math.round(x), Math.round(y), w, h); }
+
+function drawTiles() {
+  // sky
+  const grad = ctx.createLinearGradient(0, HUD, 0, HUD + ROWS * TILE);
+  grad.addColorStop(0, "#0a0a22"); grad.addColorStop(1, "#181038");
+  ctx.fillStyle = grad; ctx.fillRect(0, HUD, 640, ROWS * TILE);
+  // stars
+  ctx.fillStyle = "#6666aa";
+  for (let i = 0; i < 40; i++) {
+    const sx = (i * 97) % 640, sy = HUD + ((i * 53) % (ROWS * TILE - 120));
+    ctx.fillRect(sx, sy, 2, 2);
+  }
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    const ch = tiles[r][c];
+    const x = c * TILE, y = r * TILE;
+    if (ch === "#") { // brick
+      rrect(x, y, TILE, TILE, "#7a4a2a");
+      rrect(x + 2, y + 2, 12, 10, "#8a5a36");
+      rrect(x + 18, y + 2, 12, 10, "#8a5a36");
+      rrect(x + 2, y + 16, 12, 10, "#8a5a36");
+      rrect(x + 18, y + 16, 12, 10, "#8a5a36");
+      rrect(x, y, TILE, 2, "#5a3218");
+    } else if (ch === "G") { // grass ground
+      rrect(x, y, TILE, TILE, "#7a4a2a");
+      rrect(x, y, TILE, 8, "#4caf50");
+      rrect(x, y, TILE, 3, "#2e7d32");
+      rrect(x + 6, y + 14, 6, 4, "#8a5a36");
+      rrect(x + 20, y + 22, 6, 4, "#8a5a36");
+    } else if (ch === "-") { // wood platform
+      rrect(x, y + 14, TILE, 18, "#8a5a2a");
+      rrect(x, y + 14, TILE, 3, "#6e421e");
+      rrect(x, y + 28, TILE, 4, "#6e421e");
+    }
+  }
+}
+
+function drawTrophies() {
+  for (const t of trophies) {
+    if (t.got) continue;
+    t.t += 0.05;
+    const bob = Math.sin(t.t) * 2;
+    const by = t.baseY - 16 + bob, x = t.x - 8;
+    rrect(x + 3, by + 10, 10, 2, "#b8860b");
+    rrect(x + 5, by + 2, 6, 9, "#ffd700");
+    rrect(x + 5, by - 4, 6, 6, "#ffd700");
+    rrect(x + 7, by - 6, 2, 2, "#fff6c0");
+    rrect(x + 5, by + 12, 2, 4, "#ffd700");
+    rrect(x + 9, by + 12, 2, 4, "#ffd700");
+  }
+}
+
+function drawDoor() {
+  if (!door) return;
+  const x = door.c * TILE, y = (door.r - 1) * TILE;
+  const open = doorOpen || (state === "clear");
+  const col1 = open ? "#ffd700" : "#9a6a3a";
+  const col2 = open ? "#fff6c0" : "#6e4a26";
+  rrect(x + 2, y, 28, TILE * 2, col1);
+  rrect(x + 6, y + 4, 20, TILE * 2 - 8, "#2a1a0a");
+  if (open) { // glow pulse
+    const a = 0.25 + 0.2 * Math.sin(stT * 8);
+    rrect(x, y - 4, 32, TILE * 2 + 8, `rgba(255,215,0,${a.toFixed(2)})`);
+    rrect(x + 10, y + 6, 12, 26, "#fff6c0");
+  } else { // padlock
+    rrect(x + 12, y + 12, 8, 7, col2);
+    rrect(x + 14, y + 9, 4, 4, col2);
+    rrect(x + 15, y + 14, 2, 3, "#2a1a0a");
+  }
+}
+
+function drawFoes() {
+  for (const f of foes) {
+    if (f.dead) continue;
+    if (f.kind === "w") {
+      const body = f.fast ? "#e05545" : "#5cbf4e";
+      const dark = f.fast ? "#a03020" : "#2e8a24";
+      rrect(f.x, f.y + 6, f.w, f.h - 6, body);
+      rrect(f.x - 2, f.y + 6, f.w + 4, 6, dark);
+      rrect(f.x + (f.dir > 0 ? f.w - 6 : 0), f.y + 10, 6, 8, "#fff");
+      rrect(f.x + (f.dir > 0 ? f.w - 4 : 2), f.y + 12, 2, 4, "#111");
+      rrect(f.x, f.y + f.h - 3, f.w, 3, dark);
+    } else {
+      ctx.globalAlpha = 0.75;
+      const wob = Math.sin(f.t * 6) * 3;
+      rrect(f.x, f.y + 4, f.w, f.h - 4, "#cfe8ff");
+      rrect(f.x, f.y + 4, f.w, 6, "#9ad4ff");
+      rrect(f.x + 4, f.y + 10, 3, 3, "#204060");
+      rrect(f.x + 13, f.y + 10, 3, 3, "#204060");
+      // wavy tail
+      for (let i = 0; i < 3; i++)
+        rrect(f.x + i * 7, f.y + f.h - 2 + wob + (i % 2) * 2, 4, 4, "#cfe8ff");
+      ctx.globalAlpha = 1;
+    }
+  }
+}
+
+function drawPlayer() {
+  if (pl.inv > 0 && Math.floor(pl.inv * 12) % 2 === 0) return;
+  const x = pl.x, y = pl.y;
+  const run = Math.abs(pl.vx) > 10 && pl.ground;
+  const leg = run ? Math.floor(pl.anim) % 2 : 0;
+  // legs
+  rrect(x + 2 + (leg ? 2 : 0), y + 20, 6, 8, "#2b5bc4");
+  rrect(x + 10 - (leg ? 2 : 0), y + 20, 6, 8, "#2b5bc4");
+  // body (red shirt)
+  rrect(x, y + 12, 18, 9, "#e03028");
+  rrect(x, y + 12, 18, 2, "#a01810");
+  // arms
+  rrect(x + (pl.dir > 0 ? 17 : -1), y + 13, 2, 7, "#e0a878");
+  // head
+  rrect(x + 3, y + 2, 12, 11, "#e0a878");
+  rrect(x + 3, y + 2, 12, 4, "#5a3a1a");           // hair
+  rrect(x + (pl.dir > 0 ? 12 : 3), y + 6, 3, 3, "#fff");
+  rrect(x + (pl.dir > 0 ? 13 : 5), y + 7, 2, 2, "#111");
+}
+
+function drawHUD() {
+  rrect(0, 0, 640, HUD, "#141428");
+  rrect(0, HUD - 2, 640, 2, "#3a3a5a");
+  ctx.fillStyle = "#ffd700"; ctx.font = "bold 20px 'Courier New',monospace";
+  ctx.textAlign = "left"; ctx.textBaseline = "middle";
+  ctx.fillText("SCORE " + score, 12, 22);
+  ctx.fillStyle = "#8a8ac0";
+  ctx.fillText("HI " + hi, 240, 22);
+  ctx.fillStyle = "#e0e0f0";
+  ctx.fillText("L" + (levelIdx + 1) + "/" + LEVEL_MAPS.length, 400, 22);
+  ctx.fillStyle = "#ffd700";
+  const got = trophies.filter(t => t.got).length;
+  ctx.fillText("T " + got + "/" + trophies.length, 480, 22);
+  // lives as little heads
+  for (let i = 0; i < Math.max(0, lives + 1); i++) {
+    rrect(14 + i * 22, 40, 12, 2, "#e0a878");
+    rrect(15 + i * 22, 36, 10, 6, "#e0a878");
+    rrect(15 + i * 22, 36, 10, 3, "#5a3a1a");
+  }
+  ctx.fillStyle = "#8a8ac0"; ctx.font = "bold 13px 'Courier New',monospace";
+  ctx.fillText(lvlName, 200, 48);
+  if (muted) { ctx.fillStyle = "#e05545"; ctx.fillText("MUTED", 520, 48); }
+}
+
+function drawOverlay() {
+  ctx.fillStyle = "rgba(0,0,0,0.55)";
+  ctx.fillRect(0, HUD, 640, ROWS * TILE);
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  if (state === "title") {
+    ctx.fillStyle = "#ffd700"; ctx.font = "bold 44px 'Courier New',monospace";
+    ctx.fillText("DANGEROUS DAVE", 320, 130);
+    ctx.fillStyle = "#e05545"; ctx.font = "bold 22px 'Courier New',monospace";
+    ctx.fillText("TROPHY TROUBLE", 320, 176);
+    ctx.fillStyle = "#c0c0e0"; ctx.font = "bold 14px 'Courier New',monospace";
+    ctx.fillText("A tribute to the 1988 John Romero classic", 320, 210);
+    ctx.fillText("Collect every gold trophy, then reach the door.", 320, 240);
+    ctx.fillStyle = "#9ad48a";
+    ctx.fillText("Beware Clyde's creatures - jump on them to squash them!", 320, 266);
+    if (Math.floor(stT * 1.5) % 2 === 0) {
+      ctx.fillStyle = "#ffffff"; ctx.font = "bold 20px 'Courier New',monospace";
+      ctx.fillText("PRESS ENTER", 320, 320);
+    }
+    ctx.fillStyle = "#8a8ac0"; ctx.font = "bold 12px 'Courier New',monospace";
+    ctx.fillText("10 LEVELS  |  ARROWS MOVE/JUMP  |  DOWN DROPS THROUGH WOOD", 320, 380);
+  } else if (state === "intro") {
+    ctx.fillStyle = "#ffd700"; ctx.font = "bold 34px 'Courier New',monospace";
+    ctx.fillText("LEVEL " + (levelIdx + 1), 320, 190);
+    ctx.fillStyle = "#9ad48a"; ctx.font = "bold 18px 'Courier New',monospace";
+    ctx.fillText(lvlName, 320, 232);
+  } else if (state === "clear") {
+    ctx.fillStyle = "#ffd700"; ctx.font = "bold 30px 'Courier New',monospace";
+    ctx.fillText("LEVEL CLEAR!", 320, 210);
+  } else if (state === "over") {
+    ctx.fillStyle = "#e05545"; ctx.font = "bold 44px 'Courier New',monospace";
+    ctx.fillText("GAME OVER", 320, 180);
+    ctx.fillStyle = "#ffd700"; ctx.font = "bold 22px 'Courier New',monospace";
+    ctx.fillText("SCORE " + score, 320, 240);
+    if (score >= hi && score > 0) { ctx.fillStyle = "#9ad48a"; ctx.fillText("NEW HIGH SCORE!", 320, 276); }
+    if (Math.floor(stT * 1.5) % 2 === 0) {
+      ctx.fillStyle = "#fff"; ctx.font = "bold 18px 'Courier New',monospace";
+      ctx.fillText("PRESS ENTER", 320, 330);
+    }
+  } else if (state === "win") {
+    ctx.fillStyle = "#ffd700"; ctx.font = "bold 44px 'Courier New',monospace";
+    ctx.fillText("YOU WIN!", 320, 170);
+    ctx.fillStyle = "#c0c0e0"; ctx.font = "bold 16px 'Courier New',monospace";
+    ctx.fillText("Dave escaped Clyde's lair with all the gold!", 320, 220);
+    ctx.fillStyle = "#ffd700"; ctx.font = "bold 24px 'Courier New',monospace";
+    ctx.fillText("FINAL SCORE " + score, 320, 262);
+    if (score >= hi && score > 0) { ctx.fillStyle = "#9ad48a"; ctx.fillText("NEW HIGH SCORE!", 320, 298); }
+    if (Math.floor(stT * 1.5) % 2 === 0) {
+      ctx.fillStyle = "#fff"; ctx.font = "bold 18px 'Courier New',monospace";
+      ctx.fillText("PRESS ENTER", 320, 350);
+    }
+  } else if (state === "pause") {
+    ctx.fillStyle = "#fff"; ctx.font = "bold 36px 'Courier New',monospace";
+    ctx.fillText("PAUSED", 320, 220);
+    ctx.fillStyle = "#8a8ac0"; ctx.font = "bold 14px 'Courier New',monospace";
+    ctx.fillText("PRESS P TO RESUME", 320, 270);
+  }
+}
+
+function draw() {
+  drawTiles();
+  drawTrophies();
+  drawDoor();
+  drawFoes();
+  drawPlayer();
+  drawHUD();
+  if (["title","intro","clear","over","win","pause"].includes(state)) drawOverlay();
+}
+
+// ---------------- loop ----------------
+let last = 0;
+function frame(ts) {
+  const dt = Math.min(0.033, (ts - last) / 1000 || 0.016);
+  last = ts;
+  if (state === "title") {
+    stT += dt;
+    if (enterQueued) { enterQueued = false; state = "intro"; stT = 0; }
+  } else if (state === "over" || state === "win") {
+    stT += dt;
+    if (enterQueued) { enterQueued = false; newGame(); state = "intro"; stT = 0; }
+  } else if (state === "pause") {
+    if (keys["p"] || keys["P"]) { state = "play"; keys["p"] = keys["P"] = false; }
+    if (enterQueued) enterQueued = false;
+  } else {
+    update(dt);
+  }
+  draw();
+  requestAnimationFrame(frame);
+}
+
+loadLevel(0);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
