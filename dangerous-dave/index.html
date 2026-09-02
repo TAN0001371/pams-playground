@@ -9,183 +9,159 @@
     font-family:"Courier New",monospace;display:flex;flex-direction:column;align-items:center;
     min-height:100vh;justify-content:center;gap:10px;user-select:none;}
   canvas{image-rendering:pixelated;image-rendering:crisp-edges;border:4px solid #333;
-    border-radius:6px;background:#000;max-width:96vw;max-height:80vh;width:auto;height:auto;}
-  #hint{font-size:13px;color:#888;text-align:center;line-height:1.6;padding:0 10px;}
+    border-radius:6px;background:#000;max-width:96vw;max-height:82vh;width:auto;height:auto;}
+  #hint{font-size:13px;color:#888;text-align:center;line-height:1.7;padding:0 10px;max-width:760px;}
   #hint b{color:#e8c15a;}
 </style>
 </head>
 <body>
 <canvas id="g" width="640" height="480"></canvas>
-<div id="hint"><b>&larr;&rarr;</b> move &nbsp; <b>Space/&uarr;</b> jump &nbsp; <b>&darr;</b> drop through wood &nbsp; <b>P</b> pause &nbsp; <b>M</b> sound &nbsp; <b>Enter</b> start</div>
+<div id="hint"><b>&larr;&rarr;</b> run &nbsp; <b>Space/&uarr;</b> jump &nbsp; <b>Ctrl/X</b> shoot &nbsp; <b>Shift</b> jetpack &nbsp; <b>&darr;</b> drop through wood &nbsp; <b>P</b> pause &nbsp; <b>M</b> sound</div>
 <script>
 "use strict";
 /* ============================================================
    DANGEROUS DAVE: TROPHY TROUBLE
-   A tribute to Dangerous Dave (1988, John Romero / Softdisk).
-   Collect every gold trophy in Clyde's hideout, then reach the door.
-   Ten hand-built levels. Fixed screens, chunky pixels, beepy sound.
+   Side-scrolling tribute to Dangerous Dave (1990 DOS, John
+   Romero / Softdisk). Grab the trophy, then reach the door.
+   Watch for fire, water and Clyde's creatures. Jetpack helps.
    ============================================================ */
-
 const canvas = document.getElementById("g");
 const ctx = canvas.getContext("2d");
-const TILE = 32, COLS = 20, ROWS = 13, HUD = 64;
+const TILE = 32, ROWS = 13, HUD = 64, VIEWW = 640, VIEWH = 480;
 
-/*__MAPS__*/
-const LEVEL_MAPS = [
-{ name: "FIRST STEPS", map: [
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"    T         T     ",
-"    ##       ##     ",
-"                    ",
-"  P    E T       D  ",
-"GGGGGGGGGGGGGGGGGGGG"
-] },
-{ name: "HIGHER", map: [
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"      T       T     ",
-"      #      ###    ",
-"     ##      ###    ",
-" P  ### E T  ###D   ",
-"GGGGGGGGGGGGGGGGGGGG"
-] },
-{ name: "THE FIRST PIT", map: [
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"      TT            ",
-"      ##            ",
-" P E      E     DT  ",
-"GGGGGG  GGGGG  GGGGG"
-] },
-{ name: "GHOST TOWN", map: [
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"         V          ",
-"                    ",
-"  T             T   ",
-" ##             ##  ",
-"                    ",
-"P  E     T        DE",
-"GGGG  GGGGGGGG  GGGG"
-] },
-{ name: "STAIRWAY", map: [
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"     T              ",
-"     #         T    ",
-"    ##        ###   ",
-"   ###        ###   ",
-"P #### ET   E ###  D",
-"GGGGGGGGG  GGGGGGGGG"
-] },
-{ name: "TOWERS", map: [
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"         T          ",
-"  T     ###      T  ",
-" ##     ###     ##  ",
-"     #  ###     ##  ",
-"P     E ### T E ## D",
-"GGGGGGGGGGGGGGGGGGGG"
-] },
-{ name: "FAST COMPANY", map: [
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"           T  T     ",
-"        --------    ",
-"                    ",
-"  T   T             ",
-" ---------          ",
-"P   F     F    TF  D",
-"GGGGG  GGGGGG  GGGGG"
-] },
-{ name: "THE GAUNTLET", map: [
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"   V    V           ",
-"                    ",
-"       T            ",
-" T     ##     T     ",
-" ##           #     ",
-"      #             ",
-"F     P  E     D    ",
-"GGGG  GGGGG  GGG  GG"
-] },
-{ name: "HIGH DOOR", map: [
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"              V     ",
-"                    ",
-"                    ",
-"                    ",
-"         TD T       ",
-"         ####       ",
-"        #####       ",
-" P   T E#####  T F  ",
-"GGGGGGGGGG  GGGGGGGG"
-] },
-{ name: "CLYDE'S LAIR", map: [
-"                    ",
-"                    ",
-"                    ",
-"                    ",
-"  V      V          ",
-"                    ",
-"                    ",
-"                    ",
-"   TT   TT       T  ",
-"   ##   ##      ##  ",
-"                    ",
-"PT        E      FD ",
-"GGGGG  GGGGGG  GGGGG"
-] }
+/*GEN_START*/
+// ---------- deterministic level generator (pure, testable in node) ----------
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const LEVEL_NAMES = [
+  "A BREEZE", "WIDE OPEN", "THE GAPS", "HAUNTED HILLS",
+  "FIRE FIELDS", "HIGH LEDGES", "RUSH HOUR", "BLAZING TRAIL",
+  "CLYDE'S FORTRESS", "THE LAIR",
 ];
-/*__MAPS_END__*/
 
-// ---------------- audio ----------------
+function genLevel(i) {
+  const rnd = mulberry32(i * 7919 + 13);
+  const W = Math.min(64 + i * 6, 112);
+  const g = [];
+  for (let r = 0; r < ROWS; r++) g.push(Array(W).fill(" "));
+  for (let c = 0; c < W; c++) g[12][c] = "G"; // ground
+
+  const pits = [];    // {c,w}
+  const hills = [];   // {c,w,h}
+  const plats = [];   // {c,w,row,type}
+  let fires = [];     // column list
+
+  // trophy pedestal zone + door zone must stay flat:
+  const tCol = Math.floor(W * (0.60 + rnd() * 0.12));      // ~60-72%
+  const dCol = W - 5;
+  const zone = (c) => (c >= tCol - 5 && c <= tCol + 5) || (c >= dCol - 7);
+
+  let cur = 7;
+  const pitChance = Math.min(0.10 + i * 0.05, 0.42);
+  const hillChance = i >= 1 ? Math.min(0.10 + i * 0.03, 0.28) : 0;
+  while (cur < W - 16) {
+    cur += 4 + Math.floor(rnd() * 6);
+    if (cur >= W - 16) break;
+    if (zone(cur)) continue;
+    const r = rnd();
+    if (r < pitChance) {
+      let w = 2 + (rnd() < Math.min(i / 9, 0.6) ? 1 : 0);
+      if (w > 3 && rnd() < 0.5) w = 3;             // keep 4-wide rare
+      for (let cc = cur; cc < cur + w && cc < W - 1; cc++) g[12][cc] = " ";
+      pits.push({ c: cur, w }); cur += w + 1;
+    } else if (r < pitChance + hillChance && i >= 1) {
+      const h = 1 + (rnd() < i / 8 ? 1 : 0);        // 1-2 high (safe jump)
+      const w = 1 + (rnd() < 0.5 ? 1 : 0);
+      for (let cc = cur; cc < cur + w && cc < W - 1; cc++)
+        for (let rr = 12 - h; rr <= 11; rr++) g[rr][cc] = "#";
+      hills.push({ c: cur, w, h }); cur += w + 1;
+    } else if (r < pitChance + hillChance + 0.14 && i >= 2) {
+      // floating platform as a hop (never required)
+      const row = rnd() < 0.6 ? 10 : 9;
+      const w = 2 + Math.floor(rnd() * 3);
+      const type = rnd() < 0.5 ? "-" : "#";
+      for (let cc = cur; cc < cur + w && cc < W - 2; cc++) g[row][cc] = type;
+      plats.push({ c: cur, w, row, type }); cur += w + 1;
+    } else if (i >= 4 && rnd() < 0.5) {
+      fires.push(cur);                              // flame on flat ground
+      cur += 1;
+    }
+    if (i >= 5 && !zone(cur) && rnd() < 0.22) fires.push(cur); // extra flames
+  }
+
+  // ---- spawn area: force flat first 7 columns, no fire ----
+  for (let c = 0; c < 7; c++) { g[12][c] = "G"; for (let rr = 0; rr < 12; rr++) g[rr][c] = " "; }
+  fires = fires.filter(c => c >= 9 && !(c >= tCol - 4 && c <= tCol + 4) && !(c >= dCol - 6));
+
+  // ---- trophy pedestal (2-high block, reachable) ----
+  for (let rr = 10; rr <= 11; rr++) { g[rr][tCol] = "#"; g[rr][tCol + 1] = "#"; }
+  // ensure ground under pedestal
+  g[12][tCol] = "G"; g[12][tCol + 1] = "G";
+
+  // ---- door area: flat ----
+  for (let c = dCol - 2; c < W; c++) { g[12][c] = "G"; for (let rr = 0; rr < 12; rr++) g[rr][c] = " "; }
+
+  // ---- enemies ----
+  const foes = [];
+  const walkers = Math.min(2 + i, 8);
+  let placed = 0, guard = 0;
+  while (placed < walkers && guard++ < 300) {
+    const c = 10 + Math.floor(rnd() * (W - 22));
+    if (c < 8 || (c >= tCol - 4 && c <= tCol + 4) || c >= dCol - 5) continue;
+    if (g[12][c] !== "G") continue;
+    foes.push({ kind: "w", fast: i >= 6 && rnd() < 0.45, col: c, row: 11 });
+    placed++;
+  }
+  const ghostN = i >= 3 ? Math.min(1 + Math.floor((i - 2) / 2), 4) : 0;
+  for (let n = 0; n < ghostN; n++) {
+    const c = 20 + Math.floor(rnd() * Math.max(10, W - 40));
+    if (c >= dCol - 6) continue;
+    foes.push({ kind: "g", col: c, row: 5 + Math.floor(rnd() * 3) });
+  }
+
+  // ---- jetpack pickups ----
+  const jets = [];
+  const jetN = i >= 2 ? 1 + (i >= 5 ? 1 : 0) : 0;
+  for (let n = 0; n < jetN; n++) {
+    const c = 12 + Math.floor(rnd() * (W - 34));
+    if (g[12][c] !== "G" || (c >= tCol - 4 && c <= tCol + 4) || c >= dCol - 6) continue;
+    jets.push({ col: c });
+  }
+
+  return {
+    name: LEVEL_NAMES[i],
+    w: W, tiles: g,
+    spawnCol: 2,
+    trophyCol: tCol,
+    doorCol: dCol,
+    pits, hills, plats, fires,
+    foes, jets,
+  };
+}
+/*GEN_END*/
+
+// ---------- runtime state ----------
+let L = null;              // current generated level
+let tiles = [];
+let trophy = null, door = null, jets = [];
+let foes = [], bullets = [], flames = [];
+let camX = 0;
+let lvlName = "";
+
+const pl = { x: 0, y: 0, w: 18, h: 28, vx: 0, vy: 0, dir: 1, ground: false, coyote: 0,
+             inv: 0, anim: 0, dropT: 0, jet: false, fuel: 0, jetOn: false, cd: 0 };
+let lives = 3, score = 0, hi = 0, levelIdx = 0;
+let state = "title", stT = 0;
+let doorOpen = false, buzzT = 0, msgFlash = 0;
+try { hi = parseInt(localStorage.getItem("dd_hi2") || "0", 10) || 0; } catch (e) {}
+
+// ---------- audio ----------
 let actx = null, muted = false;
 function tone(f, d, vol, slide, type) {
   if (muted) return;
@@ -204,7 +180,9 @@ function tone(f, d, vol, slide, type) {
 }
 const S = {
   jump:   () => tone(200, .18, .05, 480),
+  shoot:  () => tone(880, .07, .035, 220),
   coin:   () => { tone(880, .07, .05); setTimeout(() => tone(1320, .1, .05), 60); },
+  jet:    () => tone(500, .3, .04, 200),
   stomp:  () => tone(150, .12, .06, 50),
   hurt:   () => tone(300, .25, .06, 90),
   door:   () => { [523, 659, 784].forEach((f, i) => setTimeout(() => tone(f, .12, .05), i * 90)); },
@@ -214,9 +192,9 @@ const S = {
   win:    () => { [523, 659, 784, 1046, 1318].forEach((f, i) => setTimeout(() => tone(f, .16, .05), i * 120)); },
 };
 
-// ---------------- input ----------------
+// ---------- input ----------
 const keys = {};
-let jumpBuf = 0, dropQueued = false, enterQueued = false;
+let jumpBuf = 0, dropQueued = false, enterQueued = false, shootQueued = false, jetQueued = false;
 addEventListener("keydown", e => {
   const k = e.key;
   if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].includes(k)) e.preventDefault();
@@ -224,84 +202,61 @@ addEventListener("keydown", e => {
   if (k === "ArrowDown" || k === "s" || k === "S") dropQueued = true;
   if (k === "Enter") enterQueued = true;
   if (k === "m" || k === "M") muted = !muted;
+  if (k === "Control" || k === "x" || k === "X" || k === "z" || k === "Z") shootQueued = true;
+  if (k === "Shift") jetQueued = true;
   keys[k] = true;
 });
 addEventListener("keyup", e => { keys[e.key] = false; });
 
-// ---------------- level data ----------------
-let tiles = [];          // tiles[r][c]
-let trophies = [], foes = [], door = null, spawn = null, lvlName = "";
-
+// ---------- level helpers ----------
 const SOLID = { "#": 1, G: 1, B: 1 };
 function tileAt(c, r) {
-  if (c < 0 || c >= COLS || r >= ROWS) return "X"; // walls at edges, void below map
+  if (c < 0 || c >= L.w || r >= ROWS) return "X";
   if (r < 0) return " ";
   return tiles[r][c];
 }
 function solidAt(c, r) { const t = tileAt(c, r); return t === "X" || SOLID[t] === 1; }
 function platAt(c, r) { return tileAt(c, r) === "-"; }
-function doorAt(c, r) { return tileAt(c, r) === "D"; }
 
 function loadLevel(i) {
-  const lv = LEVEL_MAPS[i];
-  lvlName = lv.name;
-  tiles = lv.map.map(row => row.split(""));
-  trophies = []; foes = []; door = null; spawn = null;
-  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
-    const ch = tiles[r][c];
-    const x = c * TILE, y = r * TILE;
-    if (ch === "T") trophies.push({ x: x + TILE / 2, baseY: (r + 1) * TILE + (platAt(c, r + 1) ? 18 : 0), got: false, t: Math.random() * 6.28, under: tileAt(c, r + 1) });
-    else if (ch === "E" || ch === "F") foes.push(mkWalker(x, r, ch === "F"));
-    else if (ch === "V") foes.push(mkGhost(x, y));
-    else if (ch === "D") door = { c, r };
-    else if (ch === "P") spawn = { x: x + TILE / 2, y: (r + 1) * TILE };
-  }
+  levelIdx = i;
+  L = genLevel(i);
+  tiles = L.tiles;
+  lvlName = L.name;
+  trophy = { col: L.trophyCol };
+  door = { col: L.doorCol };
+  jets = L.jets.map(j => ({ x: j.col * TILE + 8, y: 10 * TILE + 14, got: false }));
+  foes = L.foes.map(f => f.kind === "w"
+    ? { kind: "w", fast: f.fast, x: f.col * TILE + 6, y: 12 * TILE - 28, w: 20, h: 28, vx: 0, vy: 0, dir: -1, dead: false }
+    : { kind: "g", x: f.col * TILE + 6, y: f.row * TILE + 8, w: 20, h: 20, t: Math.random() * 6.28, dead: false });
+  flames = L.fires.map(c => ({ x: c * TILE + 4, t: Math.random() * 2.4, active: false }));
+  bullets = [];
+  doorOpen = false;
+  resetPlayer(); resetFoes();
 }
-function mkWalker(x, r, fast) {
-  return { kind: "w", fast, x: x + 6, y: (r + 1) * TILE - 28, w: 20, h: 28, vx: 0, vy: 0, dir: -1, dead: false, sx: x + 6, sy: (r + 1) * TILE - 28 };
-}
-function mkGhost(x, y) {
-  return { kind: "g", x: x + 6, y: y + 8, w: 20, h: 20, homeX: x + 6, homeY: y + 8, t: Math.random() * 6.28, dead: false, sx: x + 6, sy: y + 8 };
-}
-
-// ---------------- player ----------------
-const pl = { x: 0, y: 0, w: 18, h: 28, vx: 0, vy: 0, dir: 1, ground: false, coyote: 0, inv: 0, anim: 0, dropT: 0 };
-let lives = 3, score = 0, hi = 0;
-try { hi = parseInt(localStorage.getItem("dd_hi") || "0", 10) || 0; } catch (e) {}
-
 function resetPlayer() {
-  pl.x = spawn.x - pl.w / 2; pl.y = spawn.y - pl.h - 2;
-  pl.vx = 0; pl.vy = 0; pl.ground = false; pl.inv = 0; pl.dropT = 0;
+  pl.x = L.spawnCol * TILE + 6;
+  pl.y = 12 * TILE - pl.h - 2;
+  pl.vx = 0; pl.vy = 0; pl.ground = false; pl.inv = 0; pl.dropT = 0; pl.jetOn = false; pl.cd = 0;
 }
-function resetFoes() { foes.forEach(f => { f.x = f.sx; f.y = f.sy; f.vx = 0; f.vy = 0; f.dead = false; f.dir = -1; }); }
-
-// ---------------- game state ----------------
-let state = "title";      // title | intro | play | clear | dead | over | win | pause
-let stT = 0, levelIdx = 0, lockT = 0;
-let doorOpen = false, buzzT = 0;
-
-function newGame() { lives = 3; score = 0; levelIdx = 0; gotoLevel(0); }
-function gotoLevel(i) {
-  levelIdx = i; loadLevel(i); resetPlayer(); resetFoes();
-  doorOpen = trophies.every(t => t.got); stT = 0;
-  if (i === 0 && lives === 3) state = "title";
-  else { state = "intro"; stT = 0; }
+function resetFoes() {
+  foes.forEach(f => {
+    if (f.kind === "w") { f.x = Math.floor(f.x / TILE) * TILE + 6; f.y = 12 * TILE - 28; f.vx = 0; f.vy = 0; f.dir = -1; f.dead = false; }
+    else { f.dead = false; }
+  });
 }
-function die(kind) { // kind: 'pit' | 'touch'
-  if (pl.inv > 0 && kind === "touch") return;
-  lives--;
-  if (kind === "pit") S.hurt();
-  else S.hurt();
+function newGame() { lives = 3; score = 0; state = "intro"; stT = 0; loadLevel(0); }
+function saveHi() { if (score > hi) { hi = score; try { localStorage.setItem("dd_hi2", String(hi)); } catch (e) {} } }
+
+function die() {
+  if (pl.inv > 0) return;
+  lives--; S.hurt();
   if (lives < 0) { state = "over"; S.over(); saveHi(); }
-  else {
-    if (kind === "pit") { resetPlayer(); resetFoes(); pl.inv = 2; }
-    else { resetFoes(); pl.inv = 1.6; pl.vy = -260; pl.vx = -pl.dir * 120; }
-    state = "play";
-  }
+  else { pl.inv = 2; resetFoes(); resetPlayer(); msgFlash = 0; }
 }
-function saveHi() { if (score > hi) { hi = score; try { localStorage.setItem("dd_hi", String(hi)); } catch (e) {} } }
+function addMsg(s) { msgFlash = 1.4; }
 
-// ---------------- physics ----------------
+// ---------- physics ----------
 const GRAV = 1500, MOVE = 200, JUMP = 560;
 
 function rectHits(x, y, w, h) {
@@ -314,22 +269,11 @@ function rectHits(x, y, w, h) {
   }
   return hits;
 }
-function pushOut(e, w, h) { // resolve against solids only
-  let hits = rectHits(e.x, e.y, w, h).filter(h => !h.plat);
-  for (const h of hits) {
-    if (e.vy > 0 && e.y + h > h.r * TILE + 2) { e.y = h.r * TILE - h; e.vy = 0; }
-    else if (e.vy < 0 && e.y < (h.r + 1) * TILE - 2) { e.y = (h.r + 1) * TILE; e.vy = 0; }
-  }
-  hits = rectHits(e.x, e.y, w, h).filter(h => !h.plat);
-  for (const h of hits) {
-    if (e.vx > 0 && e.x + w > h.c * TILE + 2) { e.x = h.c * TILE - w; e.vx = 0; }
-    else if (e.vx < 0 && e.x < (h.c + 1) * TILE - 2) { e.x = (h.c + 1) * TILE; e.vx = 0; }
-  }
-}
 
 function movePlayer(dt) {
   if (pl.inv > 0) pl.inv -= dt;
   if (pl.dropT > 0) pl.dropT -= dt;
+  if (pl.cd > 0) pl.cd -= dt;
 
   let mv = 0;
   if (keys["ArrowLeft"] || keys["a"] || keys["A"]) mv--;
@@ -340,14 +284,23 @@ function movePlayer(dt) {
   if (jumpBuf > 0) jumpBuf -= dt;
   if (pl.ground) pl.coyote = 0.09; else if (pl.coyote > 0) pl.coyote -= dt;
 
-  // drop through one-way platforms
   const fc = Math.floor((pl.x + pl.w / 2) / TILE);
   const fr = Math.floor((pl.y + pl.h + 1) / TILE);
   if (dropQueued && pl.ground && platAt(fc, fr)) { pl.y += 4; pl.ground = false; pl.dropT = 0.2; }
   dropQueued = false;
 
-  // jump
-  if (jumpBuf > 0 && (pl.ground || pl.coyote > 0)) {
+  // jetpack toggle
+  if (jetQueued && pl.jet && pl.fuel > 0) { pl.jetOn = !pl.jetOn; if (pl.jetOn) S.jet(); }
+  jetQueued = false;
+  if (pl.jetOn) {
+    if (pl.fuel <= 0) { pl.jetOn = false; }
+    else {
+      pl.fuel -= dt;
+      if (keys["ArrowUp"] || keys["w"] || keys["W"] || keys[" "]) pl.vy = Math.min(pl.vy - 1300 * dt, -340);
+      pl.ground = false; pl.coyote = 0;
+      if (Math.floor(stT * 10) % 3 === 0) S.jet();
+    }
+  } else if (jumpBuf > 0 && (pl.ground || pl.coyote > 0)) {
     pl.vy = -JUMP; pl.ground = false; pl.coyote = 0; jumpBuf = 0; S.jump();
   }
 
@@ -368,7 +321,6 @@ function movePlayer(dt) {
   for (const h of hits) {
     const topY = h.plat ? h.r * TILE + 18 : h.r * TILE;
     if (h.plat) {
-      // one-way: land only when falling from above and not dropping through
       if (pl.vy > 0 && prevBottom <= topY + 10 && pl.y + pl.h >= topY && pl.dropT <= 0 && !(keys["ArrowDown"] || keys["s"] || keys["S"])) {
         pl.y = topY - pl.h; pl.vy = 0; pl.ground = true;
       }
@@ -380,272 +332,374 @@ function movePlayer(dt) {
       }
     }
   }
-  // clamp to screen sides (walls are solid, but be safe)
   if (pl.x < 0) pl.x = 0;
-  if (pl.x + pl.w > COLS * TILE) pl.x = COLS * TILE - pl.w;
+  if (pl.x + pl.w > L.w * TILE) pl.x = L.w * TILE - pl.w;
 
-  // fell into a pit
-  if (pl.y > ROWS * TILE + 30) die("pit");
+  // fell into water/pit
+  if (pl.y > ROWS * TILE + 26) die();
+}
+
+function fireBullet() {
+  if (pl.cd > 0) return;
+  pl.cd = 0.18; S.shoot();
+  bullets.push({ x: pl.x + (pl.dir > 0 ? pl.w : -4), y: pl.y + 10, dir: pl.dir });
 }
 
 function moveFoes(dt) {
   for (const f of foes) {
     if (f.dead) continue;
     if (f.kind === "w") {
-      const spd = f.fast ? 120 : 45 + levelIdx * 4;
+      const spd = f.fast ? 130 : 45 + levelIdx * 4;
       f.vx = f.dir * spd;
       f.vy = Math.min(f.vy + GRAV * dt, 800);
       f.x += f.vx * dt;
-      // wall ahead?
       let aheadC = Math.floor((f.x + (f.dir > 0 ? f.w + 2 : -2)) / TILE);
       let midR = Math.floor((f.y + f.h / 2) / TILE);
       if (solidAt(aheadC, midR)) f.dir *= -1;
-      pushOut(f, f.w, f.h);
+      const cx0 = f.x; f.x = Math.max(0, Math.min(L.w * TILE - f.w, f.x));
       f.y += f.vy * dt;
-      pushOut(f, f.w, f.h);
-      // ledge ahead?
+      pushOut(f);
       aheadC = Math.floor((f.x + (f.dir > 0 ? f.w + 3 : -3)) / TILE);
       const belowR = Math.floor((f.y + f.h + 4) / TILE);
       if (!solidAt(aheadC, belowR) && !platAt(aheadC, belowR)) f.dir *= -1;
       if (f.y > ROWS * TILE + 30) f.dead = true;
-      // stomp?
-      if (overlap(pl, f)) {
-        if (pl.vy > 60 && pl.y + pl.h - f.y < 16) {
-          f.dead = true; score += 200; S.stomp(); pl.vy = -330; pl.y = f.y - pl.h;
-        } else die("touch");
+      if (!f.dead && overlap(pl, f)) {
+        if (pl.vy > 60 && pl.y + pl.h - f.y < 16) { f.dead = true; score += 200; S.stomp(); pl.vy = -330; pl.y = f.y - pl.h; }
+        else die();
       }
     } else {
-      // ghost: homes toward the player, wobbly flight
       f.t += dt;
-      const spd = 60 + levelIdx * 3;
+      const spd = 55 + levelIdx * 3;
       const dx = (pl.x + pl.w / 2) - (f.x + f.w / 2);
       const dy = (pl.y + 2) - (f.y + f.h / 2);
       f.x += Math.sign(dx) * Math.min(Math.abs(dx), spd * dt);
-      f.y += Math.sign(dy) * Math.min(Math.abs(dy), (spd * 0.8) * dt);
-      f.y += Math.sin(f.t * 4) * 6 * dt;
-      f.x = Math.max(4, Math.min(COLS * TILE - f.w - 4, f.x));
+      f.y += Math.sign(dy) * Math.min(Math.abs(dy), spd * 0.8 * dt);
+      // stay out of solid ground: rise if clipping
+      const cc = Math.floor((f.x + f.w / 2) / TILE), rr = Math.floor((f.y + f.h / 2) / TILE);
+      if (solidAt(cc, rr + 1) || solidAt(cc, rr)) { f.y -= 60 * dt; if (solidAt(cc, Math.floor((f.y + f.h / 2) / TILE))) f.y = Math.max(HUD + 10, f.y - 2); }
+      f.x = Math.max(4, Math.min(L.w * TILE - f.w - 4, f.x));
       f.y = Math.max(HUD + 10, Math.min(ROWS * TILE - 34, f.y));
-      if (overlap(pl, f)) die("touch");
+      if (overlap(pl, f)) die();
     }
+  }
+}
+function pushOut(e) {
+  let hits = rectHits(e.x, e.y, e.w, e.h).filter(h => !h.plat);
+  for (const h of hits) {
+    if (e.vy > 0 && e.y + e.h > h.r * TILE + 2) { e.y = h.r * TILE - e.h; e.vy = 0; }
+    else if (e.vy < 0 && e.y < (h.r + 1) * TILE - 2) { e.y = (h.r + 1) * TILE; e.vy = 0; }
   }
 }
 function overlap(a, b) {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 }
 
-// ---------------- update ----------------
+function updateFlames(dt) {
+  for (const fl of flames) {
+    fl.t += dt;
+    const cyc = fl.t % 2.6;
+    fl.active = cyc > 1.9;
+    if (!fl.active) continue;
+    const fr = { x: fl.x + 2, y: 12 * TILE - 52, w: 24, h: 52 };
+    if (overlap(pl, fr)) die();
+  }
+}
+
 function update(dt) {
   stT += dt;
-  if (lockT > 0) lockT -= dt;
+  if (msgFlash > 0) msgFlash -= dt;
+  if (buzzT > 0) buzzT -= dt;
   if (state === "intro") {
     if (stT > 1.4 || enterQueued) { enterQueued = false; state = "play"; }
     return;
   }
   if (state === "clear") {
     if (stT > 1.0) {
-      if (levelIdx + 1 >= LEVEL_MAPS.length) { state = "win"; S.win(); saveHi(); }
-      else { score += 500; S.level(); gotoLevel(levelIdx + 1); }
+      if (levelIdx + 1 >= LEVEL_NAMES.length) { state = "win"; S.win(); saveHi(); }
+      else { score += 500; S.level(); state = "intro"; stT = 0; loadLevel(levelIdx + 1); }
     }
     return;
   }
   if (state !== "play") return;
 
   movePlayer(dt);
-  moveFoes(dt);
 
-  // trophies
-  for (const t of trophies) {
-    if (t.got) continue;
-    const cx = pl.x + pl.w / 2, feet = pl.y + pl.h;
-    if (Math.abs(cx - t.x) < 22 && Math.abs(feet - t.baseY) < 20) {
-      t.got = true; score += 100; S.coin();
-      if (trophies.every(x => x.got)) { doorOpen = true; S.door(); }
+  // shooting
+  if (shootQueued) { shootQueued = false; fireBullet(); }
+  for (const b of bullets) {
+    b.x += b.dir * 460 * dt;
+    b.life = (b.life || 0) + dt;
+  }
+  bullets = bullets.filter(b => b.life < 0.9 && b.x > camX - 40 && b.x < camX + VIEWW + 40);
+  for (const b of bullets) {
+    for (const f of foes) {
+      if (f.dead) continue;
+      if (Math.abs(b.x - (f.x + f.w / 2)) < 14 && Math.abs(b.y - (f.y + f.h / 2)) < 16) {
+        f.dead = true; score += 100; S.stomp(); b.dead = true;
+      }
+    }
+  }
+  bullets = bullets.filter(b => !b.dead);
+
+  moveFoes(dt);
+  updateFlames(dt);
+
+  // trophy pickup
+  if (trophy && !doorOpen) {
+    const tx = trophy.col * TILE + 16, ty = 9 * TILE + 16;
+    const cx = pl.x + pl.w / 2, cy = pl.y + pl.h / 2;
+    if (Math.abs(cx - tx) < 26 && Math.abs(cy - ty) < 32) {
+      doorOpen = true; score += 1000; S.door();
+    }
+  }
+
+  // jetpack pickups
+  for (const j of jets) {
+    if (j.got) continue;
+    const cx = pl.x + pl.w / 2, cy = pl.y + pl.h / 2;
+    if (Math.abs(cx - (j.x + 8)) < 24 && Math.abs(cy - j.y) < 30) {
+      j.got = true; pl.jet = true; pl.fuel = Math.min(6, pl.fuel + 5); S.jet();
     }
   }
 
   // door
   if (door) {
-    const dx = door.c * TILE, dy = (door.r - 1) * TILE;
+    const dx = door.col * TILE, dy = (door.r || 11) * TILE - TILE;
     const drect = { x: dx + 2, y: dy, w: 28, h: TILE * 2 };
     if (overlap(pl, drect)) {
       if (doorOpen) { state = "clear"; stT = 0; }
       else if (buzzT <= 0) { S.locked(); buzzT = 0.4; pl.x = Math.min(pl.x, dx - pl.w - 1); }
     }
   }
-  if (lockT > 0) lockT -= dt;
+
+  // camera
+  const target = pl.x + pl.w / 2 - VIEWW / 2;
+  camX = Math.max(0, Math.min(L.w * TILE - VIEWW, target));
+  // smooth-ish
+  // camX = Math.max(0, Math.min(L.w * TILE - VIEWW, camX * 0.85 + target * 0.15));
 
   if (keys["p"] || keys["P"]) { state = "pause"; keys["p"] = keys["P"] = false; }
 }
 
-// ============================================================
-//  DRAWING
-// ============================================================
+// ============================== DRAWING ==============================
 function rrect(x, y, w, h, col) { ctx.fillStyle = col; ctx.fillRect(Math.round(x), Math.round(y), w, h); }
 
-function drawTiles() {
-  // sky
-  const grad = ctx.createLinearGradient(0, HUD, 0, HUD + ROWS * TILE);
-  grad.addColorStop(0, "#0a0a22"); grad.addColorStop(1, "#181038");
-  ctx.fillStyle = grad; ctx.fillRect(0, HUD, 640, ROWS * TILE);
-  // stars
+function drawBg() {
+  const grad = ctx.createLinearGradient(0, HUD, 0, VIEWH);
+  grad.addColorStop(0, "#0a0a22"); grad.addColorStop(0.7, "#16103a"); grad.addColorStop(1, "#241a4a");
+  ctx.fillStyle = grad; ctx.fillRect(0, HUD, VIEWW, VIEWH - HUD);
   ctx.fillStyle = "#6666aa";
-  for (let i = 0; i < 40; i++) {
-    const sx = (i * 97) % 640, sy = HUD + ((i * 53) % (ROWS * TILE - 120));
-    ctx.fillRect(sx, sy, 2, 2);
+  for (let i = 0; i < 50; i++) {
+    const sx = ((i * 137 + (camX * (0.2 + (i % 5) * 0.12)) ) % VIEWW + VIEWW) % VIEWW;
+    const sy = HUD + ((i * 53) % (VIEWH - HUD - 130)) + 10;
+    ctx.fillRect(sx, sy, (i % 3 === 0) ? 2 : 1, (i % 3 === 0) ? 2 : 1);
   }
-  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+}
+
+function drawTiles() {
+  const c0 = Math.floor(camX / TILE), c1 = Math.min(L.w - 1, c0 + Math.ceil(VIEWW / TILE) + 1);
+  for (let r = 0; r < ROWS; r++) for (let c = c0; c <= c1; c++) {
     const ch = tiles[r][c];
-    const x = c * TILE, y = r * TILE;
-    if (ch === "#") { // brick
+    if (ch === " ") continue;
+    const x = c * TILE - camX, y = r * TILE;
+    if (ch === "#") {
       rrect(x, y, TILE, TILE, "#7a4a2a");
       rrect(x + 2, y + 2, 12, 10, "#8a5a36");
       rrect(x + 18, y + 2, 12, 10, "#8a5a36");
       rrect(x + 2, y + 16, 12, 10, "#8a5a36");
       rrect(x + 18, y + 16, 12, 10, "#8a5a36");
       rrect(x, y, TILE, 2, "#5a3218");
-    } else if (ch === "G") { // grass ground
+    } else if (ch === "G") {
       rrect(x, y, TILE, TILE, "#7a4a2a");
       rrect(x, y, TILE, 8, "#4caf50");
       rrect(x, y, TILE, 3, "#2e7d32");
       rrect(x + 6, y + 14, 6, 4, "#8a5a36");
       rrect(x + 20, y + 22, 6, 4, "#8a5a36");
-    } else if (ch === "-") { // wood platform
+    } else if (ch === "-") {
       rrect(x, y + 14, TILE, 18, "#8a5a2a");
       rrect(x, y + 14, TILE, 3, "#6e421e");
       rrect(x, y + 28, TILE, 4, "#6e421e");
     }
   }
+  // water in pits
+  for (let c = c0; c <= c1; c++) {
+    if (tiles[12][c] !== "G") {
+      const x = c * TILE - camX;
+      rrect(x, ROWS * TILE, TILE, VIEWH - ROWS * TILE, "#12407a");
+      rrect(x, ROWS * TILE, TILE, 3, "#2a6ab0");
+      rrect(x + 8 + (Math.floor(stT * 4 + c) % 10), ROWS * TILE + 12, 6, 2, "#2a6ab0");
+    }
+  }
 }
 
-function drawTrophies() {
-  for (const t of trophies) {
-    if (t.got) continue;
-    t.t += 0.05;
-    const bob = Math.sin(t.t) * 2;
-    const by = t.baseY - 16 + bob, x = t.x - 8;
-    rrect(x + 3, by + 10, 10, 2, "#b8860b");
-    rrect(x + 5, by + 2, 6, 9, "#ffd700");
-    rrect(x + 5, by - 4, 6, 6, "#ffd700");
-    rrect(x + 7, by - 6, 2, 2, "#fff6c0");
-    rrect(x + 5, by + 12, 2, 4, "#ffd700");
-    rrect(x + 9, by + 12, 2, 4, "#ffd700");
+function drawFlames() {
+  for (const fl of flames) {
+    if (!fl.active) continue;
+    const x = fl.x - camX, base = 12 * TILE;
+    const h = 40 + Math.sin(fl.t * 30) * 10;
+    ctx.fillStyle = "#ff4a00";
+    ctx.beginPath();
+    ctx.moveTo(x, base); ctx.lineTo(x + 4, base - h * 0.6); ctx.lineTo(x + 12, base - h); ctx.lineTo(x + 20, base - h * 0.6); ctx.lineTo(x + 24, base);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#ffc800";
+    ctx.beginPath();
+    ctx.moveTo(x + 6, base); ctx.lineTo(x + 10, base - h * 0.45); ctx.lineTo(x + 12, base - h * 0.5); ctx.lineTo(x + 16, base - h * 0.4); ctx.lineTo(x + 18, base);
+    ctx.closePath(); ctx.fill();
+  }
+}
+
+function drawTrophy() {
+  if (!trophy) return;
+  const x = trophy.col * TILE + 16 - 9 - camX, by = 9 * TILE + 6 + Math.sin(stT * 3) * 2;
+  if (doorOpen) return; // collected
+  rrect(x + 3, by + 10, 10, 2, "#b8860b");
+  rrect(x + 5, by + 2, 6, 9, "#ffd700");
+  rrect(x + 5, by - 4, 6, 6, "#ffd700");
+  rrect(x + 7, by - 6, 2, 2, "#fff6c0");
+  rrect(x + 5, by + 12, 2, 4, "#ffd700");
+  rrect(x + 9, by + 12, 2, 4, "#ffd700");
+}
+
+function drawJets() {
+  for (const j of jets) {
+    if (j.got) continue;
+    const x = j.x + 8 - 10 - camX, y = j.y - 8 + Math.sin(stT * 4) * 2;
+    rrect(x + 3, y + 8, 14, 6, "#8a8a9a");
+    rrect(x + 5, y + 2, 10, 8, "#d0d0e0");
+    rrect(x + 7, y + 12, 6, 5, "#ff8a2a");
+    rrect(x + 8, y + 17, 4, 4, "#ffc800");
+    rrect(x + 5, y + 2, 10, 2, "#fff");
   }
 }
 
 function drawDoor() {
   if (!door) return;
-  const x = door.c * TILE, y = (door.r - 1) * TILE;
-  const open = doorOpen || (state === "clear");
-  const col1 = open ? "#ffd700" : "#9a6a3a";
-  const col2 = open ? "#fff6c0" : "#6e4a26";
+  const x = door.col * TILE - camX, y = 10 * TILE;
+  const col1 = doorOpen ? "#ffd700" : "#9a6a3a";
   rrect(x + 2, y, 28, TILE * 2, col1);
   rrect(x + 6, y + 4, 20, TILE * 2 - 8, "#2a1a0a");
-  if (open) { // glow pulse
+  if (doorOpen) {
     const a = 0.25 + 0.2 * Math.sin(stT * 8);
     rrect(x, y - 4, 32, TILE * 2 + 8, `rgba(255,215,0,${a.toFixed(2)})`);
-    rrect(x + 10, y + 6, 12, 26, "#fff6c0");
-  } else { // padlock
-    rrect(x + 12, y + 12, 8, 7, col2);
-    rrect(x + 14, y + 9, 4, 4, col2);
-    rrect(x + 15, y + 14, 2, 3, "#2a1a0a");
+    rrect(x + 10, y + 8, 12, 26, "#fff6c0");
+  } else {
+    rrect(x + 12, y + 14, 8, 7, "#c8b060");
+    rrect(x + 14, y + 11, 4, 4, "#c8b060");
+    rrect(x + 15, y + 16, 2, 3, "#2a1a0a");
   }
 }
 
 function drawFoes() {
   for (const f of foes) {
     if (f.dead) continue;
+    const x = f.x - camX;
     if (f.kind === "w") {
       const body = f.fast ? "#e05545" : "#5cbf4e";
       const dark = f.fast ? "#a03020" : "#2e8a24";
-      rrect(f.x, f.y + 6, f.w, f.h - 6, body);
-      rrect(f.x - 2, f.y + 6, f.w + 4, 6, dark);
-      rrect(f.x + (f.dir > 0 ? f.w - 6 : 0), f.y + 10, 6, 8, "#fff");
-      rrect(f.x + (f.dir > 0 ? f.w - 4 : 2), f.y + 12, 2, 4, "#111");
-      rrect(f.x, f.y + f.h - 3, f.w, 3, dark);
+      rrect(x, f.y + 6, f.w, f.h - 6, body);
+      rrect(x - 2, f.y + 6, f.w + 4, 6, dark);
+      rrect(x + (f.dir > 0 ? f.w - 6 : 0), f.y + 10, 6, 8, "#fff");
+      rrect(x + (f.dir > 0 ? f.w - 4 : 2), f.y + 12, 2, 4, "#111");
+      rrect(x, f.y + f.h - 3, f.w, 3, dark);
     } else {
       ctx.globalAlpha = 0.75;
-      const wob = Math.sin(f.t * 6) * 3;
-      rrect(f.x, f.y + 4, f.w, f.h - 4, "#cfe8ff");
-      rrect(f.x, f.y + 4, f.w, 6, "#9ad4ff");
-      rrect(f.x + 4, f.y + 10, 3, 3, "#204060");
-      rrect(f.x + 13, f.y + 10, 3, 3, "#204060");
-      // wavy tail
-      for (let i = 0; i < 3; i++)
-        rrect(f.x + i * 7, f.y + f.h - 2 + wob + (i % 2) * 2, 4, 4, "#cfe8ff");
+      rrect(x, f.y + 4, f.w, f.h - 4, "#cfe8ff");
+      rrect(x, f.y + 4, f.w, 6, "#9ad4ff");
+      rrect(x + 4, f.y + 10, 3, 3, "#204060");
+      rrect(x + 13, f.y + 10, 3, 3, "#204060");
       ctx.globalAlpha = 1;
     }
   }
 }
 
+function drawBullets() {
+  ctx.fillStyle = "#ffe870";
+  for (const b of bullets) {
+    ctx.fillRect(b.x - camX - 2, b.y - 2, 10, 4);
+  }
+}
+
 function drawPlayer() {
   if (pl.inv > 0 && Math.floor(pl.inv * 12) % 2 === 0) return;
-  const x = pl.x, y = pl.y;
+  const x = pl.x - camX, y = pl.y;
   const run = Math.abs(pl.vx) > 10 && pl.ground;
   const leg = run ? Math.floor(pl.anim) % 2 : 0;
-  // legs
   rrect(x + 2 + (leg ? 2 : 0), y + 20, 6, 8, "#2b5bc4");
   rrect(x + 10 - (leg ? 2 : 0), y + 20, 6, 8, "#2b5bc4");
-  // body (red shirt)
   rrect(x, y + 12, 18, 9, "#e03028");
   rrect(x, y + 12, 18, 2, "#a01810");
-  // arms
   rrect(x + (pl.dir > 0 ? 17 : -1), y + 13, 2, 7, "#e0a878");
-  // head
   rrect(x + 3, y + 2, 12, 11, "#e0a878");
-  rrect(x + 3, y + 2, 12, 4, "#5a3a1a");           // hair
+  rrect(x + 3, y + 2, 12, 4, "#5a3a1a");
   rrect(x + (pl.dir > 0 ? 12 : 3), y + 6, 3, 3, "#fff");
   rrect(x + (pl.dir > 0 ? 13 : 5), y + 7, 2, 2, "#111");
+  // gun
+  if (pl.cd > 0 || true) rrect(x + (pl.dir > 0 ? 17 : -3), y + 15, 4, 3, "#444");
 }
 
 function drawHUD() {
-  rrect(0, 0, 640, HUD, "#141428");
-  rrect(0, HUD - 2, 640, 2, "#3a3a5a");
+  rrect(0, 0, VIEWW, HUD, "#141428");
+  rrect(0, HUD - 2, VIEWW, 2, "#3a3a5a");
   ctx.fillStyle = "#ffd700"; ctx.font = "bold 20px 'Courier New',monospace";
   ctx.textAlign = "left"; ctx.textBaseline = "middle";
-  ctx.fillText("SCORE " + score, 12, 22);
+  ctx.fillText("SCORE " + score, 10, 20);
   ctx.fillStyle = "#8a8ac0";
-  ctx.fillText("HI " + hi, 240, 22);
+  ctx.fillText("HI " + hi, 230, 20);
   ctx.fillStyle = "#e0e0f0";
-  ctx.fillText("L" + (levelIdx + 1) + "/" + LEVEL_MAPS.length, 400, 22);
+  ctx.fillText("L" + (levelIdx + 1) + "/10", 400, 20);
   ctx.fillStyle = "#ffd700";
-  const got = trophies.filter(t => t.got).length;
-  ctx.fillText("T " + got + "/" + trophies.length, 480, 22);
-  // lives as little heads
+  ctx.fillText(doorOpen ? "DOOR OPEN!" : "GET THE TROPHY", 480, 20);
+  // lives
   for (let i = 0; i < Math.max(0, lives + 1); i++) {
-    rrect(14 + i * 22, 40, 12, 2, "#e0a878");
-    rrect(15 + i * 22, 36, 10, 6, "#e0a878");
-    rrect(15 + i * 22, 36, 10, 3, "#5a3a1a");
+    rrect(14 + i * 22, 38, 12, 2, "#e0a878");
+    rrect(15 + i * 22, 34, 10, 6, "#e0a878");
+    rrect(15 + i * 22, 34, 10, 3, "#5a3a1a");
+  }
+  // jetpack fuel
+  if (pl.jet) {
+    ctx.fillStyle = "#333"; ctx.fillRect(230, 40, 90, 10);
+    ctx.fillStyle = pl.jetOn ? "#ff8a2a" : "#8a8a9a";
+    ctx.fillRect(232, 42, 86 * Math.max(0, pl.fuel / 6), 6);
+    ctx.fillStyle = "#8a8ac0"; ctx.font = "bold 10px 'Courier New',monospace";
+    ctx.fillText("FUEL", 328, 45);
   }
   ctx.fillStyle = "#8a8ac0"; ctx.font = "bold 13px 'Courier New',monospace";
-  ctx.fillText(lvlName, 200, 48);
-  if (muted) { ctx.fillStyle = "#e05545"; ctx.fillText("MUTED", 520, 48); }
+  ctx.fillText(lvlName, 400, 44);
+  if (muted) { ctx.fillStyle = "#e05545"; ctx.fillText("MUTED", 560, 44); }
+  // flash message
+  if (msgFlash > 0) {
+    ctx.fillStyle = "#ffd700"; ctx.font = "bold 18px 'Courier New',monospace";
+    ctx.fillText("THE DOOR IS OPEN!", VIEWW / 2, HUD + 120);
+  }
 }
 
 function drawOverlay() {
   ctx.fillStyle = "rgba(0,0,0,0.55)";
-  ctx.fillRect(0, HUD, 640, ROWS * TILE);
+  ctx.fillRect(0, HUD, VIEWW, VIEWH - HUD);
   ctx.textAlign = "center"; ctx.textBaseline = "middle";
   if (state === "title") {
     ctx.fillStyle = "#ffd700"; ctx.font = "bold 44px 'Courier New',monospace";
-    ctx.fillText("DANGEROUS DAVE", 320, 130);
+    ctx.fillText("DANGEROUS DAVE", 320, 120);
     ctx.fillStyle = "#e05545"; ctx.font = "bold 22px 'Courier New',monospace";
-    ctx.fillText("TROPHY TROUBLE", 320, 176);
+    ctx.fillText("TROPHY TROUBLE", 320, 166);
     ctx.fillStyle = "#c0c0e0"; ctx.font = "bold 14px 'Courier New',monospace";
-    ctx.fillText("A tribute to the 1988 John Romero classic", 320, 210);
-    ctx.fillText("Collect every gold trophy, then reach the door.", 320, 240);
+    ctx.fillText("A side-scrolling tribute to the 1990 DOS classic", 320, 202);
+    ctx.fillText("Grab the trophy, then run to the door.", 320, 228);
     ctx.fillStyle = "#9ad48a";
-    ctx.fillText("Beware Clyde's creatures - jump on them to squash them!", 320, 266);
+    ctx.fillText("Shoot or squash Clyde's creatures. Watch out for fire and water.", 320, 254);
     if (Math.floor(stT * 1.5) % 2 === 0) {
       ctx.fillStyle = "#ffffff"; ctx.font = "bold 20px 'Courier New',monospace";
-      ctx.fillText("PRESS ENTER", 320, 320);
+      ctx.fillText("PRESS ENTER", 320, 306);
     }
     ctx.fillStyle = "#8a8ac0"; ctx.font = "bold 12px 'Courier New',monospace";
-    ctx.fillText("10 LEVELS  |  ARROWS MOVE/JUMP  |  DOWN DROPS THROUGH WOOD", 320, 380);
+    ctx.fillText("10 LEVELS  |  CTRL/X = SHOOT  |  SHIFT = JETPACK  |  ARROWS MOVE", 320, 366);
   } else if (state === "intro") {
     ctx.fillStyle = "#ffd700"; ctx.font = "bold 34px 'Courier New',monospace";
-    ctx.fillText("LEVEL " + (levelIdx + 1), 320, 190);
+    ctx.fillText("LEVEL " + (levelIdx + 1), 320, 180);
     ctx.fillStyle = "#9ad48a"; ctx.font = "bold 18px 'Courier New',monospace";
-    ctx.fillText(lvlName, 320, 232);
+    ctx.fillText(lvlName, 320, 222);
+    ctx.fillStyle = "#8a8ac0"; ctx.font = "bold 12px 'Courier New',monospace";
+    ctx.fillText("GRAB THE TROPHY  >  REACH THE DOOR", 320, 258);
   } else if (state === "clear") {
     ctx.fillStyle = "#ffd700"; ctx.font = "bold 30px 'Courier New',monospace";
     ctx.fillText("LEVEL CLEAR!", 320, 210);
@@ -663,7 +717,7 @@ function drawOverlay() {
     ctx.fillStyle = "#ffd700"; ctx.font = "bold 44px 'Courier New',monospace";
     ctx.fillText("YOU WIN!", 320, 170);
     ctx.fillStyle = "#c0c0e0"; ctx.font = "bold 16px 'Courier New',monospace";
-    ctx.fillText("Dave escaped Clyde's lair with all the gold!", 320, 220);
+    ctx.fillText("Dave escaped Clyde's lair with the gold!", 320, 220);
     ctx.fillStyle = "#ffd700"; ctx.font = "bold 24px 'Courier New',monospace";
     ctx.fillText("FINAL SCORE " + score, 320, 262);
     if (score >= hi && score > 0) { ctx.fillStyle = "#9ad48a"; ctx.fillText("NEW HIGH SCORE!", 320, 298); }
@@ -680,26 +734,30 @@ function drawOverlay() {
 }
 
 function draw() {
+  drawBg();
   drawTiles();
-  drawTrophies();
+  drawFlames();
+  drawTrophy();
+  drawJets();
   drawDoor();
   drawFoes();
+  drawBullets();
   drawPlayer();
   drawHUD();
-  if (["title","intro","clear","over","win","pause"].includes(state)) drawOverlay();
+  if (["title", "intro", "clear", "over", "win", "pause"].includes(state)) drawOverlay();
 }
 
-// ---------------- loop ----------------
+// ---------- loop ----------
 let last = 0;
 function frame(ts) {
   const dt = Math.min(0.033, (ts - last) / 1000 || 0.016);
   last = ts;
   if (state === "title") {
     stT += dt;
-    if (enterQueued) { enterQueued = false; state = "intro"; stT = 0; }
+    if (enterQueued) { enterQueued = false; state = "intro"; stT = 0; loadLevel(0); }
   } else if (state === "over" || state === "win") {
     stT += dt;
-    if (enterQueued) { enterQueued = false; newGame(); state = "intro"; stT = 0; }
+    if (enterQueued) { enterQueued = false; newGame(); }
   } else if (state === "pause") {
     if (keys["p"] || keys["P"]) { state = "play"; keys["p"] = keys["P"] = false; }
     if (enterQueued) enterQueued = false;
